@@ -31,3 +31,8 @@ build/
 
 # Logs
 *.log
+
+
+# Add manually
+/backend/alembic/env.py
+/backend/alembic.ini
