@@ -1,9 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Jura:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
-
 
 @theme {
   --color-dark: #1a1a1a;
   --color-primary: #8b5cf6;
   --color-secondary: #a78bfa;
   --color-accent: #ffffff;
+
+  --font-sans: "Jura", sans-serif;
+
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
 }
