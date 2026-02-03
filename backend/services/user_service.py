@@ -1,3 +1,6 @@
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from models.user import User
@@ -35,3 +38,22 @@ def authenticate_user(db: Session, pseudo: str, password: str) -> Optional[User]
 def get_user_by_id(db: Session, user_id: int) -> Optional[User]:
     """Récupérer un utilisateur par son ID"""
     return db.query(User).filter(User.id_user == user_id).first()
+
+
+def create_user(db: Session, pseudo: str, password: str) -> User:
+    """Créer un nouvel utilisateur"""
+    user = User(
+        pseudo=pseudo,
+        password_hash=hash_password(password),
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def update_last_login(db: Session, user: User) -> None:
+    """Mettre à jour la date de dernière connexion"""
+    user.last_login_at = datetime.now(ZoneInfo("Europe/Paris"))
+    db.add(user)
+    db.commit()

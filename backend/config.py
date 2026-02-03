@@ -20,7 +20,8 @@ class Settings(BaseSettings):
 
     # FastAPI
     SECRET_KEY: str
-    DEBUG: bool = True
+    DEBUG: bool = False
+    JWT_EXPIRATION_HOURS: int = 24
 
     class Config:
         env_file = "../.env"

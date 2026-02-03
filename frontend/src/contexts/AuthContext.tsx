@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { API_URL } from '../services/api';
 
 interface User {
   id_user: number;
@@ -29,7 +30,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       try {
-        const response = await fetch('http://localhost:8000/me', {
+        const response = await fetch(`${API_URL}/me`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -41,8 +42,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } else {
           localStorage.removeItem('token');
         }
-      } catch (error) {
-        console.error('Erreur vérification auth:', error);
+      } catch {
         localStorage.removeItem('token');
       } finally {
         setLoading(false);

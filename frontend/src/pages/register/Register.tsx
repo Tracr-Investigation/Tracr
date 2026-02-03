@@ -1,21 +1,20 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { api } from '../../services/api';
 
-interface RegisterProps {
-  onLogin: () => void;
-}
-
-export const Register = ({ onLogin }: RegisterProps) => {
+export const Register = () => {
   const [pseudo, setPseudo] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    // Validation
     if (pseudo.length < 3) {
       setError('Le pseudo doit contenir au moins 3 caractères');
       return;
@@ -31,11 +30,19 @@ export const Register = ({ onLogin }: RegisterProps) => {
       return;
     }
 
-    // Simulation inscription
-    setSuccess(true);
-    setTimeout(() => {
-      onLogin();
-    }, 2000);
+    setLoading(true);
+
+    try {
+      await api.register(pseudo, password);
+      setSuccess(true);
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Erreur lors de l'inscription");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -124,9 +131,10 @@ export const Register = ({ onLogin }: RegisterProps) => {
               {/* Submit */}
               <button
                 type="submit"
-                className="w-full py-3 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-xl hover:opacity-90 transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+                disabled={loading}
+                className="w-full py-3 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98]"
               >
-                Créer mon compte
+                {loading ? 'Création...' : 'Créer mon compte'}
               </button>
             </form>
           )}
@@ -136,7 +144,7 @@ export const Register = ({ onLogin }: RegisterProps) => {
               <p className="text-secondary text-sm">
                 Déjà un compte ?{' '}
                 <button
-                  onClick={onLogin}
+                  onClick={() => navigate('/login')}
                   className="text-primary hover:text-secondary font-semibold transition-colors"
                 >
                   Se connecter
