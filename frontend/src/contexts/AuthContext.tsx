@@ -7,40 +7,63 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (user: User) => void;
+  login: (user: User, token: string) => void;
   logout: () => void;
   isAuthenticated: boolean;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Vérifier si l'utilisateur est connecté au chargement
-    const userId = localStorage.getItem('user_id');
-    const pseudo = localStorage.getItem('pseudo');
+      const checkAuth = async () => {
+      const token = localStorage.getItem('token');
 
-    if (userId && pseudo) {
-      setUser({ id_user: parseInt(userId), pseudo });
-    }
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:8000/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setUser({ id_user: data.id_user, pseudo: data.pseudo });
+        } else {
+          localStorage.removeItem('token');
+        }
+      } catch (error) {
+        console.error('Erreur vérification auth:', error);
+        localStorage.removeItem('token');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
   }, []);
 
-  const login = (user: User) => {
+  const login = (user: User, token: string) => {
     setUser(user);
-    localStorage.setItem('user_id', user.id_user.toString());
-    localStorage.setItem('pseudo', user.pseudo);
+    localStorage.setItem('token', token);
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('user_id');
-    localStorage.removeItem('pseudo');
+    localStorage.removeItem('token');
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user, loading }}>
       {children}
     </AuthContext.Provider>
   );

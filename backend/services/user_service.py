@@ -31,3 +31,7 @@ def authenticate_user(db: Session, pseudo: str, password: str) -> Optional[User]
     if not user.is_active:
         return None
     return user
+
+def get_user_by_id(db: Session, user_id: int) -> Optional[User]:
+    """Récupérer un utilisateur par son ID"""
+    return db.query(User).filter(User.id_user == user_id).first()

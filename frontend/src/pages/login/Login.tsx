@@ -18,7 +18,7 @@ export const Login = () => {
 
     try {
       const data = await api.login(pseudo, password);
-      login({ id_user: data.id_user, pseudo: data.pseudo });
+      login({ id_user: data.id_user, pseudo: data.pseudo }, data.token);
       navigate('/');
     } catch (err: any) {
       setError(err.message);
@@ -30,7 +30,6 @@ export const Login = () => {
   return (
     <div className="min-h-screen bg-dark flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* ... reste identique ... */}
         <div className="bg-dark/50 backdrop-blur-sm border border-primary/20 rounded-2xl p-8 shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
