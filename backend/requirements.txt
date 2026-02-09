@@ -1,5 +1,5 @@
 uvicorn
-fastapi
+fastapi[standard]
 requests
 sqlalchemy
 python-jose[cryptography]
