@@ -4,6 +4,7 @@ import { API_URL } from '../services/api';
 interface User {
   id_user: number;
   pseudo: string;
+  role: string;
 }
 
 interface AuthContextType {
@@ -38,7 +39,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         if (response.ok) {
           const data = await response.json();
-          setUser({ id_user: data.id_user, pseudo: data.pseudo });
+          setUser({ id_user: data.id_user, pseudo: data.pseudo, role: data.role });
         } else {
           localStorage.removeItem('token');
         }

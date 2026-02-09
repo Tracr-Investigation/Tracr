@@ -109,10 +109,13 @@ async def login(request: Request, body: LoginRequest, db: Session = Depends(get_
 
     user_service.update_last_login(db, user)
 
+    role = user_service.get_user_role(db, user.id_user)
+
     return {
         "token": token,
         "id_user": user.id_user,
         "pseudo": user.pseudo,
+        "role": role,
     }
 
 
@@ -130,7 +133,7 @@ async def register(
     except IntegrityError:
         raise HTTPException(status_code=409, detail="Ce pseudo est déjà utilisé")
 
-    return {"id_user": user.id_user, "pseudo": user.pseudo}
+    return {"id_user": user.id_user, "pseudo": user.pseudo, "role": "user"}
 
 
 @app.get("/me")
@@ -139,7 +142,10 @@ async def get_me(payload: dict = Depends(verify_token), db: Session = Depends(ge
     if not user or not user.is_active:
         raise HTTPException(status_code=401, detail="Identifiants incorrects")
 
+    role = user_service.get_user_role(db, user.id_user)
+
     return {
         "id_user": user.id_user,
         "pseudo": user.pseudo,
+        "role": role,
     }

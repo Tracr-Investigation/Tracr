@@ -4,6 +4,7 @@ from zoneinfo import ZoneInfo
 from sqlalchemy.orm import Session
 import bcrypt
 from models.user import User
+from models.role import Role, UserRole
 from typing import Optional
 
 
@@ -46,6 +47,17 @@ def create_user(db: Session, pseudo: str, password: str) -> User:
     db.commit()
     db.refresh(user)
     return user
+
+
+def get_user_role(db: Session, user_id: int) -> str:
+    """Récupérer le rôle d'un utilisateur"""
+    role = (
+        db.query(Role.name)
+        .join(UserRole, UserRole.id_role == Role.id_role)
+        .filter(UserRole.id_user == user_id)
+        .first()
+    )
+    return role[0] if role else "user"
 
 
 def update_last_login(db: Session, user: User) -> None:

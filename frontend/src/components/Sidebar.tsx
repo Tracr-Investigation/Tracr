@@ -142,7 +142,7 @@ export const Sidebar = () => {
                                 <p className="text-sm font-medium text-accent truncate">
                                     {user?.pseudo}
                                 </p>
-                                <p className="text-xs text-secondary">Utilisateur</p>
+                                <p className="text-xs text-secondary capitalize">{user?.role}</p>
                             </div>
                         )}
                     </div>

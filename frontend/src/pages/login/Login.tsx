@@ -18,7 +18,7 @@ export const Login = () => {
 
         try {
             const data = await api.login(pseudo, password);
-            login({id_user: data.id_user, pseudo: data.pseudo}, data.token);
+            login({id_user: data.id_user, pseudo: data.pseudo, role: data.role}, data.token);
             navigate('/');
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Erreur de connexion');
