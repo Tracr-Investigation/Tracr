@@ -32,9 +32,9 @@ export const Sidebar = () => {
     const menuItems = [
         {icon: Home, label: 'Home', path: '/'},
         {icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard'},
-        {icon: FileSearch, label: 'Enquêtes', path: '/enquetes'},
+        {icon: FileSearch, label: 'Investigations', path: '/enquetes'},
         {icon: FileText, label: 'Templates', path: '/templates'},
-        {icon: Settings, label: 'Paramètres', path: '/parametres'},
+        {icon: Settings, label: 'Settings', path: '/parametres'},
     ];
 
     const handleLogout = () => {
@@ -155,10 +155,10 @@ export const Sidebar = () => {
               text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all
               ${collapsed ? 'justify-center' : ''}
             `}
-                        title={collapsed ? 'Déconnexion' : ''}
+                        title={collapsed ? 'Logout' : ''}
                     >
                         <LogOut size={22} className="flex-shrink-0"/>
-                        {!collapsed && <span className="font-medium">Déconnexion</span>}
+                        {!collapsed && <span className="font-medium">Logout</span>}
                     </button>
                 </div>
             </aside>

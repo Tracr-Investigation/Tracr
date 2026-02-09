@@ -18,17 +18,17 @@ export const Register = () => {
     setError('');
 
     if (pseudo.length < 3) {
-      setError('Le pseudo doit contenir au moins 3 caractères');
+      setError('Username must be at least 3 characters');
       return;
     }
 
     if (!isPasswordValid(password)) {
-      setError('Le mot de passe ne respecte pas les critères de sécurité');
+      setError('Password does not meet security requirements');
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('Les mots de passe ne correspondent pas');
+      setError('Passwords do not match');
       return;
     }
 
@@ -41,7 +41,7 @@ export const Register = () => {
         navigate('/login');
       }, 2000);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Erreur lors de l'inscription");
+      setError(err instanceof Error ? err.message : 'Registration error');
     } finally {
       setLoading(false);
     }
@@ -59,8 +59,8 @@ export const Register = () => {
               </svg>
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-accent mb-2">Inscription</h1>
-          <p className="text-secondary">Créez votre compte</p>
+          <h1 className="text-3xl font-bold text-accent mb-2">Sign up</h1>
+          <p className="text-secondary">Create your account</p>
         </div>
 
         {/* Card */}
@@ -72,22 +72,22 @@ export const Register = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-accent mb-2">Compte créé !</h3>
-              <p className="text-secondary">Redirection vers la connexion...</p>
+              <h3 className="text-xl font-semibold text-accent mb-2">Account created!</h3>
+              <p className="text-secondary">Redirecting to login...</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Pseudo */}
               <div>
                 <label className="block text-sm font-medium text-accent mb-2">
-                  Pseudo
+                  Username
                 </label>
                 <input
                   type="text"
                   value={pseudo}
                   onChange={(e) => setPseudo(e.target.value)}
                   className="w-full px-4 py-3 bg-dark/50 border border-primary/30 rounded-xl text-accent placeholder-secondary/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                  placeholder="Choisissez un pseudo"
+                  placeholder="Choose a username"
                   required
                 />
               </div>
@@ -95,7 +95,7 @@ export const Register = () => {
               {/* Password */}
               <div>
                 <label className="block text-sm font-medium text-accent mb-2">
-                  Mot de passe
+                  Password
                 </label>
                 <input
                   type="password"
@@ -111,7 +111,7 @@ export const Register = () => {
               {/* Confirm Password */}
               <div>
                 <label className="block text-sm font-medium text-accent mb-2">
-                  Confirmer le mot de passe
+                  Confirm password
                 </label>
                 <input
                   type="password"
@@ -136,7 +136,7 @@ export const Register = () => {
                 disabled={loading}
                 className="w-full py-3 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98]"
               >
-                {loading ? 'Création...' : 'Créer mon compte'}
+                {loading ? 'Creating...' : 'Create my account'}
               </button>
             </form>
           )}
@@ -144,12 +144,12 @@ export const Register = () => {
           {!success && (
             <div className="mt-6 text-center">
               <p className="text-secondary text-sm">
-                Déjà un compte ?{' '}
+                Already have an account?{' '}
                 <button
                   onClick={() => navigate('/login')}
                   className="text-primary hover:text-secondary font-semibold transition-colors"
                 >
-                  Se connecter
+                  Sign in
                 </button>
               </p>
             </div>

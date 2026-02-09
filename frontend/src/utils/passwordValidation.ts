@@ -4,11 +4,11 @@ export interface PasswordRule {
 }
 
 export const PASSWORD_RULES: PasswordRule[] = [
-  { label: "12 caractères minimum", test: (p) => p.length >= 12 },
-  { label: "Une minuscule", test: (p) => /[a-z]/.test(p) },
-  { label: "Une majuscule", test: (p) => /[A-Z]/.test(p) },
-  { label: "Un chiffre", test: (p) => /\d/.test(p) },
-  { label: "Un symbole", test: (p) => /[^a-zA-Z0-9]/.test(p) },
+  { label: "12 characters minimum", test: (p) => p.length >= 12 },
+  { label: "One lowercase letter", test: (p) => /[a-z]/.test(p) },
+  { label: "One uppercase letter", test: (p) => /[A-Z]/.test(p) },
+  { label: "One digit", test: (p) => /\d/.test(p) },
+  { label: "One symbol", test: (p) => /[^a-zA-Z0-9]/.test(p) },
 ];
 
 export function isPasswordValid(password: string): boolean {

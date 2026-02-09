@@ -21,7 +21,7 @@ export const api = {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(parseApiError(data.detail, 'Erreur de connexion'));
+      throw new Error(parseApiError(data.detail, 'Login error'));
     }
 
     return data;
@@ -37,7 +37,7 @@ export const api = {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(parseApiError(data.detail, "Erreur lors de l'inscription"));
+      throw new Error(parseApiError(data.detail, 'Registration error'));
     }
 
     return data;
@@ -57,7 +57,7 @@ export const api = {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(parseApiError(data.detail, 'Erreur lors du changement de mot de passe'));
+      throw new Error(parseApiError(data.detail, 'Error changing password'));
     }
 
     return data;

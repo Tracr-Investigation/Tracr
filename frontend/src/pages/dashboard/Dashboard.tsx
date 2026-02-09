@@ -5,7 +5,7 @@ export const Dashboard = () => {
     <Layout>
       <div className="p-8">
         <h1 className="text-3xl font-bold text-accent mb-4">Dashboard</h1>
-        <p className="text-secondary">Statistiques et données</p>
+        <p className="text-secondary">Statistics and data</p>
       </div>
     </Layout>
   );

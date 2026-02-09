@@ -5,7 +5,7 @@ export const Templates = () => {
     <Layout>
       <div className="p-8">
         <h1 className="text-3xl font-bold text-accent mb-4">Templates</h1>
-        <p className="text-secondary">Modèles de documents</p>
+        <p className="text-secondary">Document templates</p>
       </div>
     </Layout>
   );

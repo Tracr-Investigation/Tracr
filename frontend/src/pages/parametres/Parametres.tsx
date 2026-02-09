@@ -10,14 +10,14 @@ const PlaceholderTab = ({ title, description }: { title: string; description: st
     </div>
     <h3 className="text-lg font-semibold text-accent mb-2">{title}</h3>
     <p className="text-sm text-secondary">{description}</p>
-    <span className="mt-4 text-xs text-secondary/50 border border-primary/10 rounded-full px-3 py-1">Bientôt disponible</span>
+    <span className="mt-4 text-xs text-secondary/50 border border-primary/10 rounded-full px-3 py-1">Coming soon</span>
   </div>
 );
 
 const TABS: TabItem[] = [
   {
     id: 'security',
-    label: 'Sécurité',
+    label: 'Security',
     icon: Lock,
     content: (
       <div className="max-w-2xl">
@@ -27,15 +27,15 @@ const TABS: TabItem[] = [
   },
   {
     id: 'profile',
-    label: 'Profil',
+    label: 'Profile',
     icon: UserCog,
-    content: <PlaceholderTab title="Profil" description="Gérez vos informations personnelles" />,
+    content: <PlaceholderTab title="Profile" description="Manage your personal information" />,
   },
   {
     id: 'notifications',
     label: 'Notifications',
     icon: Bell,
-    content: <PlaceholderTab title="Notifications" description="Configurez vos préférences de notification" />,
+    content: <PlaceholderTab title="Notifications" description="Configure your notification preferences" />,
   },
 ];
 
@@ -43,8 +43,8 @@ export const Parametres = () => {
   return (
     <Layout>
       <div className="p-8">
-        <h1 className="text-3xl font-bold text-accent mb-2">Paramètres</h1>
-        <p className="text-secondary mb-6">Configuration de votre compte</p>
+        <h1 className="text-3xl font-bold text-accent mb-2">Settings</h1>
+        <p className="text-secondary mb-6">Account configuration</p>
 
         <Tabs tabs={TABS} defaultTab="security" />
       </div>

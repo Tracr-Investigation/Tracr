@@ -21,17 +21,17 @@ export const SecurityTab = () => {
     setSuccess('');
 
     if (!isPasswordValid(newPassword)) {
-      setError('Le nouveau mot de passe ne respecte pas les critères de sécurité');
+      setError('New password does not meet security requirements');
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError('Les mots de passe ne correspondent pas');
+      setError('Passwords do not match');
       return;
     }
 
     if (currentPassword === newPassword) {
-      setError('Le nouveau mot de passe doit être différent de l\'ancien');
+      setError('New password must be different from the current one');
       return;
     }
 
@@ -39,12 +39,12 @@ export const SecurityTab = () => {
 
     try {
       await api.changePassword(currentPassword, newPassword);
-      setSuccess('Mot de passe modifié avec succès');
+      setSuccess('Password changed successfully');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Erreur lors du changement de mot de passe');
+      setError(err instanceof Error ? err.message : 'Error changing password');
     } finally {
       setLoading(false);
     }
@@ -57,8 +57,8 @@ export const SecurityTab = () => {
           <Shield size={22} className="text-primary" />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-accent">Mot de passe</h2>
-          <p className="text-sm text-secondary">Modifiez votre mot de passe pour sécuriser votre compte</p>
+          <h2 className="text-lg font-semibold text-accent">Password</h2>
+          <p className="text-sm text-secondary">Change your password to secure your account</p>
         </div>
       </div>
 
@@ -67,7 +67,7 @@ export const SecurityTab = () => {
       <form onSubmit={handleChangePassword} className="space-y-5">
         <div>
           <label className="block text-sm font-medium text-accent mb-2">
-            Mot de passe actuel
+            Current password
           </label>
           <div className="relative">
             <input
@@ -75,7 +75,7 @@ export const SecurityTab = () => {
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               className="w-full px-4 py-3 pr-12 bg-dark/80 border border-primary/20 rounded-xl text-accent placeholder-secondary/40 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-              placeholder="Entrez votre mot de passe actuel"
+              placeholder="Enter your current password"
               required
             />
             <button
@@ -90,7 +90,7 @@ export const SecurityTab = () => {
 
         <div>
           <label className="block text-sm font-medium text-accent mb-2">
-            Nouveau mot de passe
+            New password
           </label>
           <div className="relative">
             <input
@@ -98,7 +98,7 @@ export const SecurityTab = () => {
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               className="w-full px-4 py-3 pr-12 bg-dark/80 border border-primary/20 rounded-xl text-accent placeholder-secondary/40 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-              placeholder="Entrez votre nouveau mot de passe"
+              placeholder="Enter your new password"
               required
             />
             <button
@@ -114,7 +114,7 @@ export const SecurityTab = () => {
 
         <div>
           <label className="block text-sm font-medium text-accent mb-2">
-            Confirmer le nouveau mot de passe
+            Confirm new password
           </label>
           <div className="relative">
             <input
@@ -122,7 +122,7 @@ export const SecurityTab = () => {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="w-full px-4 py-3 pr-12 bg-dark/80 border border-primary/20 rounded-xl text-accent placeholder-secondary/40 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-              placeholder="Confirmez votre nouveau mot de passe"
+              placeholder="Confirm your new password"
               required
             />
             <button
@@ -152,7 +152,7 @@ export const SecurityTab = () => {
           disabled={loading}
           className="w-full py-3 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         >
-          {loading ? 'Modification...' : 'Modifier le mot de passe'}
+          {loading ? 'Updating...' : 'Change password'}
         </button>
       </form>
     </div>

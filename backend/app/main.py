@@ -34,7 +34,7 @@ app.state.limiter = limiter
 async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
     return JSONResponse(
         status_code=429,
-        content={"detail": "Trop de tentatives. Réessayez plus tard."},
+        content={"detail": "Too many attempts. Please try again later."},
     )
 
 
@@ -63,7 +63,7 @@ async def add_security_headers(request: Request, call_next):
 async def login(request: Request, body: LoginRequest, db: Session = Depends(get_db)):
     user = user_service.authenticate_user(db, body.pseudo, body.password)
     if not user:
-        raise HTTPException(status_code=401, detail="Identifiants incorrects")
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
     token = create_token(user.id_user)
     user_service.update_last_login(db, user)
@@ -84,12 +84,12 @@ async def register(
 ):
     existing = user_service.get_user_by_pseudo(db, body.pseudo)
     if existing:
-        raise HTTPException(status_code=409, detail="Ce pseudo est déjà utilisé")
+        raise HTTPException(status_code=409, detail="This username is already taken")
 
     try:
         user = user_service.create_user(db, body.pseudo, body.password)
     except IntegrityError:
-        raise HTTPException(status_code=409, detail="Ce pseudo est déjà utilisé")
+        raise HTTPException(status_code=409, detail="This username is already taken")
 
     return {"id_user": user.id_user, "pseudo": user.pseudo, "role": "user"}
 
@@ -98,7 +98,7 @@ async def register(
 async def get_me(payload: dict = Depends(verify_token), db: Session = Depends(get_db)):
     user = user_service.get_user_by_id(db, payload["user_id"])
     if not user or not user.is_active:
-        raise HTTPException(status_code=401, detail="Identifiants incorrects")
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
     role = user_service.get_user_role(db, user.id_user)
 
@@ -117,11 +117,11 @@ async def change_password(
 ):
     user = user_service.get_user_by_id(db, payload["user_id"])
     if not user or not user.is_active:
-        raise HTTPException(status_code=401, detail="Utilisateur introuvable")
+        raise HTTPException(status_code=401, detail="User not found")
 
     if not user_service.verify_password(body.current_password, user.password_hash):
-        raise HTTPException(status_code=400, detail="Mot de passe actuel incorrect")
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
 
     user_service.update_password(db, user, body.new_password)
 
-    return {"detail": "Mot de passe modifié avec succès"}
+    return {"detail": "Password changed successfully"}

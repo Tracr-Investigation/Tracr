@@ -17,12 +17,12 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 def get_user_by_pseudo(db: Session, pseudo: str) -> Optional[User]:
-    """Récupérer un user par pseudo"""
+    """Get a user by username"""
     return db.query(User).filter(User.pseudo == pseudo).first()
 
 
 def authenticate_user(db: Session, pseudo: str, password: str) -> Optional[User]:
-    """Authentifier un utilisateur"""
+    """Authenticate a user"""
     user = get_user_by_pseudo(db, pseudo)
     if not user:
         return None
@@ -33,12 +33,12 @@ def authenticate_user(db: Session, pseudo: str, password: str) -> Optional[User]
     return user
 
 def get_user_by_id(db: Session, user_id: int) -> Optional[User]:
-    """Récupérer un utilisateur par son ID"""
+    """Get a user by ID"""
     return db.query(User).filter(User.id_user == user_id).first()
 
 
 def create_user(db: Session, pseudo: str, password: str) -> User:
-    """Créer un nouvel utilisateur"""
+    """Create a new user"""
     user = User(
         pseudo=pseudo,
         password_hash=hash_password(password),
@@ -50,7 +50,7 @@ def create_user(db: Session, pseudo: str, password: str) -> User:
 
 
 def get_user_role(db: Session, user_id: int) -> str:
-    """Récupérer le rôle d'un utilisateur"""
+    """Get a user's role"""
     role = (
         db.query(Role.name)
         .join(UserRole, UserRole.id_role == Role.id_role)
@@ -67,6 +67,6 @@ def update_password(db: Session, user: User, new_password: str) -> None:
 
 
 def update_last_login(db: Session, user: User) -> None:
-    user.last_login_at = datetime.now(ZoneInfo("Europe/Paris"))
+    user.last_login_at = datetime.now(ZoneInfo("UTC"))
     db.add(user)
     db.commit()
