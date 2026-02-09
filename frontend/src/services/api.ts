@@ -42,4 +42,24 @@ export const api = {
 
     return data;
   },
+
+  changePassword: async (currentPassword: string, newPassword: string) => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/change-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(parseApiError(data.detail, 'Erreur lors du changement de mot de passe'));
+    }
+
+    return data;
+  },
 };

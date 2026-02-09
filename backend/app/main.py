@@ -1,11 +1,6 @@
-from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
-
-from fastapi import FastAPI, Depends, HTTPException, Header, Request
+from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
-from jose import jwt, JWTError
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
@@ -15,10 +10,11 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from models.user import User
 from services import user_service
 from sqlmodel import Session, create_engine
 from config import settings
+from utils.security import verify_token, create_token
+from utils.schemas import LoginRequest, RegisterRequest, ChangePasswordRequest
 
 engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True)
 
@@ -62,33 +58,6 @@ async def add_security_headers(request: Request, call_next):
     return response
 
 
-def verify_token(authorization: str = Header(None)) -> dict:
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Token manquant")
-
-    token = authorization.replace("Bearer ", "")
-
-    try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Token invalide")
-
-    if "user_id" not in payload:
-        raise HTTPException(status_code=401, detail="Token invalide")
-
-    return payload
-
-
-class LoginRequest(BaseModel):
-    pseudo: str = Field(min_length=3, max_length=50)
-    password: str = Field(min_length=8, max_length=128)
-
-
-class RegisterRequest(BaseModel):
-    pseudo: str = Field(min_length=3, max_length=50)
-    password: str = Field(min_length=8, max_length=128)
-
-
 @app.post("/login")
 @limiter.limit("5/minute")
 async def login(request: Request, body: LoginRequest, db: Session = Depends(get_db)):
@@ -96,19 +65,8 @@ async def login(request: Request, body: LoginRequest, db: Session = Depends(get_
     if not user:
         raise HTTPException(status_code=401, detail="Identifiants incorrects")
 
-    now = datetime.now(ZoneInfo("Europe/Paris"))
-    token = jwt.encode(
-        {
-            "user_id": user.id_user,
-            "iat": now,
-            "exp": now + timedelta(hours=settings.JWT_EXPIRATION_HOURS),
-        },
-        settings.SECRET_KEY,
-        algorithm="HS256",
-    )
-
+    token = create_token(user.id_user)
     user_service.update_last_login(db, user)
-
     role = user_service.get_user_role(db, user.id_user)
 
     return {
@@ -149,3 +107,21 @@ async def get_me(payload: dict = Depends(verify_token), db: Session = Depends(ge
         "pseudo": user.pseudo,
         "role": role,
     }
+
+
+@app.post("/change-password")
+async def change_password(
+    body: ChangePasswordRequest,
+    payload: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+):
+    user = user_service.get_user_by_id(db, payload["user_id"])
+    if not user or not user.is_active:
+        raise HTTPException(status_code=401, detail="Utilisateur introuvable")
+
+    if not user_service.verify_password(body.current_password, user.password_hash):
+        raise HTTPException(status_code=400, detail="Mot de passe actuel incorrect")
+
+    user_service.update_password(db, user, body.new_password)
+
+    return {"detail": "Mot de passe modifié avec succès"}

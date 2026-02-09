@@ -60,8 +60,13 @@ def get_user_role(db: Session, user_id: int) -> str:
     return role[0] if role else "user"
 
 
+def update_password(db: Session, user: User, new_password: str) -> None:
+    user.password_hash = hash_password(new_password)
+    db.add(user)
+    db.commit()
+
+
 def update_last_login(db: Session, user: User) -> None:
-    """Mettre à jour la date de dernière connexion"""
     user.last_login_at = datetime.now(ZoneInfo("Europe/Paris"))
     db.add(user)
     db.commit()

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
+import { PasswordStrength } from '../../components/PasswordStrength';
+import { isPasswordValid } from '../../utils/passwordValidation';
 
 export const Register = () => {
   const [pseudo, setPseudo] = useState('');
@@ -20,8 +22,8 @@ export const Register = () => {
       return;
     }
 
-    if (password.length < 8) {
-      setError('Le mot de passe doit contenir au moins 8 caractères');
+    if (!isPasswordValid(password)) {
+      setError('Le mot de passe ne respecte pas les critères de sécurité');
       return;
     }
 
@@ -103,7 +105,7 @@ export const Register = () => {
                   placeholder="••••••••"
                   required
                 />
-                <p className="text-secondary/70 text-xs mt-1">Minimum 8 caractères</p>
+                <PasswordStrength password={password} />
               </div>
 
               {/* Confirm Password */}
