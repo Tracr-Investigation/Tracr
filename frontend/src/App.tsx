@@ -8,6 +8,7 @@ import { Dashboard } from './pages/dashboard/Dashboard';
 import { Enquetes } from './pages/enquetes/Enquetes';
 import { Templates } from './pages/templates/Templates';
 import { Parametres } from './pages/parametres/Parametres';
+import { NotFound } from './pages/not-found/NotFound';
 
 function App() {
   return (
@@ -56,7 +57,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
