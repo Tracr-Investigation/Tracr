@@ -1,3 +1,4 @@
 from models.user import User
-__all__ = ["User"]
+from models.role import Role, UserRole
+__all__ = ["User", "Role", "UserRole"]
 

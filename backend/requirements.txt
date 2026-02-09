@@ -4,7 +4,7 @@ requests
 sqlalchemy
 python-jose[cryptography]
 sqlmodel
-passlib[bcrypt]
+bcrypt
 pydantic-settings
 slowapi
 psycopg2-binary
