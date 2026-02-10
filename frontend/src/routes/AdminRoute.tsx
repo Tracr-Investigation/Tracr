@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { NotFound } from '../pages/not-found/NotFound';
 
 export const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading, user } = useAuth();
@@ -17,7 +18,7 @@ export const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (user?.role !== 'admin' && user?.role !== 'super-admin') {
-    return <Navigate to="/" replace />;
+    return <NotFound />;
   }
 
   return <>{children}</>;
