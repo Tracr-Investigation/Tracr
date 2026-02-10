@@ -80,4 +80,22 @@ export const api = {
 
     return data;
   },
+
+  getLogs: async (page: number = 1, limit: number = 10, category: string = '', search: string = '') => {
+    const token = localStorage.getItem('token');
+    const params = new URLSearchParams({ page: String(page), limit: String(limit), category, search });
+    const response = await fetch(`${API_URL}/admin/logs?${params}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(parseApiError(data.detail, 'Error fetching logs'));
+    }
+
+    return data;
+  },
 };
