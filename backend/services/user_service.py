@@ -4,7 +4,8 @@ from zoneinfo import ZoneInfo
 from sqlalchemy.orm import Session
 import bcrypt
 from models.user import User
-from models.role import Role, UserRole
+from models.role import Role
+from models.user_role import UserRole
 from typing import Optional
 
 
