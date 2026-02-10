@@ -35,9 +35,9 @@ export const Sidebar = () => {
     const menuItems = [
         {icon: Home, label: 'Home', path: '/'},
         {icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard'},
-        {icon: FileSearch, label: 'Investigations', path: '/enquetes'},
+        {icon: FileSearch, label: 'Investigations', path: '/investigations'},
         {icon: FileText, label: 'Templates', path: '/templates'},
-        {icon: Settings, label: 'Settings', path: '/parametres'},
+        {icon: Settings, label: 'Settings', path: '/settings'},
         ...(isAdmin ? [{icon: Shield, label: 'Administration', path: '/admin'}] : []),
     ];
 
