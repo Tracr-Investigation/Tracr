@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Layout } from '../../components/Layout';
 import { StatusBadge } from '../../components/StatusBadge';
+import { useToast } from '../../contexts/ToastContext';
 import { api } from '../../services/api';
 import { FileSearch, Plus, X, Calendar, AlignLeft } from 'lucide-react';
 
@@ -25,6 +26,7 @@ const CreateModal = ({ onClose, onSave }: { onClose: () => void; onSave: () => v
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,9 +34,12 @@ const CreateModal = ({ onClose, onSave }: { onClose: () => void; onSave: () => v
     setError('');
     try {
       await api.createInvestigation(title, description || null);
+      toast('success', 'Investigation créée avec succès');
       onSave();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
+      const message = err instanceof Error ? err.message : 'Une erreur est survenue';
+      setError(message);
+      toast('error', message);
     } finally {
       setLoading(false);
     }
