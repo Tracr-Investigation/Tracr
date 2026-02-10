@@ -176,6 +176,43 @@ export const api = {
         return data;
     },
 
+    getInvestigations: async () => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error fetching investigations'));
+        }
+
+        return data;
+    },
+
+    createInvestigation: async (title: string, description: string | null) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({title, description}),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error creating investigation'));
+        }
+
+        return data;
+    },
+
     getLogs: async (page: number = 1, limit: number = 10, category: string = '', search: string = '') => {
         const token = localStorage.getItem('token');
         const params = new URLSearchParams({page: String(page), limit: String(limit), category, search});

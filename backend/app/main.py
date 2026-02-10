@@ -8,7 +8,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from app.dependencies import limiter
-from app.routes import auth, admin
+from app.routes import auth, admin, investigations
 
 app = FastAPI()
 app.state.limiter = limiter
@@ -44,3 +44,4 @@ async def add_security_headers(request: Request, call_next):
 
 app.include_router(auth.router)
 app.include_router(admin.router)
+app.include_router(investigations.router)
