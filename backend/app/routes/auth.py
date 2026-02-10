@@ -4,7 +4,7 @@ from sqlmodel import Session
 
 from services import user_service, log_service
 from utils.security import verify_token, create_token
-from utils.schemas import LoginRequest, RegisterRequest, ChangePasswordRequest
+from utils.schemas import LoginRequest, RegisterRequest, ChangePasswordRequest, DeleteAccountRequest
 from app.dependencies import get_db, limiter
 
 router = APIRouter()
@@ -88,3 +88,25 @@ async def change_password(
     log_service.create_log(db, "auth", "change_password", id_user=user.id_user, ip_address=ip)
 
     return {"detail": "Password changed successfully"}
+
+
+@router.post("/delete-account")
+async def delete_account(
+    request: Request,
+    body: DeleteAccountRequest,
+    payload: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+):
+    ip = request.client.host if request.client else None
+    user = user_service.get_user_by_id(db, payload["user_id"])
+    if not user or not user.is_active:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    if not user_service.verify_password(body.password, user.password_hash):
+        log_service.create_log(db, "auth", "delete_account_failed", id_user=user.id_user, ip_address=ip)
+        raise HTTPException(status_code=400, detail="Incorrect password")
+
+    user_service.deactivate_user(db, user)
+    log_service.create_log(db, "auth", "delete_account", id_user=user.id_user, detail=f"pseudo={user.pseudo}", ip_address=ip)
+
+    return {"detail": "Account deleted successfully"}

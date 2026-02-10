@@ -60,6 +60,13 @@ def get_user_role(db: Session, user_id: int) -> str:
     return role[0] if role else "user"
 
 
+def deactivate_user(db: Session, user: User) -> None:
+    """Soft delete a user account"""
+    user.is_active = False
+    db.add(user)
+    db.commit()
+
+
 def update_password(db: Session, user: User, new_password: str) -> None:
     user.password_hash = hash_password(new_password)
     db.add(user)
