@@ -70,3 +70,32 @@ def update_last_login(db: Session, user: User) -> None:
     user.last_login_at = datetime.now(ZoneInfo("UTC"))
     db.add(user)
     db.commit()
+
+
+def get_users_paginated(db: Session, skip: int, limit: int, search: str = ""):
+    """Get paginated list of users with their roles"""
+    query = db.query(User)
+    if search:
+        query = query.filter(User.pseudo.ilike(f"%{search}%"))
+    users = query.order_by(User.created_at.desc()).offset(skip).limit(limit).all()
+
+    result = []
+    for u in users:
+        role = get_user_role(db, u.id_user)
+        result.append({
+            "id_user": u.id_user,
+            "pseudo": u.pseudo,
+            "role": role,
+            "is_active": u.is_active,
+            "created_at": u.created_at.isoformat() if u.created_at else None,
+            "last_login_at": u.last_login_at.isoformat() if u.last_login_at else None,
+        })
+    return result
+
+
+def count_users(db: Session, search: str = "") -> int:
+    """Count total number of users with optional search filter"""
+    query = db.query(User)
+    if search:
+        query = query.filter(User.pseudo.ilike(f"%{search}%"))
+    return query.count()

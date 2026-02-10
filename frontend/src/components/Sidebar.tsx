@@ -7,6 +7,7 @@ import {
     FileSearch,
     FileText,
     Settings,
+    Shield,
     LogOut,
     ChevronLeft,
     ChevronRight,
@@ -29,12 +30,15 @@ export const Sidebar = () => {
         localStorage.setItem('sidebar-collapsed', collapsed.toString());
     }, [collapsed]);
 
+    const isAdmin = user?.role === 'admin' || user?.role === 'super-admin';
+
     const menuItems = [
         {icon: Home, label: 'Home', path: '/'},
         {icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard'},
         {icon: FileSearch, label: 'Investigations', path: '/enquetes'},
         {icon: FileText, label: 'Templates', path: '/templates'},
         {icon: Settings, label: 'Settings', path: '/parametres'},
+        ...(isAdmin ? [{icon: Shield, label: 'Administration', path: '/admin'}] : []),
     ];
 
     const handleLogout = () => {

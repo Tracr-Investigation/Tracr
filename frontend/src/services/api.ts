@@ -62,4 +62,22 @@ export const api = {
 
     return data;
   },
+
+  getUsers: async (page: number = 1, limit: number = 10, search: string = '') => {
+    const token = localStorage.getItem('token');
+    const params = new URLSearchParams({ page: String(page), limit: String(limit), search });
+    const response = await fetch(`${API_URL}/admin/users?${params}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(parseApiError(data.detail, 'Error fetching users'));
+    }
+
+    return data;
+  },
 };
