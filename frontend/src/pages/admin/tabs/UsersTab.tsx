@@ -14,6 +14,7 @@ interface UserData {
 export const UsersTab = () => {
   const [users, setUsers] = useState<UserData[]>([]);
   const [total, setTotal] = useState(0);
+  const [filtered, setFiltered] = useState(0);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -34,6 +35,7 @@ export const UsersTab = () => {
       const data = await api.getUsers(page, limit, debouncedSearch);
       setUsers(data.users);
       setTotal(data.total);
+      setFiltered(data.filtered);
     } catch (err) {
       console.error('Error fetching users:', err);
     } finally {
@@ -45,7 +47,7 @@ export const UsersTab = () => {
     fetchUsers();
   }, [fetchUsers]);
 
-  const totalPages = Math.ceil(total / limit);
+  const totalPages = Math.ceil(filtered / limit);
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return '—';
@@ -163,7 +165,7 @@ export const UsersTab = () => {
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-6 py-4 border-t border-primary/20">
             <p className="text-sm text-secondary">
-              Page {page} / {totalPages} ({total} users)
+              Page {page} / {totalPages} ({filtered} users)
             </p>
             <div className="flex items-center gap-1">
               <button

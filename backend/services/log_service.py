@@ -1,5 +1,5 @@
 from typing import Optional
-from sqlalchemy import or_
+from sqlalchemy import or_, cast, String
 from sqlalchemy.orm import Session
 from models.log import Log
 from models.user import User
@@ -33,12 +33,12 @@ def get_logs_paginated(db: Session, skip: int, limit: int, category: str = "", s
     if category:
         query = query.filter(Log.category == category)
     if search:
-        query = query.filter(
-            or_(
-                Log.action.ilike(f"%{search}%"),
-                User.pseudo.ilike(f"%{search}%"),
-            )
-        )
+        filters = [
+            Log.action.ilike(f"%{search}%"),
+            User.pseudo.ilike(f"%{search}%"),
+            cast(Log.id_log, String).ilike(f"%{search}%"),
+        ]
+        query = query.filter(or_(*filters))
     rows = query.order_by(Log.created_at.desc()).offset(skip).limit(limit).all()
 
     return [
@@ -62,12 +62,12 @@ def count_logs(db: Session, category: str = "", search: str = "") -> int:
     if category:
         query = query.filter(Log.category == category)
     if search:
-        query = query.filter(
-            or_(
-                Log.action.ilike(f"%{search}%"),
-                User.pseudo.ilike(f"%{search}%"),
-            )
-        )
+        filters = [
+            Log.action.ilike(f"%{search}%"),
+            User.pseudo.ilike(f"%{search}%"),
+            cast(Log.id_log, String).ilike(f"%{search}%"),
+        ]
+        query = query.filter(or_(*filters))
     return query.count()
 
 

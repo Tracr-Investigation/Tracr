@@ -17,6 +17,7 @@ interface LogData {
 export const LogsTab = () => {
   const [logs, setLogs] = useState<LogData[]>([]);
   const [total, setTotal] = useState(0);
+  const [filtered, setFiltered] = useState(0);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -43,6 +44,7 @@ export const LogsTab = () => {
       const data = await api.getLogs(page, limit, category, debouncedSearch);
       setLogs(data.logs);
       setTotal(data.total);
+      setFiltered(data.filtered);
       setCategories(data.categories);
     } catch (err) {
       console.error('Error fetching logs:', err);
@@ -55,7 +57,7 @@ export const LogsTab = () => {
     fetchLogs();
   }, [fetchLogs]);
 
-  const totalPages = Math.ceil(total / limit);
+  const totalPages = Math.ceil(filtered / limit);
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return '—';
@@ -103,7 +105,7 @@ export const LogsTab = () => {
           <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary" />
           <input
             type="text"
-            placeholder="Search by action or username..."
+            placeholder="Search by ID, action or username..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-3 bg-dark/50 border border-primary/30 rounded-xl text-accent placeholder-secondary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
@@ -144,6 +146,7 @@ export const LogsTab = () => {
           <table className="w-full">
             <thead>
               <tr className="border-b border-primary/20">
+                <th className="text-left px-6 py-4 text-sm font-medium text-secondary">ID</th>
                 <th className="text-left px-6 py-4 text-sm font-medium text-secondary">Date</th>
                 <th className="text-left px-6 py-4 text-sm font-medium text-secondary">User</th>
                 <th className="text-left px-6 py-4 text-sm font-medium text-secondary">Category</th>
@@ -155,19 +158,20 @@ export const LogsTab = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-secondary">
+                  <td colSpan={7} className="px-6 py-12 text-center text-secondary">
                     Loading...
                   </td>
                 </tr>
               ) : logs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-secondary">
+                  <td colSpan={7} className="px-6 py-12 text-center text-secondary">
                     No log found
                   </td>
                 </tr>
               ) : (
                 logs.map((log) => (
                   <tr key={log.id_log} className="border-b border-primary/10 hover:bg-primary/5 transition-colors">
+                    <td className="px-6 py-4 text-secondary text-sm font-mono">#{log.id_log}</td>
                     <td className="px-6 py-4 text-secondary text-sm whitespace-nowrap">{formatDate(log.created_at)}</td>
                     <td className="px-6 py-4 text-accent text-sm font-medium">{log.pseudo || '—'}</td>
                     <td className="px-6 py-4">
@@ -187,7 +191,7 @@ export const LogsTab = () => {
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-6 py-4 border-t border-primary/20">
             <p className="text-sm text-secondary">
-              Page {page} / {totalPages} ({total} logs)
+              Page {page} / {totalPages} ({filtered} logs)
             </p>
             <div className="flex items-center gap-1">
               <button

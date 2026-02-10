@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 
 from services import user_service, log_service
@@ -23,26 +23,22 @@ def verify_admin(payload: dict = Depends(verify_token), db: Session = Depends(ge
 
 @router.get("/users")
 async def get_admin_users(
-    request: Request,
     page: int = 1,
     limit: int = 10,
     search: str = "",
     user=Depends(verify_admin),
     db: Session = Depends(get_db),
 ):
-    ip = request.client.host if request.client else None
-    log_service.create_log(db, "admin", "view_users", id_user=user.id_user, ip_address=ip)
-
     skip = (page - 1) * limit
     users = user_service.get_users_paginated(db, skip, limit, search)
-    total = user_service.count_users(db, search)
+    total = user_service.count_users(db)
+    filtered = user_service.count_users(db, search)
 
-    return {"users": users, "total": total, "page": page, "limit": limit}
+    return {"users": users, "total": total, "filtered": filtered, "page": page, "limit": limit}
 
 
 @router.get("/logs")
 async def get_admin_logs(
-    request: Request,
     page: int = 1,
     limit: int = 10,
     category: str = "",
@@ -50,17 +46,16 @@ async def get_admin_logs(
     user=Depends(verify_admin),
     db: Session = Depends(get_db),
 ):
-    ip = request.client.host if request.client else None
-    log_service.create_log(db, "admin", "view_logs", id_user=user.id_user, ip_address=ip)
-
     skip = (page - 1) * limit
     logs = log_service.get_logs_paginated(db, skip, limit, category, search)
-    total = log_service.count_logs(db, category, search)
+    total = log_service.count_logs(db)
+    filtered = log_service.count_logs(db, category, search)
     categories = log_service.get_categories(db)
 
     return {
         "logs": logs,
         "total": total,
+        "filtered": filtered,
         "page": page,
         "limit": limit,
         "categories": categories,
