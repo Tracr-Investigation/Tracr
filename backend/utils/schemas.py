@@ -22,6 +22,16 @@ class DeleteAccountRequest(BaseModel):
     password: str = Field(min_length=1, max_length=128)
 
 
+class StatusCreateRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=50)
+    color: str | None = Field(default=None, max_length=7)
+
+
+class StatusUpdateRequest(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=50)
+    color: str | None = Field(default=None, max_length=7)
+
+
 class ChangePasswordRequest(BaseModel):
     current_password: str = Field(min_length=1, max_length=128)
     new_password: str = Field(max_length=128)

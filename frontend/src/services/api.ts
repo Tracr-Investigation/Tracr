@@ -101,6 +101,81 @@ export const api = {
         return data;
     },
 
+    getStatuses: async () => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/admin/statuses`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error fetching statuses'));
+        }
+
+        return data;
+    },
+
+    createStatus: async (name: string, color: string | null) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/admin/statuses`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({name, color}),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error creating status'));
+        }
+
+        return data;
+    },
+
+    updateStatus: async (id: number, name: string, color: string | null) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/admin/statuses/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({name, color}),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error updating status'));
+        }
+
+        return data;
+    },
+
+    deleteStatus: async (id: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/admin/statuses/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error deleting status'));
+        }
+
+        return data;
+    },
+
     getLogs: async (page: number = 1, limit: number = 10, category: string = '', search: string = '') => {
         const token = localStorage.getItem('token');
         const params = new URLSearchParams({page: String(page), limit: String(limit), category, search});

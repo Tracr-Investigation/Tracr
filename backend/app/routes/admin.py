@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 
-from services import user_service, log_service
+from services import user_service, log_service, status_service
 from utils.security import verify_token
+from utils.schemas import StatusCreateRequest, StatusUpdateRequest
 from app.dependencies import get_db
 
 router = APIRouter(prefix="/admin")
@@ -60,3 +61,50 @@ async def get_admin_logs(
         "limit": limit,
         "categories": categories,
     }
+
+
+@router.get("/statuses")
+async def get_admin_statuses(
+    user=Depends(verify_admin),
+    db: Session = Depends(get_db),
+):
+    statuses = status_service.get_all_statuses(db)
+    total = status_service.count_statuses(db)
+    return {"statuses": statuses, "total": total}
+
+
+@router.post("/statuses")
+async def create_admin_status(
+    body: StatusCreateRequest,
+    user=Depends(verify_admin),
+    db: Session = Depends(get_db),
+):
+    status = status_service.create_status(db, name=body.name, color=body.color)
+    return {"id_status": status.id_status, "name": status.name, "color": status.color}
+
+
+@router.put("/statuses/{status_id}")
+async def update_admin_status(
+    status_id: int,
+    body: StatusUpdateRequest,
+    user=Depends(verify_admin),
+    db: Session = Depends(get_db),
+):
+    status = status_service.get_status_by_id(db, status_id)
+    if not status:
+        raise HTTPException(status_code=404, detail="Status not found")
+    updated = status_service.update_status(db, status, name=body.name, color=body.color)
+    return {"id_status": updated.id_status, "name": updated.name, "color": updated.color}
+
+
+@router.delete("/statuses/{status_id}")
+async def delete_admin_status(
+    status_id: int,
+    user=Depends(verify_admin),
+    db: Session = Depends(get_db),
+):
+    status = status_service.get_status_by_id(db, status_id)
+    if not status:
+        raise HTTPException(status_code=404, detail="Status not found")
+    status_service.delete_status(db, status)
+    return {"detail": "Status deleted"}
