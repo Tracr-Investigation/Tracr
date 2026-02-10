@@ -48,5 +48,27 @@ def create_investigation(
     return investigation
 
 
+def update_investigation_status(
+    db: Session, investigation: Investigation, new_status_id: int
+) -> Investigation:
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+
+    investigation.id_status = new_status_id
+    investigation.updated_at = datetime.now(ZoneInfo("Europe/Paris"))
+    db.add(investigation)
+    db.commit()
+    db.refresh(investigation)
+    return investigation
+
+
+def get_investigation_by_id(db: Session, investigation_id: int) -> Optional[Investigation]:
+    return (
+        db.query(Investigation)
+        .filter(Investigation.id_investigation == investigation_id)
+        .first()
+    )
+
+
 def count_investigations_by_owner(db: Session, owner_id: int) -> int:
     return db.query(Investigation).filter(Investigation.owner_id == owner_id).count()

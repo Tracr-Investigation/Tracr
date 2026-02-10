@@ -193,6 +193,43 @@ export const api = {
         return data;
     },
 
+    getInvestigationStatuses: async () => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/statuses`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error fetching statuses'));
+        }
+
+        return data;
+    },
+
+    updateInvestigationStatus: async (investigationId: number, idStatus: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/status`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({id_status: idStatus}),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error updating status'));
+        }
+
+        return data;
+    },
+
     createInvestigation: async (title: string, description: string | null) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations`, {

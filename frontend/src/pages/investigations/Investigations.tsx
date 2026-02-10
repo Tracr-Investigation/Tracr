@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Layout } from '../../components/Layout';
 import { StatusBadge } from '../../components/StatusBadge';
 import { useToast } from '../../contexts/ToastContext';
@@ -20,6 +20,46 @@ interface InvestigationData {
   updated_at: string | null;
   closed_at: string | null;
 }
+
+const StatusDropdown = ({
+  currentStatusId,
+  statuses,
+  onSelect,
+  onClose,
+}: {
+  currentStatusId: number;
+  statuses: StatusData[];
+  onSelect: (id: number) => void;
+  onClose: () => void;
+}) => {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [onClose]);
+
+  return (
+    <div
+      ref={ref}
+      className="absolute top-full left-0 mt-1 z-20 bg-[#1a1a2e] border border-primary/20 rounded-xl py-1 shadow-lg min-w-[160px]"
+    >
+      {statuses.map((s) => (
+        <button
+          key={s.id_status}
+          onClick={() => onSelect(s.id_status)}
+          disabled={s.id_status === currentStatusId}
+          className="w-full px-3 py-2 flex items-center gap-2 hover:bg-primary/10 transition-colors disabled:opacity-40 disabled:cursor-default"
+        >
+          <StatusBadge name={s.name} color={s.color} />
+        </button>
+      ))}
+    </div>
+  );
+};
 
 const CreateModal = ({ onClose, onSave }: { onClose: () => void; onSave: () => void }) => {
   const [title, setTitle] = useState('');
@@ -112,6 +152,9 @@ export const Investigations = () => {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
+  const [statuses, setStatuses] = useState<StatusData[]>([]);
+  const [openDropdown, setOpenDropdown] = useState<number | null>(null);
+  const { toast } = useToast();
 
   const fetchInvestigations = useCallback(async () => {
     setLoading(true);
@@ -126,9 +169,30 @@ export const Investigations = () => {
     }
   }, []);
 
+  const fetchStatuses = useCallback(async () => {
+    try {
+      const data = await api.getInvestigationStatuses();
+      setStatuses(data.statuses);
+    } catch (err) {
+      console.error('Error fetching statuses:', err);
+    }
+  }, []);
+
   useEffect(() => {
     fetchInvestigations();
-  }, [fetchInvestigations]);
+    fetchStatuses();
+  }, [fetchInvestigations, fetchStatuses]);
+
+  const handleStatusChange = async (investigationId: number, newStatusId: number) => {
+    setOpenDropdown(null);
+    try {
+      await api.updateInvestigationStatus(investigationId, newStatusId);
+      toast('success', 'Statut mis à jour');
+      fetchInvestigations();
+    } catch (err) {
+      toast('error', err instanceof Error ? err.message : 'Erreur lors de la mise à jour');
+    }
+  };
 
   const handleSave = () => {
     setShowCreate(false);
@@ -197,13 +261,28 @@ export const Investigations = () => {
             {investigations.map((inv) => (
               <div
                 key={inv.id_investigation}
-                className="bg-dark/50 border border-primary/20 rounded-xl p-5 hover:border-primary/40 transition-all cursor-pointer"
+                className="bg-dark/50 border border-primary/20 rounded-xl p-5 hover:border-primary/40 transition-all"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-accent font-semibold text-lg truncate">{inv.title}</h3>
-                      <StatusBadge name={inv.status.name} color={inv.status.color} />
+                      <div className="relative">
+                        <button
+                          onClick={() => setOpenDropdown(openDropdown === inv.id_investigation ? null : inv.id_investigation)}
+                          className="cursor-pointer hover:opacity-80 transition-opacity"
+                        >
+                          <StatusBadge name={inv.status.name} color={inv.status.color} />
+                        </button>
+                        {openDropdown === inv.id_investigation && (
+                          <StatusDropdown
+                            currentStatusId={inv.status.id_status}
+                            statuses={statuses}
+                            onSelect={(id) => handleStatusChange(inv.id_investigation, id)}
+                            onClose={() => setOpenDropdown(null)}
+                          />
+                        )}
+                      </div>
                     </div>
                     {inv.description && (
                       <p className="text-secondary text-sm mb-3 flex items-start gap-2">
