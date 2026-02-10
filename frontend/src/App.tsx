@@ -6,9 +6,9 @@ import { Login } from './pages/login/Login';
 import { Register } from './pages/register/Register';
 import { Home } from './pages/home/Home';
 import { Dashboard } from './pages/dashboard/Dashboard';
-import { Enquetes } from './pages/enquetes/Enquetes';
+import { Investigations } from './pages/investigations/Investigations';
 import { Templates } from './pages/templates/Templates';
-import { Parametres } from './pages/parametres/Parametres';
+import { Settings } from './pages/settings/Settings';
 import { Admin } from './pages/admin/Admin';
 import { NotFound } from './pages/not-found/NotFound';
 
@@ -36,10 +36,10 @@ function App() {
             }
           />
           <Route
-            path="/enquetes"
+            path="/investigations"
             element={
               <ProtectedRoute>
-                <Enquetes />
+                <Investigations />
               </ProtectedRoute>
             }
           />
@@ -52,10 +52,10 @@ function App() {
             }
           />
           <Route
-            path="/parametres"
+            path="/settings"
             element={
               <ProtectedRoute>
-                <Parametres />
+                <Settings />
               </ProtectedRoute>
             }
           />
