@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../../../services/api';
-import { Users, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { SearchBar } from '../../../components/SearchBar';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface UserData {
   id_user: number;
@@ -74,32 +75,14 @@ export const UsersTab = () => {
 
   return (
     <div>
-      {/* Stat Card */}
-      <div className="mb-8">
-        <div className="bg-gradient-to-r from-primary to-secondary rounded-xl p-6 inline-flex items-center gap-4">
-          <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-            <Users size={24} className="text-white" />
-          </div>
-          <div>
-            <p className="text-white/80 text-sm">Total users</p>
-            <p className="text-white text-3xl font-bold">{total}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Search */}
-      <div className="mb-6">
-        <div className="relative max-w-md">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary" />
-          <input
-            type="text"
-            placeholder="Search by username..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-dark/50 border border-primary/30 rounded-xl text-accent placeholder-secondary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
-          />
-        </div>
-      </div>
+      {/* Filtres */}
+      <SearchBar
+        query={search}
+        onQueryChange={setSearch}
+        placeholder="Rechercher par nom d'utilisateur..."
+        total={total}
+        totalLabel="utilisateur"
+      />
 
       {/* Table */}
       <div className="bg-dark/50 border border-primary/20 rounded-xl overflow-hidden">

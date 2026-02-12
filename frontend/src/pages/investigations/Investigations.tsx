@@ -4,6 +4,7 @@ import { StatusBadge } from '../../components/StatusBadge';
 import { useToast } from '../../contexts/ToastContext';
 import { api } from '../../services/api';
 import { FileSearch, Plus, X, Calendar, AlignLeft } from 'lucide-react';
+import { SearchBar } from '../../components/SearchBar';
 
 interface StatusData {
   id_status: number;
@@ -154,6 +155,8 @@ export const Investigations = () => {
   const [showCreate, setShowCreate] = useState(false);
   const [statuses, setStatuses] = useState<StatusData[]>([]);
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatusId, setFilterStatusId] = useState<number | null>(null);
   const { toast } = useToast();
 
   const fetchInvestigations = useCallback(async () => {
@@ -199,6 +202,12 @@ export const Investigations = () => {
     fetchInvestigations();
   };
 
+  const filteredInvestigations = investigations.filter((inv) => {
+    const matchesSearch = !searchQuery || inv.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = filterStatusId === null || inv.status.id_status === filterStatusId;
+    return matchesSearch && matchesStatus;
+  });
+
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return '—';
     return new Date(dateStr).toLocaleDateString('fr-FR', {
@@ -227,23 +236,25 @@ export const Investigations = () => {
           </button>
         </div>
 
-        {/* Stat Card */}
-        <div className="mb-8">
-          <div className="bg-gradient-to-r from-primary to-secondary rounded-xl p-6 inline-flex items-center gap-4">
-            <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-              <FileSearch size={24} className="text-white" />
-            </div>
-            <div>
-              <p className="text-white/80 text-sm">Mes investigations</p>
-              <p className="text-white text-3xl font-bold">{total}</p>
-            </div>
-          </div>
-        </div>
+        {/* Filtres */}
+        <SearchBar
+          query={searchQuery}
+          onQueryChange={setSearchQuery}
+          placeholder="Rechercher une investigation..."
+          filter={{
+            value: filterStatusId,
+            onChange: (v) => setFilterStatusId(v as number | null),
+            options: statuses.map((s) => ({ value: s.id_status, label: s.name })),
+            placeholder: 'Tous les statuts',
+          }}
+          total={total}
+          totalLabel="investigation"
+        />
 
         {/* Liste */}
         {loading ? (
           <div className="text-center text-secondary py-12">Chargement...</div>
-        ) : investigations.length === 0 ? (
+        ) : filteredInvestigations.length === 0 ? (
           <div className="bg-dark/50 border border-primary/20 rounded-xl p-12 text-center">
             <FileSearch size={48} className="mx-auto text-secondary mb-4" />
             <p className="text-accent text-lg font-medium mb-2">Aucune investigation</p>
@@ -258,7 +269,7 @@ export const Investigations = () => {
           </div>
         ) : (
           <div className="grid gap-4">
-            {investigations.map((inv) => (
+            {filteredInvestigations.map((inv) => (
               <div
                 key={inv.id_investigation}
                 className="bg-dark/50 border border-primary/20 rounded-xl p-5 hover:border-primary/40 transition-all"
