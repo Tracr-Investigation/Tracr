@@ -267,6 +267,77 @@ export const api = {
         return data;
     },
 
+    getNotifications: async (skip: number = 0, limit: number = 50) => {
+        const token = localStorage.getItem('token');
+        const params = new URLSearchParams({skip: String(skip), limit: String(limit)});
+        const response = await fetch(`${API_URL}/notifications?${params}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error fetching notifications'));
+        }
+
+        return data;
+    },
+
+    getUnreadCount: async () => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/notifications/unread-count`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error fetching unread count'));
+        }
+
+        return data;
+    },
+
+    markNotificationRead: async (id: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/notifications/${id}/read`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error marking notification as read'));
+        }
+
+        return data;
+    },
+
+    markAllNotificationsRead: async () => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/notifications/read-all`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error marking all notifications as read'));
+        }
+
+        return data;
+    },
+
     getLogs: async (page: number = 1, limit: number = 10, category: string = '', search: string = '') => {
         const token = localStorage.getItem('token');
         const params = new URLSearchParams({page: String(page), limit: String(limit), category, search});

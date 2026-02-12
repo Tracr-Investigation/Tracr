@@ -1,6 +1,7 @@
 import {useState, useEffect} from 'react';
 import {useNavigate, useLocation} from 'react-router-dom';
 import {useAuth} from '../contexts/AuthContext';
+import {useNotifications} from '../contexts/NotificationContext';
 import {
     Home,
     LayoutDashboard,
@@ -13,7 +14,8 @@ import {
     ChevronRight,
     Menu,
     X,
-    User
+    User,
+    Bell
 } from 'lucide-react';
 
 export const Sidebar = () => {
@@ -23,6 +25,7 @@ export const Sidebar = () => {
     });
     const [mobileOpen, setMobileOpen] = useState(false);
     const {user, logout} = useAuth();
+    const {unreadCount} = useNotifications();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -128,8 +131,37 @@ export const Sidebar = () => {
                     })}
                 </nav>
 
-                {/* User Profile & Logout */}
+                {/* Notifications & User Profile & Logout */}
                 <div className="p-4 border-t border-primary/20 space-y-2">
+                    {/* Notifications */}
+                    <button
+                        onClick={() => {
+                            navigate('/notifications');
+                            setMobileOpen(false);
+                        }}
+                        className={`
+                            w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all relative
+                            ${isActive('/notifications')
+                                ? 'bg-gradient-to-r from-primary/20 to-secondary/20 text-accent border border-primary/30'
+                                : 'text-secondary hover:bg-primary/10 hover:text-accent'
+                            }
+                            ${collapsed ? 'justify-center' : ''}
+                        `}
+                        title={collapsed ? 'Notifications' : ''}
+                    >
+                        <div className="relative flex-shrink-0">
+                            <Bell size={22} className={isActive('/notifications') ? 'text-primary' : ''} />
+                            {unreadCount > 0 && (
+                                <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">
+                                    {unreadCount > 99 ? '99+' : unreadCount}
+                                </span>
+                            )}
+                        </div>
+                        {!collapsed && (
+                            <span className="font-medium">Notifications</span>
+                        )}
+                    </button>
+
                     {/* Profile */}
                     <div
                         className={`

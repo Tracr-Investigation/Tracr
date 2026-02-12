@@ -8,3 +8,5 @@ bcrypt
 pydantic-settings
 slowapi
 psycopg2-binary
+python-socketio[asgi]
+redis
