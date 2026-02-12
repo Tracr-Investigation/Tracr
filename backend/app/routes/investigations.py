@@ -61,6 +61,20 @@ async def get_statuses(
     return {"statuses": statuses}
 
 
+@router.get("/{investigation_id}")
+async def get_investigation(
+    investigation_id: int,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    detail = investigation_service.get_investigation_detail(db, investigation_id)
+    if not detail:
+        raise HTTPException(status_code=404, detail="Investigation not found")
+    if detail["owner"]["id_user"] != user.id_user:
+        raise HTTPException(status_code=403, detail="Access denied")
+    return detail
+
+
 @router.patch("/{investigation_id}/status")
 async def update_investigation_status(
     investigation_id: int,

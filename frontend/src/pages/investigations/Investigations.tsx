@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Layout } from '../../components/Layout';
 import { StatusBadge } from '../../components/StatusBadge';
 import { useToast } from '../../contexts/ToastContext';
 import { api } from '../../services/api';
 import { FileSearch, Plus, X, Calendar, AlignLeft } from 'lucide-react';
 import { SearchBar } from '../../components/SearchBar';
+import { formatRelativeDate } from '../../utils/date';
 
 interface StatusData {
   id_status: number;
@@ -158,6 +160,7 @@ export const Investigations = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatusId, setFilterStatusId] = useState<number | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const fetchInvestigations = useCallback(async () => {
     setLoading(true);
@@ -272,13 +275,14 @@ export const Investigations = () => {
             {filteredInvestigations.map((inv) => (
               <div
                 key={inv.id_investigation}
-                className="bg-dark/50 border border-primary/20 rounded-xl p-5 hover:border-primary/40 transition-all"
+                onClick={() => navigate(`/investigations/${inv.id_investigation}`)}
+                className="bg-dark/50 border border-primary/20 rounded-xl p-5 hover:border-primary/40 transition-all cursor-pointer"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-accent font-semibold text-lg truncate">{inv.title}</h3>
-                      <div className="relative">
+                      <div className="relative" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => setOpenDropdown(openDropdown === inv.id_investigation ? null : inv.id_investigation)}
                           className="cursor-pointer hover:opacity-80 transition-opacity"
@@ -309,7 +313,7 @@ export const Investigations = () => {
                       {inv.updated_at && inv.updated_at !== inv.created_at && (
                         <span className="flex items-center gap-1.5">
                           <Calendar size={12} />
-                          Modifié le {formatDate(inv.updated_at)}
+                          Modifié {formatRelativeDate(inv.updated_at)}
                         </span>
                       )}
                     </div>

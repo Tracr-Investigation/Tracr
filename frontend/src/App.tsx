@@ -8,6 +8,7 @@ import { Register } from './pages/register/Register';
 import { Home } from './pages/home/Home';
 import { Dashboard } from './pages/dashboard/Dashboard';
 import { Investigations } from './pages/investigations/Investigations';
+import { InvestigationDetail } from './pages/investigations/InvestigationDetail';
 import { Templates } from './pages/templates/Templates';
 import { Settings } from './pages/settings/Settings';
 import { Admin } from './pages/admin/Admin';
@@ -42,6 +43,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Investigations />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/investigations/:id"
+            element={
+              <ProtectedRoute>
+                <InvestigationDetail />
               </ProtectedRoute>
             }
           />

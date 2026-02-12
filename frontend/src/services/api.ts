@@ -193,6 +193,23 @@ export const api = {
         return data;
     },
 
+    getInvestigation: async (id: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${id}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error fetching investigation'));
+        }
+
+        return data;
+    },
+
     getInvestigationStatuses: async () => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/statuses`, {
