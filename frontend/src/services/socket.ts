@@ -12,7 +12,7 @@ export function connectSocket(): Socket {
     }
 
     socket = io(API_URL, {
-        path: '/ws/socket.io',
+        path: '/socket.io',
         auth: { token },
         transports: ['polling', 'websocket'],
     });

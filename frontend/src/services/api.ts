@@ -267,6 +267,152 @@ export const api = {
         return data;
     },
 
+    searchUsersForInvitation: async (query: string) => {
+        const token = localStorage.getItem('token');
+        const params = new URLSearchParams({q: query});
+        const response = await fetch(`${API_URL}/investigations/users/search?${params}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error searching users'));
+        }
+
+        return data;
+    },
+
+    inviteCollaborator: async (investigationId: number, pseudo: string, permissionLevel: string) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/collaborators`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({pseudo, permission_level: permissionLevel}),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error inviting collaborator'));
+        }
+
+        return data;
+    },
+
+    getCollaborators: async (investigationId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/collaborators`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error loading collaborators'));
+        }
+
+        return data;
+    },
+
+    updateCollaboratorPermission: async (investigationId: number, collaboratorId: number, permissionLevel: string) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/collaborators/${collaboratorId}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({permission_level: permissionLevel}),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error updating permission'));
+        }
+
+        return data;
+    },
+
+    removeCollaborator: async (investigationId: number, collaboratorId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/collaborators/${collaboratorId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error removing collaborator'));
+        }
+
+        return data;
+    },
+
+    getPendingInvitations: async () => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/me/invitations`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error loading invitations'));
+        }
+
+        return data;
+    },
+
+    acceptInvitation: async (collaboratorId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/invitations/${collaboratorId}/accept`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error accepting invitation'));
+        }
+
+        return data;
+    },
+
+    rejectInvitation: async (collaboratorId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/invitations/${collaboratorId}/reject`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error rejecting invitation'));
+        }
+
+        return data;
+    },
+
     getNotifications: async (skip: number = 0, limit: number = 50) => {
         const token = localStorage.getItem('token');
         const params = new URLSearchParams({skip: String(skip), limit: String(limit)});

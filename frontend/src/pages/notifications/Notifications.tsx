@@ -1,16 +1,30 @@
-import { useNavigate } from 'react-router-dom';
-import { Layout } from '../../components/Layout';
-import { useNotifications } from '../../contexts/NotificationContext';
-import { formatRelativeDate } from '../../utils/date';
+import {useState, useEffect, useCallback} from 'react';
+import {useNavigate} from 'react-router-dom';
+import {Layout} from '../../components/Layout';
+import {useNotifications} from '../../contexts/NotificationContext';
+import {useToast} from '../../contexts/ToastContext';
+import {api} from '../../services/api';
+import {formatRelativeDate} from '../../utils/date';
 import {
     Bell,
     CheckCheck,
     Mail,
     AlertCircle,
-    FileSearch,
     MessageSquare,
     Info,
+    UserPlus,
+    Check,
+    X,
 } from 'lucide-react';
+
+interface PendingInvitation {
+    id_collaborator: number;
+    id_investigation: number;
+    investigation_title: string;
+    permission_level: string;
+    invited_by_pseudo: string | null;
+    invited_at: string | null;
+}
 
 const typeIcons: Record<string, typeof Bell> = {
     invitation: Mail,
@@ -19,9 +33,60 @@ const typeIcons: Record<string, typeof Bell> = {
     system: Info,
 };
 
+const permissionLabels: Record<string, string> = {
+    manager: 'Manager',
+    editeur: 'Editor',
+    lecteur: 'Reader',
+};
+
 export const Notifications = () => {
-    const { notifications, unreadCount, loading, markAsRead, markAllAsRead } = useNotifications();
+    const {notifications, unreadCount, loading, markAsRead, markAllAsRead} = useNotifications();
+    const {toast} = useToast();
     const navigate = useNavigate();
+    const [invitations, setInvitations] = useState<PendingInvitation[]>([]);
+    const [loadingInvitations, setLoadingInvitations] = useState(true);
+    const [processingId, setProcessingId] = useState<number | null>(null);
+
+    const fetchInvitations = useCallback(async () => {
+        try {
+            const data = await api.getPendingInvitations();
+            setInvitations(data.invitations);
+        } catch {
+            setInvitations([]);
+        } finally {
+            setLoadingInvitations(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchInvitations();
+    }, [fetchInvitations]);
+
+    const handleAccept = async (id: number) => {
+        setProcessingId(id);
+        try {
+            await api.acceptInvitation(id);
+            toast('success', 'Invitation accepted');
+            fetchInvitations();
+        } catch (err) {
+            toast('error', err instanceof Error ? err.message : 'Error accepting invitation');
+        } finally {
+            setProcessingId(null);
+        }
+    };
+
+    const handleReject = async (id: number) => {
+        setProcessingId(id);
+        try {
+            await api.rejectInvitation(id);
+            toast('success', 'Invitation rejected');
+            fetchInvitations();
+        } catch (err) {
+            toast('error', err instanceof Error ? err.message : 'Error rejecting invitation');
+        } finally {
+            setProcessingId(null);
+        }
+    };
 
     const handleClick = async (notification: typeof notifications[0]) => {
         if (!notification.is_read) {
@@ -29,6 +94,9 @@ export const Notifications = () => {
         }
         if (notification.reference_type && notification.reference_id) {
             if (notification.reference_type === 'investigation') {
+                navigate(`/investigations/${notification.reference_id}`);
+            }
+            if (notification.reference_type === 'collaboration') {
                 navigate(`/investigations/${notification.reference_id}`);
             }
         }
@@ -42,8 +110,8 @@ export const Notifications = () => {
                         <h1 className="text-3xl font-bold text-accent mb-2">Notifications</h1>
                         <p className="text-secondary">
                             {unreadCount > 0
-                                ? `${unreadCount} non lue${unreadCount > 1 ? 's' : ''}`
-                                : 'Toutes lues'}
+                                ? `${unreadCount} unread`
+                                : 'All read'}
                         </p>
                     </div>
                     {unreadCount > 0 && (
@@ -51,20 +119,89 @@ export const Notifications = () => {
                             onClick={markAllAsRead}
                             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-accent border border-primary/30 hover:bg-primary/30 transition-all"
                         >
-                            <CheckCheck size={16} />
-                            Tout marquer comme lu
+                            <CheckCheck size={16}/>
+                            Mark all as read
                         </button>
                     )}
                 </div>
 
+                {/* Pending invitations */}
+                {!loadingInvitations && invitations.length > 0 && (
+                    <div className="mb-8">
+                        <h2 className="text-lg font-semibold text-accent mb-4 flex items-center gap-2">
+                            <UserPlus size={18} className="text-primary"/>
+                            Pending invitations
+                        </h2>
+                        <div className="grid gap-3">
+                            {invitations.map((inv) => (
+                                <div
+                                    key={inv.id_collaborator}
+                                    className="bg-dark/50 border border-primary/30 rounded-xl p-5"
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-start gap-4">
+                                            <div
+                                                className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                                                <Mail size={20} className="text-primary"/>
+                                            </div>
+                                            <div>
+                                                <p className="text-accent font-medium">
+                                                    {inv.invited_by_pseudo
+                                                        ? <><span
+                                                            className="text-primary">{inv.invited_by_pseudo}</span> invited
+                                                            you to</>
+                                                        : 'Invitation to'
+                                                    }
+                                                    {' '}
+                                                    <span
+                                                        className="font-semibold">{inv.investigation_title}</span>
+                                                </p>
+                                                <div className="flex items-center gap-3 mt-1">
+                                                    <span
+                                                        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary">
+                                                        {permissionLabels[inv.permission_level] || inv.permission_level}
+                                                    </span>
+                                                    {inv.invited_at && (
+                                                        <span className="text-xs text-secondary">
+                                                            {formatRelativeDate(inv.invited_at)}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 flex-shrink-0 ml-4">
+                                            <button
+                                                onClick={() => handleAccept(inv.id_collaborator)}
+                                                disabled={processingId === inv.id_collaborator}
+                                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30 disabled:opacity-50 transition-all"
+                                            >
+                                                <Check size={14}/>
+                                                Accept
+                                            </button>
+                                            <button
+                                                onClick={() => handleReject(inv.id_collaborator)}
+                                                disabled={processingId === inv.id_collaborator}
+                                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 disabled:opacity-50 transition-all"
+                                            >
+                                                <X size={14}/>
+                                                Reject
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {loading ? (
-                    <div className="text-center text-secondary py-12">Chargement...</div>
-                ) : notifications.length === 0 ? (
+                    <div className="text-center text-secondary py-12">Loading...</div>
+                ) : notifications.length === 0 && invitations.length === 0 ? (
                     <div className="bg-dark/50 border border-primary/20 rounded-xl p-12 text-center">
-                        <Bell size={48} className="mx-auto text-secondary mb-4" />
-                        <p className="text-accent text-lg font-medium mb-2">Aucune notification</p>
+                        <Bell size={48} className="mx-auto text-secondary mb-4"/>
+                        <p className="text-accent text-lg font-medium mb-2">No notifications</p>
                         <p className="text-secondary">
-                            Vous recevrez des notifications pour les invitations, changements de statut, etc.
+                            You will receive notifications for invitations, status changes, etc.
                         </p>
                     </div>
                 ) : (
@@ -78,9 +215,9 @@ export const Notifications = () => {
                                     className={`
                                         w-full text-left bg-dark/50 border rounded-xl p-5 transition-all cursor-pointer
                                         ${notification.is_read
-                                            ? 'border-primary/10 opacity-70 hover:opacity-100'
-                                            : 'border-primary/30 hover:border-primary/50'
-                                        }
+                                        ? 'border-primary/10 opacity-70 hover:opacity-100'
+                                        : 'border-primary/30 hover:border-primary/50'
+                                    }
                                     `}
                                 >
                                     <div className="flex items-start gap-4">
@@ -88,12 +225,12 @@ export const Notifications = () => {
                                             className={`
                                                 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0
                                                 ${notification.is_read
-                                                    ? 'bg-primary/5 text-secondary'
-                                                    : 'bg-primary/20 text-primary'
-                                                }
+                                                ? 'bg-primary/5 text-secondary'
+                                                : 'bg-primary/20 text-primary'
+                                            }
                                             `}
                                         >
-                                            <Icon size={20} />
+                                            <Icon size={20}/>
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-1">
@@ -105,7 +242,8 @@ export const Notifications = () => {
                                                     {notification.title}
                                                 </h3>
                                                 {!notification.is_read && (
-                                                    <span className="w-2 h-2 bg-primary rounded-full flex-shrink-0" />
+                                                    <span
+                                                        className="w-2 h-2 bg-primary rounded-full flex-shrink-0"/>
                                                 )}
                                             </div>
                                             {notification.message && (

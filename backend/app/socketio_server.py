@@ -7,7 +7,6 @@ sio = socketio.AsyncServer(
     cors_allowed_origins=["http://localhost:5173"],
 )
 
-socket_app = socketio.ASGIApp(sio, socketio_path="socket.io")
 
 
 @sio.event

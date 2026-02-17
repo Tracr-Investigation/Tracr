@@ -1,6 +1,14 @@
+from enum import Enum
+
 from pydantic import BaseModel, Field, field_validator
 
 from utils.validators import validate_password_strength
+
+
+class PermissionLevelEnum(str, Enum):
+    manager = "manager"
+    editeur = "editeur"
+    lecteur = "lecteur"
 
 
 class LoginRequest(BaseModel):
@@ -45,3 +53,12 @@ class ChangePasswordRequest(BaseModel):
     @classmethod
     def password_strength(cls, v: str) -> str:
         return validate_password_strength(v)
+
+
+class CollaboratorInviteRequest(BaseModel):
+    pseudo: str = Field(min_length=1, max_length=50)
+    permission_level: PermissionLevelEnum = PermissionLevelEnum.lecteur
+
+
+class CollaboratorUpdateRequest(BaseModel):
+    permission_level: PermissionLevelEnum

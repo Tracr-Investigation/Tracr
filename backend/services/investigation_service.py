@@ -1,37 +1,77 @@
 from typing import Optional
 
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from models.investigation import Investigation
 from models.investigation_status import InvestigationStatus
+from models.investigation_collaborator import InvestigationCollaborator
 from models.user import User
 
 DEFAULT_STATUS_ID = 4
 
 
-def get_investigations_by_owner(db: Session, owner_id: int) -> list[dict]:
+def get_investigations_for_user(db: Session, user_id: int) -> list[dict]:
     rows = (
         db.query(Investigation, InvestigationStatus)
         .join(InvestigationStatus, Investigation.id_status == InvestigationStatus.id_status)
-        .filter(Investigation.owner_id == owner_id)
+        .outerjoin(
+            InvestigationCollaborator,
+            (InvestigationCollaborator.id_investigation == Investigation.id_investigation)
+            & (InvestigationCollaborator.id_user == user_id)
+            & (InvestigationCollaborator.accepted_at.isnot(None)),
+        )
+        .filter(
+            or_(
+                Investigation.owner_id == user_id,
+                InvestigationCollaborator.id_collaborator.isnot(None),
+            )
+        )
         .order_by(Investigation.updated_at.desc())
         .all()
     )
-    return [
-        {
-            "id_investigation": inv.id_investigation,
-            "title": inv.title,
-            "description": inv.description,
-            "status": {
-                "id_status": status.id_status,
-                "name": status.name,
-                "color": status.color,
-            },
-            "created_at": inv.created_at.isoformat() if inv.created_at else None,
-            "updated_at": inv.updated_at.isoformat() if inv.updated_at else None,
-            "closed_at": inv.closed_at.isoformat() if inv.closed_at else None,
-        }
-        for inv, status in rows
-    ]
+    seen = set()
+    results = []
+    for inv, status in rows:
+        if inv.id_investigation in seen:
+            continue
+        seen.add(inv.id_investigation)
+        results.append(
+            {
+                "id_investigation": inv.id_investigation,
+                "title": inv.title,
+                "description": inv.description,
+                "is_owner": inv.owner_id == user_id,
+                "status": {
+                    "id_status": status.id_status,
+                    "name": status.name,
+                    "color": status.color,
+                },
+                "created_at": inv.created_at.isoformat() if inv.created_at else None,
+                "updated_at": inv.updated_at.isoformat() if inv.updated_at else None,
+                "closed_at": inv.closed_at.isoformat() if inv.closed_at else None,
+            }
+        )
+    return results
+
+
+def count_investigations_for_user(db: Session, user_id: int) -> int:
+    return (
+        db.query(Investigation.id_investigation)
+        .outerjoin(
+            InvestigationCollaborator,
+            (InvestigationCollaborator.id_investigation == Investigation.id_investigation)
+            & (InvestigationCollaborator.id_user == user_id)
+            & (InvestigationCollaborator.accepted_at.isnot(None)),
+        )
+        .filter(
+            or_(
+                Investigation.owner_id == user_id,
+                InvestigationCollaborator.id_collaborator.isnot(None),
+            )
+        )
+        .distinct()
+        .count()
+    )
 
 
 def create_investigation(
@@ -71,7 +111,7 @@ def get_investigation_by_id(db: Session, investigation_id: int) -> Optional[Inve
     )
 
 
-def get_investigation_detail(db: Session, investigation_id: int) -> Optional[dict]:
+def get_investigation_detail(db: Session, investigation_id: int, current_user_id: Optional[int] = None) -> Optional[dict]:
     row = (
         db.query(Investigation, InvestigationStatus, User)
         .join(InvestigationStatus, Investigation.id_status == InvestigationStatus.id_status)
@@ -82,6 +122,21 @@ def get_investigation_detail(db: Session, investigation_id: int) -> Optional[dic
     if not row:
         return None
     inv, status, owner = row
+
+    # Collaborateurs
+    from services import collaborator_service
+    collaborators = collaborator_service.get_collaborators_for_investigation(db, investigation_id)
+
+    # Permission de l'utilisateur courant
+    user_permission = None
+    if current_user_id:
+        if inv.owner_id == current_user_id:
+            user_permission = "owner"
+        else:
+            user_permission = collaborator_service.get_collaborator_permission(
+                db, investigation_id, current_user_id
+            )
+
     return {
         "id_investigation": inv.id_investigation,
         "title": inv.title,
@@ -95,11 +150,9 @@ def get_investigation_detail(db: Session, investigation_id: int) -> Optional[dic
             "id_user": owner.id_user,
             "pseudo": owner.pseudo,
         },
+        "collaborators": collaborators,
+        "user_permission": user_permission,
         "created_at": inv.created_at.isoformat() if inv.created_at else None,
         "updated_at": inv.updated_at.isoformat() if inv.updated_at else None,
         "closed_at": inv.closed_at.isoformat() if inv.closed_at else None,
     }
-
-
-def count_investigations_by_owner(db: Session, owner_id: int) -> int:
-    return db.query(Investigation).filter(Investigation.owner_id == owner_id).count()

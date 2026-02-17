@@ -10,13 +10,14 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app.dependencies import limiter
 from app.routes import auth, admin, investigations
 from app.routes import notifications
-from app.socketio_server import socket_app
+from socketio import ASGIApp as SocketASGIApp
+from app.socketio_server import sio
 
-app = FastAPI()
-app.state.limiter = limiter
+fastapi_app = FastAPI()
+fastapi_app.state.limiter = limiter
 
 
-@app.exception_handler(RateLimitExceeded)
+@fastapi_app.exception_handler(RateLimitExceeded)
 async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
     return JSONResponse(
         status_code=429,
@@ -24,7 +25,7 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
     )
 
 
-app.add_middleware(
+fastapi_app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"],
     allow_credentials=True,
@@ -33,7 +34,7 @@ app.add_middleware(
 )
 
 
-@app.middleware("http")
+@fastapi_app.middleware("http")
 async def add_security_headers(request: Request, call_next):
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
@@ -44,9 +45,9 @@ async def add_security_headers(request: Request, call_next):
     return response
 
 
-app.include_router(auth.router)
-app.include_router(admin.router)
-app.include_router(investigations.router)
-app.include_router(notifications.router)
+fastapi_app.include_router(auth.router)
+fastapi_app.include_router(admin.router)
+fastapi_app.include_router(investigations.router)
+fastapi_app.include_router(notifications.router)
 
-app.mount("/ws", socket_app)
+app = SocketASGIApp(sio, other_asgi_app=fastapi_app, socketio_path="socket.io")

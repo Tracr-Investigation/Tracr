@@ -50,7 +50,7 @@ function App() {
             }
           />
           <Route
-            path="/investigations/:id"
+            path="/investigations/:slug"
             element={
               <ProtectedRoute>
                 <InvestigationDetail />
