@@ -3,7 +3,8 @@ import { Tabs, type TabItem } from '../../components/Tabs';
 import { UsersTab } from './tabs/UsersTab';
 import { LogsTab } from './tabs/LogsTab';
 import { StatusesTab } from './tabs/StatusesTab';
-import { Users, ScrollText, CircleDot } from 'lucide-react';
+import { CategoriesTab } from './tabs/CategoriesTab';
+import { Users, ScrollText, CircleDot, Tag } from 'lucide-react';
 
 const TABS: TabItem[] = [
   {
@@ -23,6 +24,12 @@ const TABS: TabItem[] = [
     label: 'Statuts',
     icon: CircleDot,
     content: <StatusesTab />,
+  },
+  {
+    id: 'categories',
+    label: 'Categories',
+    icon: Tag,
+    content: <CategoriesTab />,
   },
 ];
 

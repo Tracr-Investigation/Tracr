@@ -6,6 +6,8 @@ from models.investigation import Investigation
 from models.investigation_status import InvestigationStatus
 from models.investigation_collaborator import InvestigationCollaborator
 from models.user import User
+from models.category import Category
+from models.investigation_category import InvestigationCategory
 
 DEFAULT_STATUS_ID = 4
 
@@ -35,6 +37,12 @@ def get_investigations_for_user(db: Session, user_id: int) -> list[dict]:
         if inv.id_investigation in seen:
             continue
         seen.add(inv.id_investigation)
+        categories = (
+            db.query(Category)
+            .join(InvestigationCategory, InvestigationCategory.id_category == Category.id_category)
+            .filter(InvestigationCategory.id_investigation == inv.id_investigation)
+            .all()
+        )
         results.append(
             {
                 "id_investigation": inv.id_investigation,
@@ -46,6 +54,10 @@ def get_investigations_for_user(db: Session, user_id: int) -> list[dict]:
                     "name": status.name,
                     "color": status.color,
                 },
+                "categories": [
+                    {"id_category": c.id_category, "name": c.name, "color": c.color, "icon": c.icon}
+                    for c in categories
+                ],
                 "created_at": inv.created_at.isoformat() if inv.created_at else None,
                 "updated_at": inv.updated_at.isoformat() if inv.updated_at else None,
                 "closed_at": inv.closed_at.isoformat() if inv.closed_at else None,
@@ -137,6 +149,13 @@ def get_investigation_detail(db: Session, investigation_id: int, current_user_id
                 db, investigation_id, current_user_id
             )
 
+    categories = (
+        db.query(Category)
+        .join(InvestigationCategory, InvestigationCategory.id_category == Category.id_category)
+        .filter(InvestigationCategory.id_investigation == investigation_id)
+        .all()
+    )
+
     return {
         "id_investigation": inv.id_investigation,
         "title": inv.title,
@@ -146,6 +165,10 @@ def get_investigation_detail(db: Session, investigation_id: int, current_user_id
             "name": status.name,
             "color": status.color,
         },
+        "categories": [
+            {"id_category": c.id_category, "name": c.name, "color": c.color, "icon": c.icon}
+            for c in categories
+        ],
         "owner": {
             "id_user": owner.id_user,
             "pseudo": owner.pseudo,

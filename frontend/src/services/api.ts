@@ -484,6 +484,84 @@ export const api = {
         return data;
     },
 
+    getCategories: async () => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/admin/categories`, {
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching categories'));
+        return data;
+    },
+
+    createCategory: async (name: string, color: string | null, icon: string | null) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/admin/categories`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+            body: JSON.stringify({name, color, icon}),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error creating category'));
+        return data;
+    },
+
+    updateCategory: async (id: number, name: string, color: string | null, icon: string | null) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/admin/categories/${id}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+            body: JSON.stringify({name, color, icon}),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error updating category'));
+        return data;
+    },
+
+    deleteCategory: async (id: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/admin/categories/${id}`, {
+            method: 'DELETE',
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error deleting category'));
+        return data;
+    },
+
+    getInvestigationCategories: async () => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/categories`, {
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching categories'));
+        return data;
+    },
+
+    addCategoryToInvestigation: async (investigationId: number, categoryId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/categories`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+            body: JSON.stringify({id_category: categoryId}),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error adding category'));
+        return data;
+    },
+
+    removeCategoryFromInvestigation: async (investigationId: number, categoryId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/categories/${categoryId}`, {
+            method: 'DELETE',
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error removing category'));
+        return data;
+    },
+
     getLogs: async (page: number = 1, limit: number = 10, category: string = '', search: string = '') => {
         const token = localStorage.getItem('token');
         const params = new URLSearchParams({page: String(page), limit: String(limit), category, search});

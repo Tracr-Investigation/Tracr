@@ -6,5 +6,7 @@ from models.investigation import Investigation
 from models.investigation_status import InvestigationStatus
 from models.notification import Notification
 from models.investigation_collaborator import InvestigationCollaborator
-__all__ = ["User", "Role", "UserRole", "Log", "Investigation", "InvestigationStatus", "Notification", "InvestigationCollaborator"]
+from models.category import Category
+from models.investigation_category import InvestigationCategory
+__all__ = ["User", "Role", "UserRole", "Log", "Investigation", "InvestigationStatus", "Notification", "InvestigationCollaborator", "Category", "InvestigationCategory"]
 

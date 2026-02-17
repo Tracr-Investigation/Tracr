@@ -17,14 +17,33 @@ import {
     Clock,
     UserPlus,
     ChevronDown,
+    Tag,
+    Plus,
+    X,
 } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import {formatRelativeDate} from '../../utils/date';
 import {extractIdFromSlug} from '../../utils/slug';
+
+function getIconComponent(iconName: string | null): React.ComponentType<{ size?: number; className?: string }> {
+    if (!iconName) return Tag;
+    const icon = (LucideIcons as Record<string, unknown>)[iconName];
+    if (icon && typeof icon === 'object' && '$$typeof' in icon) return icon as React.ComponentType<{ size?: number; className?: string }>;
+    if (typeof icon === 'function') return icon as React.ComponentType<{ size?: number; className?: string }>;
+    return Tag;
+}
 
 interface StatusData {
     id_status: number;
     name: string;
     color: string | null;
+}
+
+interface CategoryData {
+    id_category: number;
+    name: string;
+    color: string | null;
+    icon: string | null;
 }
 
 interface OwnerData {
@@ -46,6 +65,7 @@ interface InvestigationDetailData {
     title: string;
     description: string | null;
     status: StatusData;
+    categories?: CategoryData[];
     owner: OwnerData;
     collaborators: CollaboratorData[];
     user_permission: string | null;
@@ -363,6 +383,132 @@ const CollaboratorsTab = ({
     );
 };
 
+const CategoriesSection = ({
+                               investigation,
+                               onRefresh,
+                           }: {
+    investigation: InvestigationDetailData;
+    onRefresh: () => void;
+}) => {
+    const {toast} = useToast();
+    const [allCategories, setAllCategories] = useState<CategoryData[]>([]);
+    const [showPicker, setShowPicker] = useState(false);
+    const pickerRef = useRef<HTMLDivElement>(null);
+
+    const canEdit = investigation.user_permission === 'owner'
+        || investigation.user_permission === 'manager'
+        || investigation.user_permission === 'editeur';
+
+    const fetchAllCategories = useCallback(async () => {
+        try {
+            const data = await api.getInvestigationCategories();
+            setAllCategories(data.categories);
+        } catch {
+            /* ignore */
+        }
+    }, []);
+
+    useEffect(() => {
+        if (showPicker) fetchAllCategories();
+    }, [showPicker, fetchAllCategories]);
+
+    useEffect(() => {
+        const handleClick = (e: MouseEvent) => {
+            if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) setShowPicker(false);
+        };
+        document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, []);
+
+    const assignedIds = new Set(investigation.categories?.map(c => c.id_category) ?? []);
+    const unassigned = allCategories.filter(c => !assignedIds.has(c.id_category));
+
+    const handleAdd = async (categoryId: number) => {
+        try {
+            await api.addCategoryToInvestigation(investigation.id_investigation, categoryId);
+            toast('success', 'Category added');
+            onRefresh();
+        } catch (err) {
+            toast('error', err instanceof Error ? err.message : 'Error adding category');
+        }
+    };
+
+    const handleRemove = async (categoryId: number) => {
+        try {
+            await api.removeCategoryFromInvestigation(investigation.id_investigation, categoryId);
+            toast('success', 'Category removed');
+            onRefresh();
+        } catch (err) {
+            toast('error', err instanceof Error ? err.message : 'Error removing category');
+        }
+    };
+
+    return (
+        <div className="flex items-center gap-2 flex-wrap">
+            {investigation.categories?.map((cat) => {
+                const CatIcon = getIconComponent(cat.icon);
+                return (
+                    <span
+                        key={cat.id_category}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium group"
+                        style={{
+                            backgroundColor: `${cat.color || '#8b5cf6'}20`,
+                            color: cat.color || '#8b5cf6',
+                            border: `1px solid ${cat.color || '#8b5cf6'}40`,
+                        }}
+                    >
+                        <CatIcon size={12}/>
+                        {cat.name}
+                        {canEdit && (
+                            <button
+                                onClick={() => handleRemove(cat.id_category)}
+                                className="ml-0.5 opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-400"
+                            >
+                                <X size={12}/>
+                            </button>
+                        )}
+                    </span>
+                );
+            })}
+            {canEdit && (
+                <div className="relative" ref={pickerRef}>
+                    <button
+                        onClick={() => setShowPicker(!showPicker)}
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium text-secondary border border-dashed border-primary/30 hover:border-primary/50 hover:text-accent transition-all"
+                    >
+                        <Plus size={12}/>
+                        Add
+                    </button>
+                    {showPicker && (
+                        <div className="absolute top-full left-0 mt-1 z-20 bg-[#1a1a2e] border border-primary/20 rounded-xl py-1 shadow-lg min-w-[180px] max-h-48 overflow-y-auto">
+                            {unassigned.length === 0 ? (
+                                <p className="px-3 py-2 text-secondary text-sm">No more categories</p>
+                            ) : (
+                                unassigned.map((cat) => {
+                                    const CatIcon = getIconComponent(cat.icon);
+                                    return (
+                                        <button
+                                            key={cat.id_category}
+                                            onClick={() => {
+                                                handleAdd(cat.id_category);
+                                                setShowPicker(false);
+                                            }}
+                                            className="w-full px-3 py-2 flex items-center gap-2 hover:bg-primary/10 transition-colors text-sm"
+                                        >
+                                            <CatIcon size={14} style={{color: cat.color || '#8b5cf6'}}/>
+                                            <span className="text-accent">{cat.name}</span>
+                                        </button>
+                                    );
+                                })
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
+
 export const InvestigationDetail = () => {
     const {slug} = useParams<{ slug: string }>();
     const id = slug ? extractIdFromSlug(slug) : null;
@@ -494,8 +640,13 @@ export const InvestigationDetail = () => {
                         </div>
 
                         {investigation.description && (
-                            <p className="text-secondary text-sm mb-5">{investigation.description}</p>
+                            <p className="text-secondary text-sm mb-4">{investigation.description}</p>
                         )}
+
+                        {/* Categories */}
+                        <div className="mb-5">
+                            <CategoriesSection investigation={investigation} onRefresh={refreshInvestigation}/>
+                        </div>
 
                         {/* Metadata */}
                         <div className="flex items-center gap-5 text-sm text-secondary mb-8">

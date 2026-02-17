@@ -4,15 +4,30 @@ import {Layout} from '../../components/Layout';
 import {StatusBadge} from '../../components/StatusBadge';
 import {useToast} from '../../contexts/ToastContext';
 import {api} from '../../services/api';
-import {FileSearch, Plus, X, Calendar, AlignLeft, Users} from 'lucide-react';
-import {SearchBar} from '../../components/SearchBar';
+import {FileSearch, Plus, X, Calendar, AlignLeft, Users, RotateCcw, Tag, Search, Filter} from 'lucide-react';
 import {formatRelativeDate} from '../../utils/date';
 import {toInvestigationSlug} from '../../utils/slug';
+import * as LucideIcons from 'lucide-react';
+
+function getIconComponent(iconName: string | null): React.ComponentType<{ size?: number; className?: string }> {
+    if (!iconName) return Tag;
+    const icon = (LucideIcons as Record<string, unknown>)[iconName];
+    if (icon && typeof icon === 'object' && '$$typeof' in icon) return icon as React.ComponentType<{ size?: number; className?: string }>;
+    if (typeof icon === 'function') return icon as React.ComponentType<{ size?: number; className?: string }>;
+    return Tag;
+}
 
 interface StatusData {
     id_status: number;
     name: string;
     color: string | null;
+}
+
+interface CategoryData {
+    id_category: number;
+    name: string;
+    color: string | null;
+    icon: string | null;
 }
 
 interface InvestigationData {
@@ -21,6 +36,7 @@ interface InvestigationData {
     description: string | null;
     is_owner: boolean;
     status: StatusData;
+    categories?: CategoryData[];
     created_at: string | null;
     updated_at: string | null;
     closed_at: string | null;
@@ -159,9 +175,11 @@ export const Investigations = () => {
     const [loading, setLoading] = useState(true);
     const [showCreate, setShowCreate] = useState(false);
     const [statuses, setStatuses] = useState<StatusData[]>([]);
+    const [categories, setCategories] = useState<CategoryData[]>([]);
     const [openDropdown, setOpenDropdown] = useState<number | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterStatusId, setFilterStatusId] = useState<number | null>(null);
+    const [filterCategoryId, setFilterCategoryId] = useState<number | null>(null);
     const {toast} = useToast();
     const navigate = useNavigate();
 
@@ -187,10 +205,20 @@ export const Investigations = () => {
         }
     }, []);
 
+    const fetchCategories = useCallback(async () => {
+        try {
+            const data = await api.getInvestigationCategories();
+            setCategories(data.categories);
+        } catch (err) {
+            console.error('Error fetching categories:', err);
+        }
+    }, []);
+
     useEffect(() => {
         fetchInvestigations();
         fetchStatuses();
-    }, [fetchInvestigations, fetchStatuses]);
+        fetchCategories();
+    }, [fetchInvestigations, fetchStatuses, fetchCategories]);
 
     const handleStatusChange = async (investigationId: number, newStatusId: number) => {
         setOpenDropdown(null);
@@ -208,14 +236,23 @@ export const Investigations = () => {
         fetchInvestigations();
     };
 
+    const hasActiveFilters = searchQuery || filterStatusId !== null || filterCategoryId !== null;
+
+    const handleResetFilters = () => {
+        setSearchQuery('');
+        setFilterStatusId(null);
+        setFilterCategoryId(null);
+    };
+
     const filteredInvestigations = investigations.filter((inv) => {
         const matchesSearch = !searchQuery || inv.title.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesStatus = filterStatusId === null || inv.status.id_status === filterStatusId;
-        return matchesSearch && matchesStatus;
+        const matchesCategory = filterCategoryId === null || inv.categories?.some(c => c.id_category === filterCategoryId);
+        return matchesSearch && matchesStatus && matchesCategory;
     });
 
     const formatDate = (dateStr: string | null) => {
-        if (!dateStr) return '—';
+        if (!dateStr) return '\u2014';
         return new Date(dateStr).toLocaleDateString('en-US', {
             day: '2-digit',
             month: '2-digit',
@@ -242,22 +279,66 @@ export const Investigations = () => {
                     </button>
                 </div>
 
-                {/* Filtres */}
-                <SearchBar
-                    query={searchQuery}
-                    onQueryChange={setSearchQuery}
-                    placeholder="Search for an investigation..."
-                    filter={{
-                        value: filterStatusId,
-                        onChange: (v) => setFilterStatusId(v as number | null),
-                        options: statuses.map((s) => ({value: s.id_status, label: s.name})),
-                        placeholder: 'All statuses',
-                    }}
-                    total={total}
-                    totalLabel="investigation"
-                />
+                {/* Filters */}
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="relative flex-1 max-w-sm">
+                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary"/>
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search for an investigation..."
+                            className="w-full pl-9 pr-4 py-2.5 bg-dark/50 border border-primary/20 rounded-xl text-sm text-accent placeholder-secondary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
+                        />
+                    </div>
 
-                {/* Liste */}
+                    <div className="relative">
+                        <Filter size={16}
+                                className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary pointer-events-none"/>
+                        <select
+                            value={filterStatusId ?? ''}
+                            onChange={(e) => setFilterStatusId(e.target.value ? Number(e.target.value) : null)}
+                            className="pl-9 pr-8 py-2.5 bg-dark/50 border border-primary/20 rounded-xl text-sm text-accent focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all appearance-none cursor-pointer"
+                        >
+                            <option value="">All statuses</option>
+                            {statuses.map((s) => (
+                                <option key={s.id_status} value={s.id_status}>{s.name}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="relative">
+                        <Tag size={16}
+                             className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary pointer-events-none"/>
+                        <select
+                            value={filterCategoryId ?? ''}
+                            onChange={(e) => setFilterCategoryId(e.target.value ? Number(e.target.value) : null)}
+                            className="pl-9 pr-8 py-2.5 bg-dark/50 border border-primary/20 rounded-xl text-sm text-accent focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all appearance-none cursor-pointer"
+                        >
+                            <option value="">All categories</option>
+                            {categories.map((c) => (
+                                <option key={c.id_category} value={c.id_category}>{c.name}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {hasActiveFilters && (
+                        <button
+                            onClick={handleResetFilters}
+                            className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-medium text-secondary hover:text-accent hover:bg-primary/10 border border-primary/20 transition-all"
+                            title="Reset filters"
+                        >
+                            <RotateCcw size={14}/>
+                            Reset
+                        </button>
+                    )}
+
+                    <span className="text-secondary text-sm ml-auto">
+                        {total} investigation{total > 1 ? 's' : ''}
+                    </span>
+                </div>
+
+                {/* List */}
                 {loading ? (
                     <div className="text-center text-secondary py-12">Loading...</div>
                 ) : filteredInvestigations.length === 0 ? (
@@ -274,68 +355,91 @@ export const Investigations = () => {
                         </button>
                     </div>
                 ) : (
-                    <div className="grid gap-4">
+                    <div className="grid gap-3">
                         {filteredInvestigations.map((inv) => (
                             <div
                                 key={inv.id_investigation}
                                 onClick={() => navigate(`/investigations/${toInvestigationSlug(inv.title, inv.id_investigation)}`)}
-                                className="bg-dark/50 border border-primary/20 rounded-xl p-5 hover:border-primary/40 transition-all cursor-pointer"
+                                className="bg-dark/50 border border-primary/20 rounded-xl px-5 py-4 hover:border-primary/40 transition-all cursor-pointer group"
                             >
-                                <div className="flex items-start justify-between gap-4">
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <h3 className="text-accent font-semibold text-lg truncate">{inv.title}</h3>
-                                            {!inv.is_owner && (
-                                                <span
-                                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400 flex-shrink-0">
-                          <Users size={10}/>
-                          Collaborator
-                        </span>
-                                            )}
-                                            <div className="relative" onClick={(e) => e.stopPropagation()}>
-                                                <button
-                                                    onClick={() => setOpenDropdown(openDropdown === inv.id_investigation ? null : inv.id_investigation)}
-                                                    className="cursor-pointer hover:opacity-80 transition-opacity"
-                                                >
-                                                    <StatusBadge name={inv.status.name} color={inv.status.color}/>
-                                                </button>
-                                                {openDropdown === inv.id_investigation && (
-                                                    <StatusDropdown
-                                                        currentStatusId={inv.status.id_status}
-                                                        statuses={statuses}
-                                                        onSelect={(id) => handleStatusChange(inv.id_investigation, id)}
-                                                        onClose={() => setOpenDropdown(null)}
-                                                    />
+                                {/* Row 1: ID + Title + Status */}
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <span className="text-secondary/50 text-xs font-mono flex-shrink-0">#{inv.id_investigation}</span>
+                                    <h3 className="text-accent font-semibold truncate">{inv.title}</h3>
+                                    {!inv.is_owner && (
+                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-blue-500/20 text-blue-400 flex-shrink-0">
+                                            <Users size={9}/>
+                                            Collab
+                                        </span>
+                                    )}
+                                    <div className="ml-auto flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                        {inv.categories && inv.categories.length > 0 && (
+                                            <div className="hidden sm:flex items-center gap-1">
+                                                {inv.categories.slice(0, 2).map((cat) => {
+                                                    const CatIcon = getIconComponent(cat.icon);
+                                                    return (
+                                                        <span
+                                                            key={cat.id_category}
+                                                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium"
+                                                            style={{
+                                                                backgroundColor: `${cat.color || '#8b5cf6'}15`,
+                                                                color: cat.color || '#8b5cf6',
+                                                            }}
+                                                            title={cat.name}
+                                                        >
+                                                            <CatIcon size={10}/>
+                                                            {cat.name}
+                                                        </span>
+                                                    );
+                                                })}
+                                                {inv.categories.length > 2 && (
+                                                    <span className="text-[10px] text-secondary/60 font-medium px-1 py-0.5" title={inv.categories.slice(2).map(c => c.name).join(', ')}>
+                                                        +{inv.categories.length - 2}
+                                                    </span>
                                                 )}
                                             </div>
-                                        </div>
-                                        {inv.description && (
-                                            <p className="text-secondary text-sm mb-3 flex items-start gap-2">
-                                                <AlignLeft size={14} className="mt-0.5 flex-shrink-0"/>
-                                                <span className="line-clamp-2">{inv.description}</span>
-                                            </p>
                                         )}
-                                        <div className="flex items-center gap-4 text-xs text-secondary">
-                      <span className="flex items-center gap-1.5">
-                        <Calendar size={12}/>
-                        Created {formatDate(inv.created_at)}
-                      </span>
-                                            {inv.updated_at && inv.updated_at !== inv.created_at && (
-                                                <span className="flex items-center gap-1.5">
-                          <Calendar size={12}/>
-                          Updated {formatRelativeDate(inv.updated_at)}
-                        </span>
+                                        <div className="relative">
+                                            <button
+                                                onClick={() => setOpenDropdown(openDropdown === inv.id_investigation ? null : inv.id_investigation)}
+                                                className="cursor-pointer hover:opacity-80 transition-opacity"
+                                            >
+                                                <StatusBadge name={inv.status.name} color={inv.status.color}/>
+                                            </button>
+                                            {openDropdown === inv.id_investigation && (
+                                                <StatusDropdown
+                                                    currentStatusId={inv.status.id_status}
+                                                    statuses={statuses}
+                                                    onSelect={(id) => handleStatusChange(inv.id_investigation, id)}
+                                                    onClose={() => setOpenDropdown(null)}
+                                                />
                                             )}
                                         </div>
                                     </div>
-                                    <span className="text-secondary text-sm font-mono">#{inv.id_investigation}</span>
+                                </div>
+
+                                {/* Row 2: Description (compact) */}
+                                {inv.description && (
+                                    <p className="text-secondary/70 text-sm mt-1.5 line-clamp-1 pl-8">{inv.description}</p>
+                                )}
+
+                                {/* Row 3: Metadata */}
+                                <div className="flex items-center gap-3 mt-2 pl-8 text-[11px] text-secondary/50">
+                                    <span className="flex items-center gap-1">
+                                        <Calendar size={10}/>
+                                        {formatRelativeDate(inv.created_at)}
+                                    </span>
+                                    {inv.updated_at && inv.updated_at !== inv.created_at && (
+                                        <span className="flex items-center gap-1">
+                                            Updated {formatRelativeDate(inv.updated_at)}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         ))}
                     </div>
                 )}
 
-                {/* Modale création */}
                 {showCreate && (
                     <CreateModal onClose={() => setShowCreate(false)} onSave={handleSave}/>
                 )}

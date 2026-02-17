@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlmodel import Session
 
-from services import user_service, investigation_service, log_service, status_service, collaborator_service
+from services import user_service, investigation_service, log_service, status_service, collaborator_service, category_service
 from services.notification_emitter import create_and_emit
 from utils.security import verify_token
 from utils.schemas import InvestigationCreateRequest, CollaboratorInviteRequest, CollaboratorUpdateRequest
@@ -156,6 +156,18 @@ async def reject_invitation(
         ip_address=ip,
     )
     return {"detail": "Invitation rejected"}
+
+
+# --- Categories ---
+
+
+@router.get("/categories")
+async def get_investigation_categories(
+        user=Depends(get_current_user),
+        db: Session = Depends(get_db),
+):
+    categories = category_service.get_all_categories(db)
+    return {"categories": categories}
 
 
 # --- Routes with path params ---
@@ -402,3 +414,93 @@ async def remove_collaborator(
     )
 
     return {"detail": "Collaborator removed"}
+
+
+# --- Investigation categories ---
+
+
+@router.get("/{investigation_id}/categories")
+async def get_investigation_category_list(
+        investigation_id: int,
+        user=Depends(get_current_user),
+        db: Session = Depends(get_db),
+):
+    investigation = investigation_service.get_investigation_by_id(db, investigation_id)
+    if not investigation:
+        raise HTTPException(status_code=404, detail="Investigation not found")
+
+    is_owner = investigation.owner_id == user.id_user
+    collab_permission = collaborator_service.get_collaborator_permission(db, investigation_id, user.id_user)
+    if not is_owner and not collab_permission:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    categories = category_service.get_categories_for_investigation(db, investigation_id)
+    return {"categories": categories}
+
+
+@router.post("/{investigation_id}/categories")
+async def add_category_to_investigation(
+        investigation_id: int,
+        body: dict,
+        request: Request,
+        user=Depends(get_current_user),
+        db: Session = Depends(get_db),
+):
+    investigation = investigation_service.get_investigation_by_id(db, investigation_id)
+    if not investigation:
+        raise HTTPException(status_code=404, detail="Investigation not found")
+
+    is_owner = investigation.owner_id == user.id_user
+    collab_permission = collaborator_service.get_collaborator_permission(db, investigation_id, user.id_user)
+    if not is_owner and collab_permission not in ("manager", "editeur"):
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    category_id = body.get("id_category")
+    if not category_id:
+        raise HTTPException(status_code=422, detail="id_category is required")
+
+    cat = category_service.get_category_by_id(db, category_id)
+    if not cat:
+        raise HTTPException(status_code=404, detail="Category not found")
+
+    result = category_service.add_category_to_investigation(db, investigation_id, category_id)
+    ip = request.client.host if request.client else None
+    log_service.create_log(
+        db, category="category", action="assign", id_user=user.id_user,
+        detail=f"Category '{cat.name}' added to Investigation #{investigation_id}",
+        ip_address=ip,
+    )
+    return result
+
+
+@router.delete("/{investigation_id}/categories/{category_id}")
+async def remove_category_from_investigation(
+        investigation_id: int,
+        category_id: int,
+        request: Request,
+        user=Depends(get_current_user),
+        db: Session = Depends(get_db),
+):
+    investigation = investigation_service.get_investigation_by_id(db, investigation_id)
+    if not investigation:
+        raise HTTPException(status_code=404, detail="Investigation not found")
+
+    is_owner = investigation.owner_id == user.id_user
+    collab_permission = collaborator_service.get_collaborator_permission(db, investigation_id, user.id_user)
+    if not is_owner and collab_permission not in ("manager", "editeur"):
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    cat = category_service.get_category_by_id(db, category_id)
+    cat_name = cat.name if cat else f"#{category_id}"
+
+    success = category_service.remove_category_from_investigation(db, investigation_id, category_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Category not assigned to this investigation")
+
+    ip = request.client.host if request.client else None
+    log_service.create_log(
+        db, category="category", action="unassign", id_user=user.id_user,
+        detail=f"Category '{cat_name}' removed from Investigation #{investigation_id}",
+        ip_address=ip,
+    )
+    return {"detail": "Category removed"}

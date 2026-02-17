@@ -55,6 +55,18 @@ class ChangePasswordRequest(BaseModel):
         return validate_password_strength(v)
 
 
+class CategoryCreateRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=50)
+    color: str | None = Field(default=None, max_length=7)
+    icon: str | None = Field(default=None, max_length=50)
+
+
+class CategoryUpdateRequest(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=50)
+    color: str | None = Field(default=None, max_length=7)
+    icon: str | None = Field(default=None, max_length=50)
+
+
 class CollaboratorInviteRequest(BaseModel):
     pseudo: str = Field(min_length=1, max_length=50)
     permission_level: PermissionLevelEnum = PermissionLevelEnum.lecteur
