@@ -19,11 +19,17 @@ def get_current_user(payload: dict = Depends(verify_token), db: Session = Depend
 
 @router.get("")
 async def get_my_investigations(
+        request: Request,
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
     investigations = investigation_service.get_investigations_for_user(db, user.id_user)
     total = investigation_service.count_investigations_for_user(db, user.id_user)
+    ip = request.client.host if request.client else None
+    log_service.create_log(
+        db, category="consultation", action="list_investigations",
+        id_user=user.id_user, ip_address=ip,
+    )
     return {"investigations": investigations, "total": total}
 
 
@@ -55,24 +61,37 @@ async def create_investigation(
 
 @router.get("/statuses")
 async def get_statuses(
+        request: Request,
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
     statuses = status_service.get_all_statuses(db)
+    ip = request.client.host if request.client else None
+    log_service.create_log(
+        db, category="consultation", action="list_statuses",
+        id_user=user.id_user, ip_address=ip,
+    )
     return {"statuses": statuses}
 
 
 @router.get("/me/invitations")
 async def get_my_invitations(
+        request: Request,
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
     invitations = collaborator_service.get_pending_invitations_for_user(db, user.id_user)
+    ip = request.client.host if request.client else None
+    log_service.create_log(
+        db, category="consultation", action="list_pending_invitations",
+        id_user=user.id_user, ip_address=ip,
+    )
     return {"invitations": invitations}
 
 
 @router.get("/users/search")
 async def search_users_for_invitation(
+        request: Request,
         q: str = Query(min_length=2, max_length=50),
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
@@ -87,6 +106,11 @@ async def search_users_for_invitation(
         )
         .limit(10)
         .all()
+    )
+    ip = request.client.host if request.client else None
+    log_service.create_log(
+        db, category="consultation", action="search_users",
+        id_user=user.id_user, detail=f"q={q}", ip_address=ip,
     )
     return {
         "users": [
@@ -163,11 +187,38 @@ async def reject_invitation(
 
 @router.get("/categories")
 async def get_investigation_categories(
+        request: Request,
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
     categories = category_service.get_all_categories(db)
+    ip = request.client.host if request.client else None
+    log_service.create_log(
+        db, category="consultation", action="list_categories",
+        id_user=user.id_user, ip_address=ip,
+    )
     return {"categories": categories}
+
+
+@router.get("/recent")
+async def get_recent_investigations(
+        request: Request,
+        limit: int = 8,
+        user=Depends(get_current_user),
+        db: Session = Depends(get_db),
+):
+    investigation_ids = log_service.get_recent_investigation_ids(db, user.id_user, limit)
+    if not investigation_ids:
+        return {"investigations": []}
+
+    investigations = []
+    for inv_id in investigation_ids:
+        detail = investigation_service.get_investigation_detail(db, inv_id, current_user_id=user.id_user)
+        if detail:
+            detail["is_owner"] = detail["owner"]["id_user"] == user.id_user
+            investigations.append(detail)
+
+    return {"investigations": investigations}
 
 
 # --- Routes with path params ---
@@ -176,6 +227,7 @@ async def get_investigation_categories(
 @router.get("/{investigation_id}")
 async def get_investigation(
         investigation_id: int,
+        request: Request,
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
@@ -189,6 +241,12 @@ async def get_investigation(
     if not is_owner and not collab_permission:
         raise HTTPException(status_code=403, detail="Access denied")
 
+    ip = request.client.host if request.client else None
+    log_service.create_log(
+        db, category="consultation", action="view_investigation",
+        id_user=user.id_user, detail=f"Investigation #{investigation_id}",
+        ip_address=ip,
+    )
     return detail
 
 
@@ -314,6 +372,7 @@ async def invite_collaborator(
 @router.get("/{investigation_id}/collaborators")
 async def get_collaborators(
         investigation_id: int,
+        request: Request,
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
@@ -328,6 +387,12 @@ async def get_collaborators(
         raise HTTPException(status_code=403, detail="Access denied")
 
     collaborators = collaborator_service.get_collaborators_for_investigation(db, investigation_id)
+    ip = request.client.host if request.client else None
+    log_service.create_log(
+        db, category="consultation", action="list_collaborators",
+        id_user=user.id_user, detail=f"Investigation #{investigation_id}",
+        ip_address=ip,
+    )
     return {"collaborators": collaborators}
 
 
@@ -422,6 +487,7 @@ async def remove_collaborator(
 @router.get("/{investigation_id}/categories")
 async def get_investigation_category_list(
         investigation_id: int,
+        request: Request,
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
@@ -435,6 +501,12 @@ async def get_investigation_category_list(
         raise HTTPException(status_code=403, detail="Access denied")
 
     categories = category_service.get_categories_for_investigation(db, investigation_id)
+    ip = request.client.host if request.client else None
+    log_service.create_log(
+        db, category="consultation", action="list_investigation_categories",
+        id_user=user.id_user, detail=f"Investigation #{investigation_id}",
+        ip_address=ip,
+    )
     return {"categories": categories}
 
 

@@ -2,6 +2,7 @@ const CATEGORY_STYLES: Record<string, string> = {
   auth: 'bg-blue-500/20 text-blue-400',
   admin: 'bg-red-500/20 text-red-400',
   action: 'bg-green-500/20 text-green-400',
+  consultation: 'bg-gray-500/20 text-gray-400',
 };
 
 const DEFAULT_STYLE = 'bg-secondary/20 text-secondary';

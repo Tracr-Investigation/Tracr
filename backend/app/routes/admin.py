@@ -44,13 +44,14 @@ async def get_admin_logs(
         limit: int = 10,
         category: str = "",
         search: str = "",
+        exclude_reads: bool = False,
         user=Depends(verify_admin),
         db: Session = Depends(get_db),
 ):
     skip = (page - 1) * limit
-    logs = log_service.get_logs_paginated(db, skip, limit, category, search)
-    total = log_service.count_logs(db)
-    filtered = log_service.count_logs(db, category, search)
+    logs = log_service.get_logs_paginated(db, skip, limit, category, search, exclude_reads)
+    total = log_service.count_logs(db, exclude_reads=exclude_reads)
+    filtered = log_service.count_logs(db, category, search, exclude_reads)
     categories = log_service.get_categories(db)
 
     return {

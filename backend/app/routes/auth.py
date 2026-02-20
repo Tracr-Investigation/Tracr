@@ -54,12 +54,18 @@ async def register(
 
 
 @router.get("/me")
-async def get_me(payload: dict = Depends(verify_token), db: Session = Depends(get_db)):
+async def get_me(request: Request, payload: dict = Depends(verify_token), db: Session = Depends(get_db)):
     user = user_service.get_user_by_id(db, payload["user_id"])
     if not user or not user.is_active:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     role = user_service.get_user_role(db, user.id_user)
+
+    ip = request.client.host if request.client else None
+    log_service.create_log(
+        db, category="consultation", action="check_session",
+        id_user=user.id_user, ip_address=ip,
+    )
 
     return {
         "id_user": user.id_user,

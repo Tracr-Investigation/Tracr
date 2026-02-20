@@ -193,6 +193,24 @@ export const api = {
         return data;
     },
 
+    getRecentInvestigations: async (limit: number = 8) => {
+        const token = localStorage.getItem('token');
+        const params = new URLSearchParams({limit: String(limit)});
+        const response = await fetch(`${API_URL}/investigations/recent?${params}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error fetching recent investigations'));
+        }
+
+        return data;
+    },
+
     getInvestigation: async (id: number) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${id}`, {
@@ -562,9 +580,10 @@ export const api = {
         return data;
     },
 
-    getLogs: async (page: number = 1, limit: number = 10, category: string = '', search: string = '') => {
+    getLogs: async (page: number = 1, limit: number = 10, category: string = '', search: string = '', excludeReads: boolean = false) => {
         const token = localStorage.getItem('token');
         const params = new URLSearchParams({page: String(page), limit: String(limit), category, search});
+        if (excludeReads) params.set('exclude_reads', 'true');
         const response = await fetch(`${API_URL}/admin/logs?${params}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,

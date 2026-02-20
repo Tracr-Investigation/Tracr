@@ -24,6 +24,7 @@ export const LogsTab = () => {
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [category, setCategory] = useState('');
     const [categories, setCategories] = useState<string[]>([]);
+    const [excludeReads, setExcludeReads] = useState(false);
     const [loading, setLoading] = useState(true);
     const limit = 15;
 
@@ -39,10 +40,14 @@ export const LogsTab = () => {
         setPage(1);
     }, [category]);
 
+    useEffect(() => {
+        setPage(1);
+    }, [excludeReads]);
+
     const fetchLogs = useCallback(async () => {
         setLoading(true);
         try {
-            const data = await api.getLogs(page, limit, category, debouncedSearch);
+            const data = await api.getLogs(page, limit, category, debouncedSearch, excludeReads);
             setLogs(data.logs);
             setTotal(data.total);
             setFiltered(data.filtered);
@@ -52,7 +57,7 @@ export const LogsTab = () => {
         } finally {
             setLoading(false);
         }
-    }, [page, category, debouncedSearch]);
+    }, [page, category, debouncedSearch, excludeReads]);
 
     useEffect(() => {
         fetchLogs();
@@ -100,6 +105,19 @@ export const LogsTab = () => {
                 total={total}
                 totalLabel="log"
             />
+
+            {/* Filtre consultations */}
+            <div className="flex items-center gap-2 mb-4">
+                <label className="flex items-center gap-2 cursor-pointer text-sm text-secondary hover:text-accent transition-colors">
+                    <input
+                        type="checkbox"
+                        checked={excludeReads}
+                        onChange={(e) => setExcludeReads(e.target.checked)}
+                        className="w-4 h-4 rounded border-primary/30 bg-dark/50 text-primary focus:ring-primary/20 cursor-pointer accent-[#8b5cf6]"
+                    />
+                    Masquer les consultations
+                </label>
+            </div>
 
             {/* Table */}
             <div className="bg-dark/50 border border-primary/20 rounded-xl overflow-hidden">

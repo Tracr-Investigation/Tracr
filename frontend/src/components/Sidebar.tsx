@@ -3,8 +3,6 @@ import {useNavigate, useLocation} from 'react-router-dom';
 import {useAuth} from '../contexts/AuthContext';
 import {useNotifications} from '../contexts/NotificationContext';
 import {
-    Home,
-    LayoutDashboard,
     FileSearch,
     FileText,
     Settings,
@@ -15,7 +13,7 @@ import {
     Menu,
     X,
     User,
-    Bell
+    Bell, LayoutDashboard
 } from 'lucide-react';
 
 export const Sidebar = () => {
@@ -36,8 +34,7 @@ export const Sidebar = () => {
     const isAdmin = user?.role === 'admin' || user?.role === 'super-admin';
 
     const menuItems = [
-        {icon: Home, label: 'Home', path: '/'},
-        {icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard'},
+        {icon: LayoutDashboard, label: 'Dashboard', path: '/'},
         {icon: FileSearch, label: 'Investigations', path: '/investigations'},
         {icon: FileText, label: 'Templates', path: '/templates'},
         {icon: Settings, label: 'Settings', path: '/settings'},
@@ -142,17 +139,18 @@ export const Sidebar = () => {
                         className={`
                             w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all relative
                             ${isActive('/notifications')
-                                ? 'bg-gradient-to-r from-primary/20 to-secondary/20 text-accent border border-primary/30'
-                                : 'text-secondary hover:bg-primary/10 hover:text-accent'
-                            }
+                            ? 'bg-gradient-to-r from-primary/20 to-secondary/20 text-accent border border-primary/30'
+                            : 'text-secondary hover:bg-primary/10 hover:text-accent'
+                        }
                             ${collapsed ? 'justify-center' : ''}
                         `}
                         title={collapsed ? 'Notifications' : ''}
                     >
                         <div className="relative flex-shrink-0">
-                            <Bell size={22} className={isActive('/notifications') ? 'text-primary' : ''} />
+                            <Bell size={22} className={isActive('/notifications') ? 'text-primary' : ''}/>
                             {unreadCount > 0 && (
-                                <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">
+                                <span
+                                    className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">
                                     {unreadCount > 99 ? '99+' : unreadCount}
                                 </span>
                             )}

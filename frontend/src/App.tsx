@@ -7,7 +7,6 @@ import { AdminRoute } from './routes/AdminRoute';
 import { Login } from './pages/login/Login';
 import { Register } from './pages/register/Register';
 import { Home } from './pages/home/Home';
-import { Dashboard } from './pages/dashboard/Dashboard';
 import { Investigations } from './pages/investigations/Investigations';
 import { InvestigationDetail } from './pages/investigations/InvestigationDetail';
 import { Templates } from './pages/templates/Templates';
@@ -30,14 +29,6 @@ function App() {
             element={
               <ProtectedRoute>
                 <Home />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
               </ProtectedRoute>
             }
           />

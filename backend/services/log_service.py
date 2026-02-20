@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 from models.log import Log
 from models.user import User
 
-
 def create_log(
     db: Session,
     category: str,
@@ -27,7 +26,13 @@ def create_log(
     return log
 
 
-def get_logs_paginated(db: Session, skip: int, limit: int, category: str = "", search: str = ""):
+def _apply_exclude_reads(query, exclude_reads: bool):
+    if exclude_reads:
+        query = query.filter(Log.category != "consultation")
+    return query
+
+
+def get_logs_paginated(db: Session, skip: int, limit: int, category: str = "", search: str = "", exclude_reads: bool = False):
     """Get paginated logs with optional category and search filters"""
     query = db.query(Log, User.pseudo).outerjoin(User, Log.id_user == User.id_user)
     if category:
@@ -39,6 +44,7 @@ def get_logs_paginated(db: Session, skip: int, limit: int, category: str = "", s
             cast(Log.id_log, String).ilike(f"%{search}%"),
         ]
         query = query.filter(or_(*filters))
+    query = _apply_exclude_reads(query, exclude_reads)
     rows = query.order_by(Log.created_at.desc()).offset(skip).limit(limit).all()
 
     return [
@@ -56,7 +62,7 @@ def get_logs_paginated(db: Session, skip: int, limit: int, category: str = "", s
     ]
 
 
-def count_logs(db: Session, category: str = "", search: str = "") -> int:
+def count_logs(db: Session, category: str = "", search: str = "", exclude_reads: bool = False) -> int:
     """Count total logs with optional filters"""
     query = db.query(Log).outerjoin(User, Log.id_user == User.id_user)
     if category:
@@ -68,7 +74,35 @@ def count_logs(db: Session, category: str = "", search: str = "") -> int:
             cast(Log.id_log, String).ilike(f"%{search}%"),
         ]
         query = query.filter(or_(*filters))
+    query = _apply_exclude_reads(query, exclude_reads)
     return query.count()
+
+
+def get_recent_investigation_ids(db: Session, user_id: int, limit: int = 8) -> list[int]:
+    """Get the IDs of recently viewed investigations for a user, ordered by most recent consultation"""
+    import re
+    rows = (
+        db.query(Log.detail, Log.created_at)
+        .filter(
+            Log.id_user == user_id,
+            Log.action == "view_investigation",
+            Log.detail.isnot(None),
+        )
+        .order_by(Log.created_at.desc())
+        .all()
+    )
+    seen = set()
+    result = []
+    for detail, _ in rows:
+        match = re.search(r"#(\d+)", detail)
+        if match:
+            inv_id = int(match.group(1))
+            if inv_id not in seen:
+                seen.add(inv_id)
+                result.append(inv_id)
+                if len(result) >= limit:
+                    break
+    return result
 
 
 def get_categories(db: Session) -> list[str]:
