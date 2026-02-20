@@ -74,3 +74,12 @@ class CollaboratorInviteRequest(BaseModel):
 
 class CollaboratorUpdateRequest(BaseModel):
     permission_level: PermissionLevelEnum
+
+
+class InvestigationUpdateRequest(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=255)
+    description: str | None = Field(default=None, max_length=2000)
+
+
+class InvestigationTransferRequest(BaseModel):
+    new_owner_pseudo: str = Field(min_length=1, max_length=50)

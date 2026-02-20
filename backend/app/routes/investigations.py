@@ -4,7 +4,7 @@ from sqlmodel import Session
 from services import user_service, investigation_service, log_service, status_service, collaborator_service, category_service
 from services.notification_emitter import create_and_emit
 from utils.security import verify_token
-from utils.schemas import InvestigationCreateRequest, CollaboratorInviteRequest, CollaboratorUpdateRequest
+from utils.schemas import InvestigationCreateRequest, InvestigationUpdateRequest, InvestigationTransferRequest, CollaboratorInviteRequest, CollaboratorUpdateRequest
 from app.dependencies import get_db
 
 router = APIRouter(prefix="/investigations")
@@ -248,6 +248,137 @@ async def get_investigation(
         ip_address=ip,
     )
     return detail
+
+
+@router.patch("/{investigation_id}")
+async def update_investigation(
+        investigation_id: int,
+        body: InvestigationUpdateRequest,
+        request: Request,
+        user=Depends(get_current_user),
+        db: Session = Depends(get_db),
+):
+    investigation = investigation_service.get_investigation_by_id(db, investigation_id)
+    if not investigation:
+        raise HTTPException(status_code=404, detail="Investigation not found")
+
+    if investigation.owner_id != user.id_user:
+        raise HTTPException(status_code=403, detail="Only the owner can update this investigation")
+
+    if body.title is None and body.description is None:
+        raise HTTPException(status_code=422, detail="At least one field (title or description) is required")
+
+    updated = investigation_service.update_investigation(
+        db, investigation, title=body.title, description=body.description
+    )
+
+    ip = request.client.host if request.client else None
+    log_service.create_log(
+        db,
+        category="investigation",
+        action="update",
+        id_user=user.id_user,
+        detail=f"Investigation #{investigation_id} updated",
+        ip_address=ip,
+    )
+
+    return {
+        "id_investigation": updated.id_investigation,
+        "title": updated.title,
+        "description": updated.description,
+    }
+
+
+@router.post("/{investigation_id}/transfer")
+async def transfer_investigation(
+        investigation_id: int,
+        body: InvestigationTransferRequest,
+        request: Request,
+        user=Depends(get_current_user),
+        db: Session = Depends(get_db),
+):
+    investigation = investigation_service.get_investigation_by_id(db, investigation_id)
+    if not investigation:
+        raise HTTPException(status_code=404, detail="Investigation not found")
+
+    if investigation.owner_id != user.id_user:
+        raise HTTPException(status_code=403, detail="Only the owner can transfer ownership")
+
+    new_owner = user_service.get_user_by_pseudo(db, body.new_owner_pseudo)
+    if not new_owner or not new_owner.is_active:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if new_owner.id_user == investigation.owner_id:
+        raise HTTPException(status_code=400, detail="This user is already the owner")
+
+    # If the new owner is a collaborator, remove their collaborator entry
+    from models.investigation_collaborator import InvestigationCollaborator
+    existing_collab = (
+        db.query(InvestigationCollaborator)
+        .filter(
+            InvestigationCollaborator.id_investigation == investigation_id,
+            InvestigationCollaborator.id_user == new_owner.id_user,
+        )
+        .first()
+    )
+    if existing_collab:
+        db.delete(existing_collab)
+        db.commit()
+
+    title = investigation.title
+    investigation_service.transfer_ownership(db, investigation, new_owner.id_user)
+
+    await create_and_emit(
+        db,
+        id_user=new_owner.id_user,
+        type="investigation",
+        title="Ownership received",
+        message=f"{user.pseudo} transferred ownership of '{title}' to you",
+        reference_id=investigation_id,
+        reference_type="investigation",
+    )
+
+    ip = request.client.host if request.client else None
+    log_service.create_log(
+        db,
+        category="investigation",
+        action="transfer_ownership",
+        id_user=user.id_user,
+        detail=f"Investigation #{investigation_id} transferred to {body.new_owner_pseudo}",
+        ip_address=ip,
+    )
+
+    return {"detail": "Ownership transferred", "new_owner": body.new_owner_pseudo}
+
+
+@router.delete("/{investigation_id}")
+async def delete_investigation(
+        investigation_id: int,
+        request: Request,
+        user=Depends(get_current_user),
+        db: Session = Depends(get_db),
+):
+    investigation = investigation_service.get_investigation_by_id(db, investigation_id)
+    if not investigation:
+        raise HTTPException(status_code=404, detail="Investigation not found")
+
+    if investigation.owner_id != user.id_user:
+        raise HTTPException(status_code=403, detail="Only the owner can delete this investigation")
+
+    title = investigation.title
+    investigation_service.delete_investigation(db, investigation_id)
+
+    ip = request.client.host if request.client else None
+    log_service.create_log(
+        db,
+        category="investigation",
+        action="delete",
+        id_user=user.id_user,
+        detail=f"Investigation #{investigation_id} - {title} deleted",
+        ip_address=ip,
+    )
+
+    return {"detail": "Investigation deleted"}
 
 
 @router.patch("/{investigation_id}/status")

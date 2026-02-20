@@ -1,5 +1,5 @@
 import {useState, useEffect, useCallback, useRef} from 'react';
-import {useParams, Link} from 'react-router-dom';
+import {useParams, Link, useNavigate} from 'react-router-dom';
 import {Layout} from '../../components/Layout';
 import {StatusBadge} from '../../components/StatusBadge';
 import {Tabs} from '../../components/Tabs';
@@ -20,10 +20,12 @@ import {
     Tag,
     Plus,
     X,
+    Settings,
+    AlertTriangle,
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import {formatRelativeDate} from '../../utils/date';
-import {extractIdFromSlug} from '../../utils/slug';
+import {extractIdFromSlug, toInvestigationSlug} from '../../utils/slug';
 
 function getIconComponent(iconName: string | null): React.ComponentType<{ size?: number; className?: string }> {
     if (!iconName) return Tag;
@@ -509,8 +511,244 @@ const CategoriesSection = ({
     );
 };
 
+const SettingsTab = ({
+                         investigation,
+                         onRefresh,
+                         onNavigateAway,
+                         onSlugUpdate,
+                     }: {
+    investigation: InvestigationDetailData;
+    onRefresh: () => void;
+    onNavigateAway: () => void;
+    onSlugUpdate: (newTitle: string) => void;
+}) => {
+    const {toast} = useToast();
+    const [title, setTitle] = useState(investigation.title);
+    const [description, setDescription] = useState(investigation.description || '');
+    const [saving, setSaving] = useState(false);
+    const [transferQuery, setTransferQuery] = useState('');
+    const [transferResults, setTransferResults] = useState<UserSearchResult[]>([]);
+    const [transferSearching, setTransferSearching] = useState(false);
+    const [selectedTransferUser, setSelectedTransferUser] = useState<UserSearchResult | null>(null);
+    const [showTransferConfirm, setShowTransferConfirm] = useState(false);
+    const [transferring, setTransferring] = useState(false);
+    const transferTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const transferRef = useRef<HTMLDivElement>(null);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [deleteConfirmText, setDeleteConfirmText] = useState('');
+    const [deleting, setDeleting] = useState(false);
+
+    const hasChanges = title !== investigation.title || description !== (investigation.description || '');
+
+    useEffect(() => {
+        const handleClick = (e: MouseEvent) => {
+            if (transferRef.current && !transferRef.current.contains(e.target as Node)) setTransferResults([]);
+        };
+        document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, []);
+
+    const handleSave = async () => {
+        setSaving(true);
+        try {
+            const newTitle = title !== investigation.title ? title : null;
+            const newDesc = description !== (investigation.description || '') ? description : null;
+            await api.updateInvestigation(investigation.id_investigation, newTitle, newDesc);
+            toast('success', 'Investigation updated');
+            if (newTitle) onSlugUpdate(newTitle);
+            onRefresh();
+        } catch (err) {
+            toast('error', err instanceof Error ? err.message : 'Error updating investigation');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleTransferSearch = (value: string) => {
+        setTransferQuery(value);
+        setSelectedTransferUser(null);
+        if (transferTimeout.current) clearTimeout(transferTimeout.current);
+        if (value.length < 2) { setTransferResults([]); return; }
+        transferTimeout.current = setTimeout(async () => {
+            setTransferSearching(true);
+            try {
+                const data = await api.searchUsersForInvitation(value);
+                setTransferResults(data.users);
+            } catch { setTransferResults([]); }
+            finally { setTransferSearching(false); }
+        }, 300);
+    };
+
+    const handleTransfer = async () => {
+        if (!selectedTransferUser) return;
+        setTransferring(true);
+        try {
+            await api.transferInvestigation(investigation.id_investigation, selectedTransferUser.pseudo);
+            toast('success', `Ownership transferred to ${selectedTransferUser.pseudo}`);
+            onNavigateAway();
+        } catch (err) {
+            toast('error', err instanceof Error ? err.message : 'Error transferring ownership');
+        } finally { setTransferring(false); setShowTransferConfirm(false); }
+    };
+
+    const handleDelete = async () => {
+        setDeleting(true);
+        try {
+            await api.deleteInvestigation(investigation.id_investigation);
+            toast('success', 'Investigation deleted');
+            onNavigateAway();
+        } catch (err) {
+            toast('error', err instanceof Error ? err.message : 'Error deleting investigation');
+        } finally { setDeleting(false); }
+    };
+
+    return (
+        <div className="max-w-2xl divide-y divide-primary/10">
+            {/* Title */}
+            <div className="flex items-center gap-4 py-3">
+                <label className="text-sm text-secondary w-24 shrink-0">Title</label>
+                <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="flex-1 px-3 py-1.5 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
+                />
+            </div>
+
+            {/* Description */}
+            <div className="flex items-start gap-4 py-3">
+                <label className="text-sm text-secondary w-24 shrink-0 pt-1.5">Description</label>
+                <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={2}
+                    className="flex-1 px-3 py-1.5 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all resize-none"
+                    placeholder="No description"
+                />
+            </div>
+
+            {/* Save */}
+            {hasChanges && (
+                <div className="flex justify-end py-3">
+                    <button
+                        onClick={handleSave}
+                        disabled={saving || !title.trim()}
+                        className="px-4 py-1.5 bg-primary hover:bg-primary/80 text-white rounded-lg text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                        {saving ? 'Saving...' : 'Save changes'}
+                    </button>
+                </div>
+            )}
+
+            {/* Transfer */}
+            <div className="flex items-center gap-4 py-3">
+                <div className="w-24 shrink-0">
+                    <span className="text-sm text-secondary">Transfer</span>
+                </div>
+                <div className="flex-1 flex gap-2 items-center relative" ref={transferRef}>
+                    <div className="flex-1 relative">
+                        <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-secondary"/>
+                        <input
+                            type="text"
+                            value={selectedTransferUser ? selectedTransferUser.pseudo : transferQuery}
+                            onChange={(e) => handleTransferSearch(e.target.value)}
+                            placeholder="Search new owner..."
+                            className="w-full pl-8 pr-3 py-1.5 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
+                        />
+                        {transferResults.length > 0 && !selectedTransferUser && (
+                            <div className="absolute top-full left-0 right-0 mt-1 z-20 bg-[#1a1a2e] border border-primary/20 rounded-lg py-1 shadow-lg max-h-40 overflow-y-auto">
+                                {transferResults.map((u) => (
+                                    <button
+                                        key={u.id_user}
+                                        onClick={() => { setSelectedTransferUser(u); setTransferResults([]); setTransferQuery(u.pseudo); }}
+                                        className="w-full px-3 py-1.5 text-left text-sm text-accent hover:bg-primary/10 transition-colors flex items-center gap-2"
+                                    >
+                                        <span className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-semibold text-primary">{u.pseudo.charAt(0).toUpperCase()}</span>
+                                        {u.pseudo}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                        {transferSearching && (
+                            <div className="absolute top-full left-0 right-0 mt-1 z-20 bg-[#1a1a2e] border border-primary/20 rounded-lg py-2 shadow-lg text-center text-xs text-secondary">Searching...</div>
+                        )}
+                    </div>
+                    <button
+                        onClick={() => setShowTransferConfirm(true)}
+                        disabled={!selectedTransferUser}
+                        className="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg text-xs font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+                    >
+                        Transfer
+                    </button>
+                </div>
+                {showTransferConfirm && selectedTransferUser && (
+                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+                        <div className="bg-[#1a1a2e] border border-primary/20 rounded-xl p-5 max-w-sm w-full mx-4">
+                            <h4 className="text-accent font-semibold text-sm mb-2">Confirm transfer</h4>
+                            <p className="text-secondary text-xs mb-4">
+                                Transfer <span className="text-accent font-medium">"{investigation.title}"</span> to <span className="text-accent font-medium">{selectedTransferUser.pseudo}</span>? You will lose owner access.
+                            </p>
+                            <div className="flex justify-end gap-2">
+                                <button onClick={() => setShowTransferConfirm(false)} className="px-3 py-1.5 text-xs text-secondary hover:text-accent transition-colors">Cancel</button>
+                                <button onClick={handleTransfer} disabled={transferring} className="px-4 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg text-xs font-medium transition-all disabled:opacity-40">
+                                    {transferring ? 'Transferring...' : 'Yes, transfer'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Delete */}
+            <div className="py-3">
+                <div className="flex items-center gap-4">
+                    <div className="w-24 shrink-0">
+                        <span className="text-sm text-red-400">Delete</span>
+                    </div>
+                    <div className="flex-1 flex items-center justify-between">
+                        <span className="text-xs text-secondary">Permanently delete this investigation and all its data.</span>
+                        {!showDeleteConfirm && (
+                            <button
+                                onClick={() => setShowDeleteConfirm(true)}
+                                className="px-3 py-1.5 border border-red-500/50 text-red-400 hover:bg-red-500/10 rounded-lg text-xs font-medium transition-all ml-4 whitespace-nowrap"
+                            >
+                                Delete
+                            </button>
+                        )}
+                    </div>
+                </div>
+                {showDeleteConfirm && (
+                    <div className="mt-3 ml-28 space-y-2">
+                        <p className="text-xs text-secondary">
+                            Type <span className="text-accent font-mono">"{investigation.title}"</span> to confirm:
+                        </p>
+                        <div className="flex gap-2 items-center">
+                            <input
+                                type="text"
+                                value={deleteConfirmText}
+                                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                                placeholder={investigation.title}
+                                className="flex-1 px-3 py-1.5 bg-dark/50 border border-red-500/30 rounded-lg text-accent placeholder-secondary/30 text-sm focus:outline-none focus:ring-1 focus:ring-red-500/20 transition-all"
+                            />
+                            <button onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(''); }} className="px-3 py-1.5 text-xs text-secondary hover:text-accent transition-colors">Cancel</button>
+                            <button
+                                onClick={handleDelete}
+                                disabled={deleteConfirmText !== investigation.title || deleting}
+                                className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+                            >
+                                {deleting ? 'Deleting...' : 'Confirm delete'}
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
 export const InvestigationDetail = () => {
     const {slug} = useParams<{ slug: string }>();
+    const navigate = useNavigate();
     const id = slug ? extractIdFromSlug(slug) : null;
     const [investigation, setInvestigation] = useState<InvestigationDetailData | null>(null);
     const [statuses, setStatuses] = useState<StatusData[]>([]);
@@ -525,12 +763,17 @@ export const InvestigationDetail = () => {
         try {
             const data = await api.getInvestigation(id);
             setInvestigation(data);
+            // Redirect to canonical slug if URL doesn't match current title
+            const expectedSlug = toInvestigationSlug(data.title, data.id_investigation);
+            if (slug && slug !== expectedSlug) {
+                navigate(`/investigations/${expectedSlug}`, {replace: true});
+            }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Error loading investigation');
         } finally {
             setLoading(false);
         }
-    }, [id]);
+    }, [id, slug, navigate]);
 
     // Silent refresh: updates data without showing loading state (keeps Tabs mounted)
     const refreshInvestigation = useCallback(async () => {
@@ -699,6 +942,22 @@ export const InvestigationDetail = () => {
                                         />
                                     ),
                                 },
+                                ...(investigation.user_permission === 'owner' ? [{
+                                    id: 'settings',
+                                    label: 'Settings',
+                                    icon: Settings,
+                                    content: (
+                                        <SettingsTab
+                                            investigation={investigation}
+                                            onRefresh={refreshInvestigation}
+                                            onNavigateAway={() => navigate('/investigations')}
+                                            onSlugUpdate={(newTitle: string) => {
+                                                const newSlug = toInvestigationSlug(newTitle, investigation.id_investigation);
+                                                navigate(`/investigations/${newSlug}`, {replace: true});
+                                            }}
+                                        />
+                                    ),
+                                }] : []),
                             ]}
                             defaultTab="details"
                         />

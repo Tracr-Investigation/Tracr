@@ -285,6 +285,52 @@ export const api = {
         return data;
     },
 
+    updateInvestigation: async (id: number, title: string | null, description: string | null) => {
+        const token = localStorage.getItem('token');
+        const body: Record<string, string | null> = {};
+        if (title !== null) body.title = title;
+        if (description !== null) body.description = description;
+        const response = await fetch(`${API_URL}/investigations/${id}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error updating investigation'));
+        return data;
+    },
+
+    transferInvestigation: async (id: number, newOwnerPseudo: string) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${id}/transfer`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({new_owner_pseudo: newOwnerPseudo}),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error transferring investigation'));
+        return data;
+    },
+
+    deleteInvestigation: async (id: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error deleting investigation'));
+        return data;
+    },
+
     searchUsersForInvitation: async (query: string) => {
         const token = localStorage.getItem('token');
         const params = new URLSearchParams({q: query});

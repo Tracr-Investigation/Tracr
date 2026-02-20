@@ -115,6 +115,50 @@ def update_investigation_status(
     return investigation
 
 
+def update_investigation(
+    db: Session, investigation: Investigation, title: Optional[str] = None, description: Optional[str] = None
+) -> Investigation:
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+
+    if title is not None:
+        investigation.title = title
+    if description is not None:
+        investigation.description = description
+    investigation.updated_at = datetime.now(ZoneInfo("Europe/Paris"))
+    db.add(investigation)
+    db.commit()
+    db.refresh(investigation)
+    return investigation
+
+
+def transfer_ownership(db: Session, investigation: Investigation, new_owner_id: int) -> Investigation:
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+
+    investigation.owner_id = new_owner_id
+    investigation.updated_at = datetime.now(ZoneInfo("Europe/Paris"))
+    db.add(investigation)
+    db.commit()
+    db.refresh(investigation)
+    return investigation
+
+
+def delete_investigation(db: Session, investigation_id: int) -> bool:
+    investigation = db.query(Investigation).filter(Investigation.id_investigation == investigation_id).first()
+    if not investigation:
+        return False
+    db.query(InvestigationCollaborator).filter(
+        InvestigationCollaborator.id_investigation == investigation_id
+    ).delete()
+    db.query(InvestigationCategory).filter(
+        InvestigationCategory.id_investigation == investigation_id
+    ).delete()
+    db.delete(investigation)
+    db.commit()
+    return True
+
+
 def get_investigation_by_id(db: Session, investigation_id: int) -> Optional[Investigation]:
     return (
         db.query(Investigation)
