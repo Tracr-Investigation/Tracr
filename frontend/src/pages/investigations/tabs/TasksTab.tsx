@@ -1,6 +1,7 @@
 import {useState, useEffect, useCallback, useRef} from 'react';
 import {
     CheckSquare,
+    Square,
     Plus,
     Lock,
     Globe,
@@ -30,6 +31,7 @@ interface InvestigationData {
     id_investigation: number;
     user_permission: string | null;
     collaborators: CollaboratorData[];
+    owner: { id_user: number; pseudo: string };
 }
 
 interface TaskData {
@@ -574,17 +576,33 @@ export const TasksTab = ({
     const [filterStatus, setFilterStatus] = useState<string>('all');
     const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
     const statusDropdownRef = useRef<HTMLDivElement>(null);
+    const [closingTaskId, setClosingTaskId] = useState<number | null>(null);
+    const [showCompleted, setShowCompleted] = useState(false);
 
     const userPermission = investigation.user_permission;
     const canCreate = userPermission === 'owner' || userPermission === 'manager' || userPermission === 'editeur';
 
-    // Membres de l'investigation pour l'assignation
+    // Membres de l'investigation pour l'assignation : owner + collaborateurs acceptés
     const members: MemberOption[] = [
-        // On inclut les collaborateurs acceptés
+        {id_user: investigation.owner.id_user, pseudo: investigation.owner.pseudo},
         ...investigation.collaborators
             .filter((c) => c.accepted_at !== null)
             .map((c) => ({id_user: c.id_user, pseudo: c.pseudo})),
     ];
+
+    const handleToggleStatus = async (e: React.MouseEvent, task: TaskData) => {
+        e.stopPropagation();
+        setClosingTaskId(task.id_task);
+        const newStatus = task.status === 'termine' ? 'todo' : 'termine';
+        try {
+            await api.updateTask(investigation.id_investigation, task.id_task, {status: newStatus});
+            fetchTasks();
+        } catch (err) {
+            toast('error', err instanceof Error ? err.message : 'Erreur lors de la mise à jour');
+        } finally {
+            setClosingTaskId(null);
+        }
+    };
 
     const fetchTasks = useCallback(async () => {
         try {
@@ -626,11 +644,14 @@ export const TasksTab = ({
     };
 
     const filteredTasks = tasks.filter((task) => {
+        if (!showCompleted && task.status === 'termine') return false;
         if (filterVisibility === 'shared' && task.is_private) return false;
         if (filterVisibility === 'private' && !task.is_private) return false;
         if (filterStatus !== 'all' && task.status !== filterStatus) return false;
         return true;
     });
+
+    const completedCount = tasks.filter((t) => t.status === 'termine').length;
 
     const isOverdue = (dueDateStr: string | null) => {
         if (!dueDateStr) return false;
@@ -703,15 +724,30 @@ export const TasksTab = ({
                     </div>
                 </div>
 
-                {canCreate && (
-                    <button
-                        onClick={() => setShowCreateModal(true)}
-                        className="flex items-center gap-1.5 px-3 py-2 bg-primary hover:bg-primary/80 text-white rounded-lg text-sm font-medium transition-all"
-                    >
-                        <Plus size={14}/>
-                        Nouvelle tâche
-                    </button>
-                )}
+                <div className="flex items-center gap-2">
+                    {completedCount > 0 && (
+                        <button
+                            onClick={() => setShowCompleted(!showCompleted)}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                                showCompleted
+                                    ? 'bg-green-500/20 border-green-500/40 text-green-400'
+                                    : 'border-primary/20 text-secondary hover:text-accent'
+                            }`}
+                        >
+                            <CheckSquare size={13}/>
+                            {showCompleted ? 'Masquer terminées' : `Terminées (${completedCount})`}
+                        </button>
+                    )}
+                    {canCreate && (
+                        <button
+                            onClick={() => setShowCreateModal(true)}
+                            className="flex items-center gap-1.5 px-3 py-2 bg-primary hover:bg-primary/80 text-white rounded-lg text-sm font-medium transition-all"
+                        >
+                            <Plus size={14}/>
+                            Nouvelle tâche
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* Liste des tâches */}
@@ -727,44 +763,69 @@ export const TasksTab = ({
                 </div>
             ) : (
                 <div className="space-y-2">
-                    {filteredTasks.map((task) => (
+                    {filteredTasks.map((task) => {
+                        const canToggleStatus =
+                            userPermission === 'owner' ||
+                            task.created_by === currentUserId ||
+                            task.assigned_to === currentUserId;
+                        const isClosing = closingTaskId === task.id_task;
+
+                        return (
                         <button
                             key={task.id_task}
                             onClick={() => setSelectedTask(task)}
                             className="w-full bg-dark/50 border border-primary/20 rounded-xl p-4 text-left hover:border-primary/40 transition-all group"
                         >
                             <div className="flex items-start justify-between gap-3">
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-1.5">
-                                        {task.is_private ? (
-                                            <Lock size={12} className="text-primary shrink-0"/>
-                                        ) : (
-                                            <Globe size={12} className="text-secondary/60 shrink-0"/>
-                                        )}
-                                        <span
-                                            className="text-accent text-sm font-medium truncate group-hover:text-primary transition-colors">
-                                            {task.title}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                        <PriorityBadge priority={task.priority}/>
-                                        <StatusBadge status={task.status}/>
-                                        {task.assigned_to_pseudo && (
-                                            <span className="inline-flex items-center gap-1 text-xs text-secondary">
-                                                <User size={11}/>
-                                                {task.assigned_to_pseudo}
+                                <div className="flex items-start gap-2.5 flex-1 min-w-0">
+                                    {/* Bouton fermer/rouvrir tâche */}
+                                    {canToggleStatus && (
+                                        <button
+                                            onClick={(e) => handleToggleStatus(e, task)}
+                                            disabled={isClosing}
+                                            title={task.status === 'termine' ? 'Rouvrir la tâche' : 'Marquer comme terminée'}
+                                            className={`mt-0.5 shrink-0 transition-colors disabled:opacity-40 ${
+                                                task.status === 'termine'
+                                                    ? 'text-green-500 hover:text-secondary'
+                                                    : 'text-secondary/40 hover:text-green-500'
+                                            }`}
+                                        >
+                                            {task.status === 'termine'
+                                                ? <CheckSquare size={15}/>
+                                                : <Square size={15}/>
+                                            }
+                                        </button>
+                                    )}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-1.5">
+                                            {task.is_private ? (
+                                                <Lock size={12} className="text-primary shrink-0"/>
+                                            ) : (
+                                                <Globe size={12} className="text-secondary/60 shrink-0"/>
+                                            )}
+                                            <span className={`text-sm font-medium truncate group-hover:text-primary transition-colors ${task.status === 'termine' ? 'line-through text-secondary/50' : 'text-accent'}`}>
+                                                {task.title}
                                             </span>
-                                        )}
-                                        {task.due_date && (
-                                            <span
-                                                className={`inline-flex items-center gap-1 text-xs ${isOverdue(task.due_date) && task.status !== 'termine' ? 'text-red-400' : 'text-secondary'}`}>
-                                                <Calendar size={11}/>
-                                                {new Date(task.due_date).toLocaleDateString('fr-FR')}
-                                                {isOverdue(task.due_date) && task.status !== 'termine' && (
-                                                    <AlertCircle size={11}/>
-                                                )}
-                                            </span>
-                                        )}
+                                        </div>
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <PriorityBadge priority={task.priority}/>
+                                            <StatusBadge status={task.status}/>
+                                            {task.assigned_to_pseudo && (
+                                                <span className="inline-flex items-center gap-1 text-xs text-secondary">
+                                                    <User size={11}/>
+                                                    {task.assigned_to_pseudo}
+                                                </span>
+                                            )}
+                                            {task.due_date && (
+                                                <span className={`inline-flex items-center gap-1 text-xs ${isOverdue(task.due_date) && task.status !== 'termine' ? 'text-red-400' : 'text-secondary'}`}>
+                                                    <Calendar size={11}/>
+                                                    {new Date(task.due_date).toLocaleDateString('fr-FR')}
+                                                    {isOverdue(task.due_date) && task.status !== 'termine' && (
+                                                        <AlertCircle size={11}/>
+                                                    )}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                                 {task.response_count > 0 && (
@@ -775,7 +836,8 @@ export const TasksTab = ({
                                 )}
                             </div>
                         </button>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
 

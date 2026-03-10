@@ -626,6 +626,25 @@ export const api = {
         return data;
     },
 
+    getMyTasks: async () => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/tasks/me`, {
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching my tasks'));
+        return data as { tasks: Array<{
+            id_task: number;
+            id_investigation: number;
+            investigation_title: string;
+            title: string;
+            status: 'todo' | 'en_cours' | 'termine';
+            priority: 'basse' | 'normale' | 'haute' | 'urgente';
+            is_private: boolean;
+            due_date: string | null;
+        }> };
+    },
+
     getTasks: async (investigationId: number) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/tasks`, {

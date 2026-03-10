@@ -6,7 +6,7 @@ import {useAuth} from '../../contexts/AuthContext';
 import {api} from '../../services/api';
 import {formatRelativeDate} from '../../utils/date';
 import {toInvestigationSlug} from '../../utils/slug';
-import {FileSearch, ArrowRight, Users, Tag} from 'lucide-react';
+import {FileSearch, ArrowRight, Users, Tag, CheckSquare, Calendar, AlertCircle} from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 
 function getIconComponent(iconName: string | null): React.ComponentType<{ size?: number; className?: string }> {
@@ -45,6 +45,8 @@ export const Home = () => {
     const navigate = useNavigate();
     const [recentInvestigations, setRecentInvestigations] = useState<InvestigationData[]>([]);
     const [loading, setLoading] = useState(true);
+    const [myTasks, setMyTasks] = useState<Awaited<ReturnType<typeof api.getMyTasks>>['tasks']>([]);
+    const [loadingTasks, setLoadingTasks] = useState(true);
 
     const fetchRecent = useCallback(async () => {
         setLoading(true);
@@ -58,9 +60,21 @@ export const Home = () => {
         }
     }, []);
 
+    const fetchMyTasks = useCallback(async () => {
+        try {
+            const data = await api.getMyTasks();
+            setMyTasks(data.tasks);
+        } catch {
+            /* silencieux */
+        } finally {
+            setLoadingTasks(false);
+        }
+    }, []);
+
     useEffect(() => {
         fetchRecent();
-    }, [fetchRecent]);
+        fetchMyTasks();
+    }, [fetchRecent, fetchMyTasks]);
 
     return (
         <Layout>
@@ -73,8 +87,9 @@ export const Home = () => {
                     </p>
                 </div>
 
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 items-start">
                 {/* Recent investigations block */}
-                <div className="bg-dark/50 border border-primary/20 rounded-xl p-5">
+                <div className="lg:col-span-3 bg-dark/50 border border-primary/20 rounded-xl p-5">
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-sm font-semibold text-accent uppercase tracking-wide">Recently viewed</h2>
                         <button
@@ -144,6 +159,66 @@ export const Home = () => {
                         </div>
                     )}
                 </div>
+
+                {/* Mes tâches assignées */}
+                <div className="lg:col-span-2 bg-dark/50 border border-primary/20 rounded-xl p-5">
+                    <h2 className="text-sm font-semibold text-accent uppercase tracking-wide mb-4 flex items-center gap-2">
+                        <CheckSquare size={14} className="text-primary"/>
+                        Mes tâches
+                    </h2>
+
+                    {loadingTasks ? (
+                        <p className="text-secondary text-sm py-4 text-center">Chargement...</p>
+                    ) : myTasks.length === 0 ? (
+                        <div className="py-6 text-center">
+                            <CheckSquare size={28} className="mx-auto text-secondary/30 mb-2"/>
+                            <p className="text-secondary/60 text-xs">Aucune tâche assignée</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-2">
+                            {myTasks.map((task) => {
+                                const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'termine';
+                                const PRIORITY_DOT: Record<string, string> = {
+                                    basse: '#6b7280', normale: '#3b82f6', haute: '#f97316', urgente: '#ef4444',
+                                };
+                                const STATUS_LABEL: Record<string, string> = {
+                                    todo: 'À faire', en_cours: 'En cours', termine: 'Terminé',
+                                };
+                                return (
+                                    <div
+                                        key={task.id_task}
+                                        onClick={() => navigate(`/investigations/${toInvestigationSlug(task.investigation_title, task.id_investigation)}`)}
+                                        className="group flex flex-col gap-1 px-3 py-2.5 rounded-lg hover:bg-primary/10 transition-all cursor-pointer"
+                                    >
+                                        <div className="flex items-center gap-2 min-w-0">
+                                            <span
+                                                className="w-1.5 h-1.5 rounded-full shrink-0"
+                                                style={{backgroundColor: PRIORITY_DOT[task.priority] ?? '#6b7280'}}
+                                            />
+                                            <span className={`text-sm truncate ${task.status === 'termine' ? 'line-through text-secondary/50' : 'text-accent group-hover:text-primary transition-colors'}`}>
+                                                {task.title}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center justify-between gap-2 pl-3.5">
+                                            <span className="text-[11px] text-secondary/60 truncate">{task.investigation_title}</span>
+                                            <div className="flex items-center gap-1.5 shrink-0">
+                                                <span className="text-[10px] text-secondary/50">{STATUS_LABEL[task.status]}</span>
+                                                {task.due_date && (
+                                                    <span className={`inline-flex items-center gap-0.5 text-[10px] ${isOverdue ? 'text-red-400' : 'text-secondary/50'}`}>
+                                                        {isOverdue ? <AlertCircle size={10}/> : <Calendar size={10}/>}
+                                                        {new Date(task.due_date).toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit'})}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+
+                </div>{/* end grid */}
             </div>
         </Layout>
     );
