@@ -11,7 +11,6 @@ import {
     Edit2,
     X,
     ChevronDown,
-    Search,
     AlertCircle,
     Clock,
 } from 'lucide-react';
@@ -92,7 +91,7 @@ const STATUS_LABELS: Record<string, string> = {
     termine: 'Terminé',
 };
 
-const PriorityBadge = ({priority}: {priority: string}) => (
+const PriorityBadge = ({priority}: { priority: string }) => (
     <span
         className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
         style={{
@@ -104,7 +103,7 @@ const PriorityBadge = ({priority}: {priority: string}) => (
     </span>
 );
 
-const StatusBadge = ({status}: {status: string}) => (
+const StatusBadge = ({status}: { status: string }) => (
     <span
         className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
         style={{
@@ -118,14 +117,12 @@ const StatusBadge = ({status}: {status: string}) => (
 
 // Formulaire de création/édition d'une tâche
 const TaskForm = ({
-    investigationId,
-    members,
-    task,
-    onSubmit,
-    onCancel,
-    loading,
-}: {
-    investigationId: number;
+                      members,
+                      task,
+                      onSubmit,
+                      onCancel,
+                      loading,
+                  }: {
     members: MemberOption[];
     task?: TaskData | null;
     onSubmit: (data: Record<string, unknown>) => void;
@@ -191,7 +188,7 @@ const TaskForm = ({
                     <label className="block text-xs text-secondary mb-1">Priorité</label>
                     <select
                         value={priority}
-                        onChange={(e) => setPriority(e.target.value)}
+                        onChange={(e) => setPriority(e.target.value as TaskData['priority'])}
                         className="w-full px-3 py-2 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
                     >
                         {Object.entries(PRIORITY_LABELS).map(([val, label]) => (
@@ -205,7 +202,7 @@ const TaskForm = ({
                     <label className="block text-xs text-secondary mb-1">Statut</label>
                     <select
                         value={status}
-                        onChange={(e) => setStatus(e.target.value)}
+                        onChange={(e) => setStatus(e.target.value as 'todo' | 'en_cours' | 'termine')}
                         className="w-full px-3 py-2 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
                     >
                         {Object.entries(STATUS_LABELS).map(([val, label]) => (
@@ -255,7 +252,8 @@ const TaskForm = ({
                     />
                 </button>
                 <span className="text-sm text-accent flex items-center gap-1.5">
-                    {isPrivate ? <Lock size={14} className="text-primary"/> : <Globe size={14} className="text-secondary"/>}
+                    {isPrivate ? <Lock size={14} className="text-primary"/> :
+                        <Globe size={14} className="text-secondary"/>}
                     {isPrivate ? 'Privée (visible uniquement par vous)' : 'Partagée (visible par tous les membres)'}
                 </span>
             </div>
@@ -282,14 +280,14 @@ const TaskForm = ({
 
 // Modal de détail d'une tâche avec réponses
 const TaskDetailModal = ({
-    task,
-    investigationId,
-    currentUserId,
-    userPermission,
-    onClose,
-    onRefresh,
-    members,
-}: {
+                             task,
+                             investigationId,
+                             currentUserId,
+                             userPermission,
+                             onClose,
+                             onRefresh,
+                             members,
+                         }: {
     task: TaskData;
     investigationId: number;
     currentUserId: number;
@@ -390,7 +388,8 @@ const TaskDetailModal = ({
 
     return (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-            <div className="bg-[#1a1a2e] border border-primary/20 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div
+                className="bg-[#1a1a2e] border border-primary/20 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
                 {/* Header */}
                 <div className="flex items-start justify-between p-5 border-b border-primary/10">
                     <div className="flex-1 min-w-0">
@@ -439,7 +438,6 @@ const TaskDetailModal = ({
                 <div className="flex-1 overflow-y-auto p-5 space-y-5">
                     {editing ? (
                         <TaskForm
-                            investigationId={investigationId}
                             members={members}
                             task={task}
                             onSubmit={handleEditSubmit}
@@ -453,19 +451,22 @@ const TaskDetailModal = ({
                                 {task.assigned_to_pseudo && (
                                     <div className="flex items-center gap-2 text-secondary">
                                         <User size={13} className="text-primary shrink-0"/>
-                                        <span>Assigné à <span className="text-accent">{task.assigned_to_pseudo}</span></span>
+                                        <span>Assigné à <span
+                                            className="text-accent">{task.assigned_to_pseudo}</span></span>
                                     </div>
                                 )}
                                 {task.created_by_pseudo && (
                                     <div className="flex items-center gap-2 text-secondary">
                                         <User size={13} className="text-secondary shrink-0"/>
-                                        <span>Créé par <span className="text-accent">{task.created_by_pseudo}</span></span>
+                                        <span>Créé par <span
+                                            className="text-accent">{task.created_by_pseudo}</span></span>
                                     </div>
                                 )}
                                 {task.due_date && (
                                     <div className="flex items-center gap-2 text-secondary">
                                         <Calendar size={13} className="text-primary shrink-0"/>
-                                        <span>Échéance : <span className="text-accent">{formatDate(task.due_date)}</span></span>
+                                        <span>Échéance : <span
+                                            className="text-accent">{formatDate(task.due_date)}</span></span>
                                     </div>
                                 )}
                                 {task.created_at && (
@@ -501,12 +502,14 @@ const TaskDetailModal = ({
                                 <div className="space-y-3">
                                     {responses.map((resp) => (
                                         <div key={resp.id_response} className="flex gap-2.5 group">
-                                            <span className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary shrink-0 mt-0.5">
+                                            <span
+                                                className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary shrink-0 mt-0.5">
                                                 {resp.pseudo ? resp.pseudo.charAt(0).toUpperCase() : '?'}
                                             </span>
                                             <div className="flex-1 bg-dark/40 rounded-lg p-2.5">
                                                 <div className="flex items-center justify-between gap-2 mb-1">
-                                                    <span className="text-accent text-xs font-medium">{resp.pseudo || 'Utilisateur supprimé'}</span>
+                                                    <span
+                                                        className="text-accent text-xs font-medium">{resp.pseudo || 'Utilisateur supprimé'}</span>
                                                     <div className="flex items-center gap-1">
                                                         <span className="text-secondary/60 text-xs">
                                                             {resp.created_at ? formatRelativeDate(resp.created_at) : ''}
@@ -555,9 +558,9 @@ const TaskDetailModal = ({
 };
 
 export const TasksTab = ({
-    investigation,
-    currentUserId,
-}: {
+                             investigation,
+                             currentUserId,
+                         }: {
     investigation: InvestigationData;
     currentUserId: number;
 }) => {
@@ -672,9 +675,13 @@ export const TasksTab = ({
                             <ChevronDown size={12}/>
                         </button>
                         {statusDropdownOpen && (
-                            <div className="absolute top-full left-0 mt-1 z-20 bg-[#1a1a2e] border border-primary/20 rounded-xl py-1 shadow-lg min-w-[160px]">
+                            <div
+                                className="absolute top-full left-0 mt-1 z-20 bg-[#1a1a2e] border border-primary/20 rounded-xl py-1 shadow-lg min-w-[160px]">
                                 <button
-                                    onClick={() => { setFilterStatus('all'); setStatusDropdownOpen(false); }}
+                                    onClick={() => {
+                                        setFilterStatus('all');
+                                        setStatusDropdownOpen(false);
+                                    }}
                                     className={`w-full px-3 py-2 text-left text-xs hover:bg-primary/10 transition-colors ${filterStatus === 'all' ? 'text-primary' : 'text-secondary'}`}
                                 >
                                     Tous les statuts
@@ -682,7 +689,10 @@ export const TasksTab = ({
                                 {Object.entries(STATUS_LABELS).map(([val, label]) => (
                                     <button
                                         key={val}
-                                        onClick={() => { setFilterStatus(val); setStatusDropdownOpen(false); }}
+                                        onClick={() => {
+                                            setFilterStatus(val);
+                                            setStatusDropdownOpen(false);
+                                        }}
                                         className={`w-full px-3 py-2 text-left text-xs hover:bg-primary/10 transition-colors ${filterStatus === val ? 'text-primary' : 'text-secondary'}`}
                                     >
                                         {label}
@@ -731,7 +741,8 @@ export const TasksTab = ({
                                         ) : (
                                             <Globe size={12} className="text-secondary/60 shrink-0"/>
                                         )}
-                                        <span className="text-accent text-sm font-medium truncate group-hover:text-primary transition-colors">
+                                        <span
+                                            className="text-accent text-sm font-medium truncate group-hover:text-primary transition-colors">
                                             {task.title}
                                         </span>
                                     </div>
@@ -745,7 +756,8 @@ export const TasksTab = ({
                                             </span>
                                         )}
                                         {task.due_date && (
-                                            <span className={`inline-flex items-center gap-1 text-xs ${isOverdue(task.due_date) && task.status !== 'termine' ? 'text-red-400' : 'text-secondary'}`}>
+                                            <span
+                                                className={`inline-flex items-center gap-1 text-xs ${isOverdue(task.due_date) && task.status !== 'termine' ? 'text-red-400' : 'text-secondary'}`}>
                                                 <Calendar size={11}/>
                                                 {new Date(task.due_date).toLocaleDateString('fr-FR')}
                                                 {isOverdue(task.due_date) && task.status !== 'termine' && (
@@ -785,7 +797,6 @@ export const TasksTab = ({
                         </div>
                         <div className="p-5">
                             <TaskForm
-                                investigationId={investigation.id_investigation}
                                 members={members}
                                 onSubmit={handleCreate}
                                 onCancel={() => setShowCreateModal(false)}
