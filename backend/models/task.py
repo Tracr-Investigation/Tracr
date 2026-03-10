@@ -80,6 +80,10 @@ class Task(SQLModel, table=True):
         default=None,
         sa_column=Column(DateTime(timezone=True), nullable=True),
     )
+    completed_at: Optional[datetime] = Field(
+        default=None,
+        sa_column=Column(DateTime(timezone=True), nullable=True),
+    )
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(ZoneInfo("Europe/Paris")),
         sa_column=Column(DateTime(timezone=True), nullable=False),

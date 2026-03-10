@@ -9,6 +9,7 @@ from utils.security import verify_token
 from app.dependencies import get_db
 
 router = APIRouter(prefix="/investigations")
+me_router = APIRouter(prefix="/tasks")
 
 
 def get_current_user(payload: dict = Depends(verify_token), db: Session = Depends(get_db)):
@@ -294,3 +295,12 @@ async def delete_task_response(
         ip_address=ip,
     )
     return {"detail": "Response deleted"}
+
+
+@me_router.get("/me")
+async def get_my_tasks(
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    tasks = task_service.get_my_tasks(db, user.id_user)
+    return {"tasks": tasks}

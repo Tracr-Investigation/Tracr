@@ -72,6 +72,7 @@ def _task_to_dict(task: Task, db: Session) -> dict:
         "assigned_to": task.assigned_to,
         "assigned_to_pseudo": assignee.pseudo if assignee else None,
         "due_date": task.due_date.isoformat() if task.due_date else None,
+        "completed_at": task.completed_at.isoformat() if task.completed_at else None,
         "created_at": task.created_at.isoformat() if task.created_at else None,
         "updated_at": task.updated_at.isoformat() if task.updated_at else None,
         "response_count": response_count,
@@ -154,6 +155,9 @@ def update_task(
     clear_assigned: bool = False,
     clear_due_date: bool = False,
 ) -> dict:
+    # Capturer l'ancien statut AVANT modification
+    old_status = task.status.value if hasattr(task.status, "value") else task.status
+
     if title is not None:
         task.title = title
     if description is not None:
@@ -172,7 +176,14 @@ def update_task(
         task.due_date = None
     elif due_date is not None:
         task.due_date = due_date
-    task.updated_at = datetime.now(ZoneInfo("Europe/Paris"))
+
+    now = datetime.now(ZoneInfo("Europe/Paris"))
+    if status is not None and status != old_status:
+        if status == "termine":
+            task.completed_at = now
+        else:
+            task.completed_at = None
+    task.updated_at = now
     db.add(task)
     db.commit()
     db.refresh(task)
@@ -226,6 +237,44 @@ def create_response(db: Session, id_task: int, id_user: int, content: str) -> di
         "created_at": response.created_at.isoformat() if response.created_at else None,
         "updated_at": None,
     }
+
+
+def get_my_tasks(db: Session, id_user: int, limit: int = 10) -> list[dict]:
+    """Retourne les tâches assignées à l'utilisateur sur toutes ses investigations (non terminées en priorité)."""
+    # Sous-requête : investigations où l'utilisateur est membre
+    owned_ids = db.query(Investigation.id_investigation).filter(Investigation.owner_id == id_user)
+    collab_ids = (
+        db.query(InvestigationCollaborator.id_investigation)
+        .filter(
+            InvestigationCollaborator.id_user == id_user,
+            InvestigationCollaborator.accepted_at.isnot(None),
+        )
+    )
+    accessible_query = owned_ids.union(collab_ids)
+
+    tasks = (
+        db.query(Task, Investigation)
+        .join(Investigation, Task.id_investigation == Investigation.id_investigation)
+        .filter(
+            Task.assigned_to == id_user,
+            Task.status != "termine",
+            Task.id_investigation.in_(accessible_query),
+            (Task.is_private == False) | (Task.created_by == id_user),
+        )
+        .order_by(
+            Task.due_date.asc().nullslast(),
+            Task.created_at.desc(),
+        )
+        .limit(limit)
+        .all()
+    )
+
+    result = []
+    for task, investigation in tasks:
+        d = _task_to_dict(task, db)
+        d["investigation_title"] = investigation.title
+        result.append(d)
+    return result
 
 
 def get_response_by_id(db: Session, id_response: int) -> Optional[TaskResponse]:

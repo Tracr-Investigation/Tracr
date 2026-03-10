@@ -49,6 +49,7 @@ fastapi_app.include_router(auth.router)
 fastapi_app.include_router(admin.router)
 fastapi_app.include_router(investigations.router)
 fastapi_app.include_router(tasks.router)
+fastapi_app.include_router(tasks.me_router)
 fastapi_app.include_router(notifications.router)
 
 app = SocketASGIApp(sio, other_asgi_app=fastapi_app, socketio_path="socket.io")
