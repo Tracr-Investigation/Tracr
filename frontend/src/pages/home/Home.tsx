@@ -160,19 +160,19 @@ export const Home = () => {
                     )}
                 </div>
 
-                {/* Mes tâches assignées */}
+                {/* My assigned tasks */}
                 <div className="lg:col-span-2 bg-dark/50 border border-primary/20 rounded-xl p-5">
                     <h2 className="text-sm font-semibold text-accent uppercase tracking-wide mb-4 flex items-center gap-2">
                         <CheckSquare size={14} className="text-primary"/>
-                        Mes tâches
+                        My tasks
                     </h2>
 
                     {loadingTasks ? (
-                        <p className="text-secondary text-sm py-4 text-center">Chargement...</p>
+                        <p className="text-secondary text-sm py-4 text-center">Loading...</p>
                     ) : myTasks.length === 0 ? (
                         <div className="py-6 text-center">
                             <CheckSquare size={28} className="mx-auto text-secondary/30 mb-2"/>
-                            <p className="text-secondary/60 text-xs">Aucune tâche assignée</p>
+                            <p className="text-secondary/60 text-xs">No assigned tasks</p>
                         </div>
                     ) : (
                         <div className="space-y-2">
@@ -182,7 +182,7 @@ export const Home = () => {
                                     basse: '#6b7280', normale: '#3b82f6', haute: '#f97316', urgente: '#ef4444',
                                 };
                                 const STATUS_LABEL: Record<string, string> = {
-                                    todo: 'À faire', en_cours: 'En cours', termine: 'Terminé',
+                                    todo: 'To do', en_cours: 'In progress', termine: 'Done',
                                 };
                                 return (
                                     <div
@@ -206,7 +206,7 @@ export const Home = () => {
                                                 {task.due_date && (
                                                     <span className={`inline-flex items-center gap-0.5 text-[10px] ${isOverdue ? 'text-red-400' : 'text-secondary/50'}`}>
                                                         {isOverdue ? <AlertCircle size={10}/> : <Calendar size={10}/>}
-                                                        {new Date(task.due_date).toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit'})}
+                                                        {new Date(task.due_date).toLocaleDateString('en-US', {day: '2-digit', month: '2-digit'})}
                                                     </span>
                                                 )}
                                             </div>

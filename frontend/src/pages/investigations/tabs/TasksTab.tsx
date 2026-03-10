@@ -75,10 +75,10 @@ const PRIORITY_COLORS: Record<string, string> = {
 };
 
 const PRIORITY_LABELS: Record<string, string> = {
-    basse: 'Basse',
-    normale: 'Normale',
-    haute: 'Haute',
-    urgente: 'Urgente',
+    basse: 'Low',
+    normale: 'Normal',
+    haute: 'High',
+    urgente: 'Urgent',
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -88,9 +88,9 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
-    todo: 'À faire',
-    en_cours: 'En cours',
-    termine: 'Terminé',
+    todo: 'To do',
+    en_cours: 'In progress',
+    termine: 'Done',
 };
 
 const PriorityBadge = ({priority}: { priority: string }) => (
@@ -117,7 +117,7 @@ const StatusBadge = ({status}: { status: string }) => (
     </span>
 );
 
-// Formulaire de création/édition d'une tâche
+// Task creation / edit form
 const TaskForm = ({
                       members,
                       task,
@@ -157,14 +157,14 @@ const TaskForm = ({
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Titre */}
+            {/* Title */}
             <div>
-                <label className="block text-xs text-secondary mb-1">Titre *</label>
+                <label className="block text-xs text-secondary mb-1">Title *</label>
                 <input
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Titre de la tâche"
+                    placeholder="Task title"
                     maxLength={255}
                     required
                     className="w-full px-3 py-2 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm placeholder-secondary focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
@@ -177,7 +177,7 @@ const TaskForm = ({
                 <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Description (optionnel)"
+                    placeholder="Description (optional)"
                     rows={3}
                     maxLength={2000}
                     className="w-full px-3 py-2 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm placeholder-secondary focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all resize-none"
@@ -185,9 +185,9 @@ const TaskForm = ({
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-                {/* Priorité */}
+                {/* Priority */}
                 <div>
-                    <label className="block text-xs text-secondary mb-1">Priorité</label>
+                    <label className="block text-xs text-secondary mb-1">Priority</label>
                     <select
                         value={priority}
                         onChange={(e) => setPriority(e.target.value as TaskData['priority'])}
@@ -199,9 +199,9 @@ const TaskForm = ({
                     </select>
                 </div>
 
-                {/* Statut */}
+                {/* Status */}
                 <div>
-                    <label className="block text-xs text-secondary mb-1">Statut</label>
+                    <label className="block text-xs text-secondary mb-1">Status</label>
                     <select
                         value={status}
                         onChange={(e) => setStatus(e.target.value as 'todo' | 'en_cours' | 'termine')}
@@ -215,24 +215,24 @@ const TaskForm = ({
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-                {/* Assigné à */}
+                {/* Assigned to */}
                 <div>
-                    <label className="block text-xs text-secondary mb-1">Assigné à</label>
+                    <label className="block text-xs text-secondary mb-1">Assigned to</label>
                     <select
                         value={assignedTo ?? ''}
                         onChange={(e) => setAssignedTo(e.target.value ? Number(e.target.value) : null)}
                         className="w-full px-3 py-2 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
                     >
-                        <option value="">— Personne —</option>
+                        <option value="">— Nobody —</option>
                         {members.map((m) => (
                             <option key={m.id_user} value={m.id_user}>{m.pseudo}</option>
                         ))}
                     </select>
                 </div>
 
-                {/* Date limite */}
+                {/* Due date */}
                 <div>
-                    <label className="block text-xs text-secondary mb-1">Date limite</label>
+                    <label className="block text-xs text-secondary mb-1">Due date</label>
                     <input
                         type="date"
                         value={dueDate}
@@ -242,7 +242,7 @@ const TaskForm = ({
                 </div>
             </div>
 
-            {/* Visibilité */}
+            {/* Visibility */}
             <div className="flex items-center gap-3">
                 <button
                     type="button"
@@ -256,7 +256,7 @@ const TaskForm = ({
                 <span className="text-sm text-accent flex items-center gap-1.5">
                     {isPrivate ? <Lock size={14} className="text-primary"/> :
                         <Globe size={14} className="text-secondary"/>}
-                    {isPrivate ? 'Privée (visible uniquement par vous)' : 'Partagée (visible par tous les membres)'}
+                    {isPrivate ? 'Private (visible only to you)' : 'Shared (visible to all members)'}
                 </span>
             </div>
 
@@ -266,21 +266,21 @@ const TaskForm = ({
                     onClick={onCancel}
                     className="px-4 py-2 text-sm text-secondary hover:text-accent transition-colors"
                 >
-                    Annuler
+                    Cancel
                 </button>
                 <button
                     type="submit"
                     disabled={loading || !title.trim()}
                     className="px-4 py-2 bg-primary hover:bg-primary/80 text-white rounded-lg text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                    {loading ? 'Enregistrement...' : task ? 'Modifier' : 'Créer'}
+                    {loading ? 'Saving...' : task ? 'Save' : 'Create'}
                 </button>
             </div>
         </form>
     );
 };
 
-// Modal de détail d'une tâche avec réponses
+// Task detail modal with comments
 const TaskDetailModal = ({
                              task,
                              investigationId,
@@ -335,7 +335,7 @@ const TaskDetailModal = ({
             setNewComment('');
             fetchResponses();
         } catch (err) {
-            toast('error', err instanceof Error ? err.message : 'Erreur lors de l\'ajout du commentaire');
+            toast('error', err instanceof Error ? err.message : 'Error adding comment');
         } finally {
             setSubmittingComment(false);
         }
@@ -346,7 +346,7 @@ const TaskDetailModal = ({
             await api.deleteTaskResponse(investigationId, task.id_task, responseId);
             fetchResponses();
         } catch (err) {
-            toast('error', err instanceof Error ? err.message : 'Erreur lors de la suppression');
+            toast('error', err instanceof Error ? err.message : 'Error deleting comment');
         }
     };
 
@@ -354,12 +354,12 @@ const TaskDetailModal = ({
         setSavingEdit(true);
         try {
             await api.updateTask(investigationId, task.id_task, formData as Parameters<typeof api.updateTask>[2]);
-            toast('success', 'Tâche modifiée');
+            toast('success', 'Task updated');
             setEditing(false);
             onRefresh();
             onClose();
         } catch (err) {
-            toast('error', err instanceof Error ? err.message : 'Erreur lors de la modification');
+            toast('error', err instanceof Error ? err.message : 'Error updating task');
         } finally {
             setSavingEdit(false);
         }
@@ -369,11 +369,11 @@ const TaskDetailModal = ({
         setDeleting(true);
         try {
             await api.deleteTask(investigationId, task.id_task);
-            toast('success', 'Tâche supprimée');
+            toast('success', 'Task deleted');
             onRefresh();
             onClose();
         } catch (err) {
-            toast('error', err instanceof Error ? err.message : 'Erreur lors de la suppression');
+            toast('error', err instanceof Error ? err.message : 'Error deleting task');
         } finally {
             setDeleting(false);
         }
@@ -381,7 +381,7 @@ const TaskDetailModal = ({
 
     const formatDate = (dateStr: string | null) => {
         if (!dateStr) return null;
-        return new Date(dateStr).toLocaleDateString('fr-FR', {
+        return new Date(dateStr).toLocaleDateString('en-US', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',
@@ -413,7 +413,7 @@ const TaskDetailModal = ({
                             <button
                                 onClick={() => setEditing(true)}
                                 className="p-2 text-secondary hover:text-accent hover:bg-primary/10 rounded-lg transition-all"
-                                title="Modifier"
+                                title="Edit"
                             >
                                 <Edit2 size={14}/>
                             </button>
@@ -423,7 +423,7 @@ const TaskDetailModal = ({
                                 onClick={handleDelete}
                                 disabled={deleting}
                                 className="p-2 text-secondary hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all disabled:opacity-40"
-                                title="Supprimer"
+                                title="Delete"
                             >
                                 <Trash2 size={14}/>
                             </button>
@@ -448,26 +448,26 @@ const TaskDetailModal = ({
                         />
                     ) : (
                         <>
-                            {/* Métadonnées */}
+                            {/* Metadata */}
                             <div className="grid grid-cols-2 gap-3 text-sm">
                                 {task.assigned_to_pseudo && (
                                     <div className="flex items-center gap-2 text-secondary">
                                         <User size={13} className="text-primary shrink-0"/>
-                                        <span>Assigné à <span
+                                        <span>Assigned to <span
                                             className="text-accent">{task.assigned_to_pseudo}</span></span>
                                     </div>
                                 )}
                                 {task.created_by_pseudo && (
                                     <div className="flex items-center gap-2 text-secondary">
                                         <User size={13} className="text-secondary shrink-0"/>
-                                        <span>Créé par <span
+                                        <span>Created by <span
                                             className="text-accent">{task.created_by_pseudo}</span></span>
                                     </div>
                                 )}
                                 {task.due_date && (
                                     <div className="flex items-center gap-2 text-secondary">
                                         <Calendar size={13} className="text-primary shrink-0"/>
-                                        <span>Échéance : <span
+                                        <span>Due: <span
                                             className="text-accent">{formatDate(task.due_date)}</span></span>
                                     </div>
                                 )}
@@ -488,18 +488,18 @@ const TaskDetailModal = ({
                         </>
                     )}
 
-                    {/* Commentaires */}
+                    {/* Comments */}
                     {!editing && (
                         <div>
                             <h4 className="text-accent text-sm font-medium mb-3 flex items-center gap-2">
                                 <MessageSquare size={14} className="text-primary"/>
-                                Commentaires ({responses.length})
+                                Comments ({responses.length})
                             </h4>
 
                             {loadingResponses ? (
-                                <p className="text-secondary text-sm">Chargement...</p>
+                                <p className="text-secondary text-sm">Loading...</p>
                             ) : responses.length === 0 ? (
-                                <p className="text-secondary/60 text-sm italic">Aucun commentaire</p>
+                                <p className="text-secondary/60 text-sm italic">No comments</p>
                             ) : (
                                 <div className="space-y-3">
                                     {responses.map((resp) => (
@@ -511,7 +511,7 @@ const TaskDetailModal = ({
                                             <div className="flex-1 bg-dark/40 rounded-lg p-2.5">
                                                 <div className="flex items-center justify-between gap-2 mb-1">
                                                     <span
-                                                        className="text-accent text-xs font-medium">{resp.pseudo || 'Utilisateur supprimé'}</span>
+                                                        className="text-accent text-xs font-medium">{resp.pseudo || 'Deleted user'}</span>
                                                     <div className="flex items-center gap-1">
                                                         <span className="text-secondary/60 text-xs">
                                                             {resp.created_at ? formatRelativeDate(resp.created_at) : ''}
@@ -533,13 +533,13 @@ const TaskDetailModal = ({
                                 </div>
                             )}
 
-                            {/* Input commentaire */}
+                            {/* Comment input */}
                             <form onSubmit={handleSubmitComment} className="mt-3 flex gap-2">
                                 <input
                                     type="text"
                                     value={newComment}
                                     onChange={(e) => setNewComment(e.target.value)}
-                                    placeholder="Ajouter un commentaire..."
+                                    placeholder="Add a comment..."
                                     maxLength={2000}
                                     className="flex-1 px-3 py-2 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm placeholder-secondary focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
                                 />
@@ -548,7 +548,7 @@ const TaskDetailModal = ({
                                     disabled={submittingComment || !newComment.trim()}
                                     className="px-3 py-2 bg-primary hover:bg-primary/80 text-white rounded-lg text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                                 >
-                                    Envoyer
+                                    Send
                                 </button>
                             </form>
                         </div>
@@ -598,7 +598,7 @@ export const TasksTab = ({
             await api.updateTask(investigation.id_investigation, task.id_task, {status: newStatus});
             fetchTasks();
         } catch (err) {
-            toast('error', err instanceof Error ? err.message : 'Erreur lors de la mise à jour');
+            toast('error', err instanceof Error ? err.message : 'Error updating task');
         } finally {
             setClosingTaskId(null);
         }
@@ -609,7 +609,7 @@ export const TasksTab = ({
             const data = await api.getTasks(investigation.id_investigation);
             setTasks(data.tasks);
         } catch (err) {
-            toast('error', err instanceof Error ? err.message : 'Erreur lors du chargement des tâches');
+            toast('error', err instanceof Error ? err.message : 'Error loading tasks');
         } finally {
             setLoading(false);
         }
@@ -633,11 +633,11 @@ export const TasksTab = ({
         setCreating(true);
         try {
             await api.createTask(investigation.id_investigation, formData as Parameters<typeof api.createTask>[1]);
-            toast('success', 'Tâche créée');
+            toast('success', 'Task created');
             setShowCreateModal(false);
             fetchTasks();
         } catch (err) {
-            toast('error', err instanceof Error ? err.message : 'Erreur lors de la création');
+            toast('error', err instanceof Error ? err.message : 'Error creating task');
         } finally {
             setCreating(false);
         }
@@ -659,7 +659,7 @@ export const TasksTab = ({
     };
 
     if (loading) {
-        return <div className="text-center text-secondary py-12">Chargement...</div>;
+        return <div className="text-center text-secondary py-12">Loading...</div>;
     }
 
     return (
@@ -667,7 +667,7 @@ export const TasksTab = ({
             {/* Header */}
             <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div className="flex items-center gap-2 flex-wrap">
-                    {/* Filtre visibilité */}
+                    {/* Visibility filter */}
                     <div className="flex bg-dark/50 border border-primary/20 rounded-lg p-0.5">
                         {(['all', 'shared', 'private'] as const).map((v) => (
                             <button
@@ -679,19 +679,19 @@ export const TasksTab = ({
                                         : 'text-secondary hover:text-accent'
                                 }`}
                             >
-                                {v === 'all' ? 'Toutes' : v === 'shared' ? 'Partagées' : 'Privées'}
+                                {v === 'all' ? 'All' : v === 'shared' ? 'Shared' : 'Private'}
                             </button>
                         ))}
                     </div>
 
-                    {/* Filtre statut */}
+                    {/* Status filter */}
                     <div className="relative" ref={statusDropdownRef}>
                         <button
                             onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
                             className="flex items-center gap-1.5 px-3 py-1.5 bg-dark/50 border border-primary/20 rounded-lg text-xs text-secondary hover:text-accent transition-all"
                         >
                             <span>
-                                {filterStatus === 'all' ? 'Tous les statuts' : STATUS_LABELS[filterStatus]}
+                                {filterStatus === 'all' ? 'All statuses' : STATUS_LABELS[filterStatus]}
                             </span>
                             <ChevronDown size={12}/>
                         </button>
@@ -705,7 +705,7 @@ export const TasksTab = ({
                                     }}
                                     className={`w-full px-3 py-2 text-left text-xs hover:bg-primary/10 transition-colors ${filterStatus === 'all' ? 'text-primary' : 'text-secondary'}`}
                                 >
-                                    Tous les statuts
+                                    All statuses
                                 </button>
                                 {Object.entries(STATUS_LABELS).map(([val, label]) => (
                                     <button
@@ -735,7 +735,7 @@ export const TasksTab = ({
                             }`}
                         >
                             <CheckSquare size={13}/>
-                            {showCompleted ? 'Masquer terminées' : `Terminées (${completedCount})`}
+                            {showCompleted ? 'Hide completed' : `Completed (${completedCount})`}
                         </button>
                     )}
                     {canCreate && (
@@ -744,21 +744,21 @@ export const TasksTab = ({
                             className="flex items-center gap-1.5 px-3 py-2 bg-primary hover:bg-primary/80 text-white rounded-lg text-sm font-medium transition-all"
                         >
                             <Plus size={14}/>
-                            Nouvelle tâche
+                            New task
                         </button>
                     )}
                 </div>
             </div>
 
-            {/* Liste des tâches */}
+            {/* Task list */}
             {filteredTasks.length === 0 ? (
                 <div className="bg-dark/50 border border-primary/20 rounded-xl p-10 text-center">
                     <CheckSquare size={32} className="mx-auto text-secondary mb-3"/>
-                    <p className="text-accent font-medium mb-1">Aucune tâche</p>
+                    <p className="text-accent font-medium mb-1">No tasks</p>
                     <p className="text-secondary text-sm">
                         {canCreate
-                            ? 'Créez votre première tâche pour cette investigation.'
-                            : 'Aucune tâche visible pour l\'instant.'}
+                            ? 'Create your first task for this investigation.'
+                            : 'No visible tasks at the moment.'}
                     </p>
                 </div>
             ) : (
@@ -783,7 +783,7 @@ export const TasksTab = ({
                                         <button
                                             onClick={(e) => handleToggleStatus(e, task)}
                                             disabled={isClosing}
-                                            title={task.status === 'termine' ? 'Rouvrir la tâche' : 'Marquer comme terminée'}
+                                            title={task.status === 'termine' ? 'Reopen task' : 'Mark as done'}
                                             className={`mt-0.5 shrink-0 transition-colors disabled:opacity-40 ${
                                                 task.status === 'termine'
                                                     ? 'text-green-500 hover:text-secondary'
@@ -819,7 +819,7 @@ export const TasksTab = ({
                                             {task.due_date && (
                                                 <span className={`inline-flex items-center gap-1 text-xs ${isOverdue(task.due_date) && task.status !== 'termine' ? 'text-red-400' : 'text-secondary'}`}>
                                                     <Calendar size={11}/>
-                                                    {new Date(task.due_date).toLocaleDateString('fr-FR')}
+                                                    {new Date(task.due_date).toLocaleDateString('en-US')}
                                                     {isOverdue(task.due_date) && task.status !== 'termine' && (
                                                         <AlertCircle size={11}/>
                                                     )}
@@ -848,7 +848,7 @@ export const TasksTab = ({
                         <div className="flex items-center justify-between p-5 border-b border-primary/10">
                             <h3 className="text-accent font-semibold flex items-center gap-2">
                                 <Plus size={16} className="text-primary"/>
-                                Nouvelle tâche
+                                New task
                             </h3>
                             <button
                                 onClick={() => setShowCreateModal(false)}

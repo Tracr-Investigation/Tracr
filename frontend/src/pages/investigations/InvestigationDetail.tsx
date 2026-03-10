@@ -33,7 +33,10 @@ import {extractIdFromSlug, toInvestigationSlug} from '../../utils/slug';
 function getIconComponent(iconName: string | null): React.ComponentType<{ size?: number; className?: string }> {
     if (!iconName) return Tag;
     const icon = (LucideIcons as Record<string, unknown>)[iconName];
-    if (icon && typeof icon === 'object' && '$$typeof' in icon) return icon as React.ComponentType<{ size?: number; className?: string }>;
+    if (icon && typeof icon === 'object' && '$$typeof' in icon) return icon as React.ComponentType<{
+        size?: number;
+        className?: string
+    }>;
     if (typeof icon === 'function') return icon as React.ComponentType<{ size?: number; className?: string }>;
     return Tag;
 }
@@ -345,7 +348,8 @@ const CollaboratorsTab = ({
                             {isOwner && (
                                 <div className="flex items-center gap-2">
                                     {/* Permission change dropdown */}
-                                    <div className="relative" ref={permDropdown === collab.id_collaborator ? permRef : null}>
+                                    <div className="relative"
+                                         ref={permDropdown === collab.id_collaborator ? permRef : null}>
                                         <button
                                             onClick={() => setPermDropdown(permDropdown === collab.id_collaborator ? null : collab.id_collaborator)}
                                             className="p-2 text-secondary hover:text-accent hover:bg-primary/10 rounded-lg transition-all"
@@ -485,7 +489,8 @@ const CategoriesSection = ({
                         Add
                     </button>
                     {showPicker && (
-                        <div className="absolute top-full left-0 mt-1 z-20 bg-[#1a1a2e] border border-primary/20 rounded-xl py-1 shadow-lg min-w-[180px] max-h-48 overflow-y-auto">
+                        <div
+                            className="absolute top-full left-0 mt-1 z-20 bg-[#1a1a2e] border border-primary/20 rounded-xl py-1 shadow-lg min-w-[180px] max-h-48 overflow-y-auto">
                             {unassigned.length === 0 ? (
                                 <p className="px-3 py-2 text-secondary text-sm">No more categories</p>
                             ) : (
@@ -571,14 +576,20 @@ const SettingsTab = ({
         setTransferQuery(value);
         setSelectedTransferUser(null);
         if (transferTimeout.current) clearTimeout(transferTimeout.current);
-        if (value.length < 2) { setTransferResults([]); return; }
+        if (value.length < 2) {
+            setTransferResults([]);
+            return;
+        }
         transferTimeout.current = setTimeout(async () => {
             setTransferSearching(true);
             try {
                 const data = await api.searchUsersForInvitation(value);
                 setTransferResults(data.users);
-            } catch { setTransferResults([]); }
-            finally { setTransferSearching(false); }
+            } catch {
+                setTransferResults([]);
+            } finally {
+                setTransferSearching(false);
+            }
         }, 300);
     };
 
@@ -591,7 +602,10 @@ const SettingsTab = ({
             onNavigateAway();
         } catch (err) {
             toast('error', err instanceof Error ? err.message : 'Error transferring ownership');
-        } finally { setTransferring(false); setShowTransferConfirm(false); }
+        } finally {
+            setTransferring(false);
+            setShowTransferConfirm(false);
+        }
     };
 
     const handleDelete = async () => {
@@ -602,7 +616,9 @@ const SettingsTab = ({
             onNavigateAway();
         } catch (err) {
             toast('error', err instanceof Error ? err.message : 'Error deleting investigation');
-        } finally { setDeleting(false); }
+        } finally {
+            setDeleting(false);
+        }
     };
 
     return (
@@ -659,21 +675,28 @@ const SettingsTab = ({
                             className="w-full pl-8 pr-3 py-1.5 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
                         />
                         {transferResults.length > 0 && !selectedTransferUser && (
-                            <div className="absolute top-full left-0 right-0 mt-1 z-20 bg-[#1a1a2e] border border-primary/20 rounded-lg py-1 shadow-lg max-h-40 overflow-y-auto">
+                            <div
+                                className="absolute top-full left-0 right-0 mt-1 z-20 bg-[#1a1a2e] border border-primary/20 rounded-lg py-1 shadow-lg max-h-40 overflow-y-auto">
                                 {transferResults.map((u) => (
                                     <button
                                         key={u.id_user}
-                                        onClick={() => { setSelectedTransferUser(u); setTransferResults([]); setTransferQuery(u.pseudo); }}
+                                        onClick={() => {
+                                            setSelectedTransferUser(u);
+                                            setTransferResults([]);
+                                            setTransferQuery(u.pseudo);
+                                        }}
                                         className="w-full px-3 py-1.5 text-left text-sm text-accent hover:bg-primary/10 transition-colors flex items-center gap-2"
                                     >
-                                        <span className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-semibold text-primary">{u.pseudo.charAt(0).toUpperCase()}</span>
+                                        <span
+                                            className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-semibold text-primary">{u.pseudo.charAt(0).toUpperCase()}</span>
                                         {u.pseudo}
                                     </button>
                                 ))}
                             </div>
                         )}
                         {transferSearching && (
-                            <div className="absolute top-full left-0 right-0 mt-1 z-20 bg-[#1a1a2e] border border-primary/20 rounded-lg py-2 shadow-lg text-center text-xs text-secondary">Searching...</div>
+                            <div
+                                className="absolute top-full left-0 right-0 mt-1 z-20 bg-[#1a1a2e] border border-primary/20 rounded-lg py-2 shadow-lg text-center text-xs text-secondary">Searching...</div>
                         )}
                     </div>
                     <button
@@ -689,11 +712,17 @@ const SettingsTab = ({
                         <div className="bg-[#1a1a2e] border border-primary/20 rounded-xl p-5 max-w-sm w-full mx-4">
                             <h4 className="text-accent font-semibold text-sm mb-2">Confirm transfer</h4>
                             <p className="text-secondary text-xs mb-4">
-                                Transfer <span className="text-accent font-medium">"{investigation.title}"</span> to <span className="text-accent font-medium">{selectedTransferUser.pseudo}</span>? You will lose owner access.
+                                Transfer <span
+                                className="text-accent font-medium">"{investigation.title}"</span> to <span
+                                className="text-accent font-medium">{selectedTransferUser.pseudo}</span>? You will lose
+                                owner access.
                             </p>
                             <div className="flex justify-end gap-2">
-                                <button onClick={() => setShowTransferConfirm(false)} className="px-3 py-1.5 text-xs text-secondary hover:text-accent transition-colors">Cancel</button>
-                                <button onClick={handleTransfer} disabled={transferring} className="px-4 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg text-xs font-medium transition-all disabled:opacity-40">
+                                <button onClick={() => setShowTransferConfirm(false)}
+                                        className="px-3 py-1.5 text-xs text-secondary hover:text-accent transition-colors">Cancel
+                                </button>
+                                <button onClick={handleTransfer} disabled={transferring}
+                                        className="px-4 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg text-xs font-medium transition-all disabled:opacity-40">
                                     {transferring ? 'Transferring...' : 'Yes, transfer'}
                                 </button>
                             </div>
@@ -709,7 +738,8 @@ const SettingsTab = ({
                         <span className="text-sm text-red-400">Delete</span>
                     </div>
                     <div className="flex-1 flex items-center justify-between">
-                        <span className="text-xs text-secondary">Permanently delete this investigation and all its data.</span>
+                        <span
+                            className="text-xs text-secondary">Permanently delete this investigation and all its data.</span>
                         {!showDeleteConfirm && (
                             <button
                                 onClick={() => setShowDeleteConfirm(true)}
@@ -733,7 +763,11 @@ const SettingsTab = ({
                                 placeholder={investigation.title}
                                 className="flex-1 px-3 py-1.5 bg-dark/50 border border-red-500/30 rounded-lg text-accent placeholder-secondary/30 text-sm focus:outline-none focus:ring-1 focus:ring-red-500/20 transition-all"
                             />
-                            <button onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(''); }} className="px-3 py-1.5 text-xs text-secondary hover:text-accent transition-colors">Cancel</button>
+                            <button onClick={() => {
+                                setShowDeleteConfirm(false);
+                                setDeleteConfirmText('');
+                            }} className="px-3 py-1.5 text-xs text-secondary hover:text-accent transition-colors">Cancel
+                            </button>
                             <button
                                 onClick={handleDelete}
                                 disabled={deleteConfirmText !== investigation.title || deleting}
@@ -937,7 +971,7 @@ export const InvestigationDetail = () => {
                                 },
                                 {
                                     id: 'tasks',
-                                    label: 'Tâches',
+                                    label: 'Tasks',
                                     icon: CheckSquare,
                                     content: (
                                         <TasksTab
