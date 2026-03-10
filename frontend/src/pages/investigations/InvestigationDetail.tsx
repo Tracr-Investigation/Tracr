@@ -4,6 +4,7 @@ import {Layout} from '../../components/Layout';
 import {StatusBadge} from '../../components/StatusBadge';
 import {Tabs} from '../../components/Tabs';
 import {useToast} from '../../contexts/ToastContext';
+import {useAuth} from '../../contexts/AuthContext';
 import {api} from '../../services/api';
 import {
     ChevronRight,
@@ -22,7 +23,9 @@ import {
     X,
     Settings,
     AlertTriangle,
+    CheckSquare,
 } from 'lucide-react';
+import {TasksTab} from './tabs/TasksTab';
 import * as LucideIcons from 'lucide-react';
 import {formatRelativeDate} from '../../utils/date';
 import {extractIdFromSlug, toInvestigationSlug} from '../../utils/slug';
@@ -756,6 +759,7 @@ export const InvestigationDetail = () => {
     const [error, setError] = useState('');
     const [openDropdown, setOpenDropdown] = useState(false);
     const {toast} = useToast();
+    const {user: currentUser} = useAuth();
 
     const fetchInvestigation = useCallback(async () => {
         if (!id) return;
@@ -929,6 +933,17 @@ export const InvestigationDetail = () => {
                                                 <p className="text-secondary/50 italic">No description</p>
                                             )}
                                         </div>
+                                    ),
+                                },
+                                {
+                                    id: 'tasks',
+                                    label: 'Tâches',
+                                    icon: CheckSquare,
+                                    content: (
+                                        <TasksTab
+                                            investigation={investigation}
+                                            currentUserId={currentUser?.id_user ?? 0}
+                                        />
                                     ),
                                 },
                                 {

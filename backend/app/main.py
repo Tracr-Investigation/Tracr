@@ -8,7 +8,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from app.dependencies import limiter
-from app.routes import auth, admin, investigations
+from app.routes import auth, admin, investigations, tasks
 from app.routes import notifications
 from socketio import ASGIApp as SocketASGIApp
 from app.socketio_server import sio
@@ -48,6 +48,7 @@ async def add_security_headers(request: Request, call_next):
 fastapi_app.include_router(auth.router)
 fastapi_app.include_router(admin.router)
 fastapi_app.include_router(investigations.router)
+fastapi_app.include_router(tasks.router)
 fastapi_app.include_router(notifications.router)
 
 app = SocketASGIApp(sio, other_asgi_app=fastapi_app, socketio_path="socket.io")

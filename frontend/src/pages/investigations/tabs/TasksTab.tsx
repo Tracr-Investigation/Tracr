@@ -1,0 +1,813 @@
+import {useState, useEffect, useCallback, useRef} from 'react';
+import {
+    CheckSquare,
+    Plus,
+    Lock,
+    Globe,
+    User,
+    Calendar,
+    MessageSquare,
+    Trash2,
+    Edit2,
+    X,
+    ChevronDown,
+    Search,
+    AlertCircle,
+    Clock,
+} from 'lucide-react';
+import {api} from '../../../services/api';
+import {useToast} from '../../../contexts/ToastContext';
+import {formatRelativeDate} from '../../../utils/date';
+
+interface CollaboratorData {
+    id_collaborator: number;
+    id_user: number;
+    pseudo: string;
+    permission_level: string;
+    accepted_at: string | null;
+}
+
+interface InvestigationData {
+    id_investigation: number;
+    user_permission: string | null;
+    collaborators: CollaboratorData[];
+}
+
+interface TaskData {
+    id_task: number;
+    id_investigation: number;
+    title: string;
+    description: string | null;
+    status: 'todo' | 'en_cours' | 'termine';
+    priority: 'basse' | 'normale' | 'haute' | 'urgente';
+    is_private: boolean;
+    created_by: number | null;
+    created_by_pseudo: string | null;
+    assigned_to: number | null;
+    assigned_to_pseudo: string | null;
+    due_date: string | null;
+    created_at: string | null;
+    updated_at: string | null;
+    response_count: number;
+}
+
+interface TaskResponseData {
+    id_response: number;
+    id_task: number;
+    id_user: number | null;
+    pseudo: string | null;
+    content: string;
+    created_at: string | null;
+    updated_at: string | null;
+}
+
+interface MemberOption {
+    id_user: number;
+    pseudo: string;
+}
+
+const PRIORITY_COLORS: Record<string, string> = {
+    basse: '#6b7280',
+    normale: '#3b82f6',
+    haute: '#f97316',
+    urgente: '#ef4444',
+};
+
+const PRIORITY_LABELS: Record<string, string> = {
+    basse: 'Basse',
+    normale: 'Normale',
+    haute: 'Haute',
+    urgente: 'Urgente',
+};
+
+const STATUS_COLORS: Record<string, string> = {
+    todo: '#6b7280',
+    en_cours: '#f59e0b',
+    termine: '#22c55e',
+};
+
+const STATUS_LABELS: Record<string, string> = {
+    todo: 'À faire',
+    en_cours: 'En cours',
+    termine: 'Terminé',
+};
+
+const PriorityBadge = ({priority}: {priority: string}) => (
+    <span
+        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+        style={{
+            backgroundColor: `${PRIORITY_COLORS[priority] || '#6b7280'}20`,
+            color: PRIORITY_COLORS[priority] || '#6b7280',
+        }}
+    >
+        {PRIORITY_LABELS[priority] || priority}
+    </span>
+);
+
+const StatusBadge = ({status}: {status: string}) => (
+    <span
+        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+        style={{
+            backgroundColor: `${STATUS_COLORS[status] || '#6b7280'}20`,
+            color: STATUS_COLORS[status] || '#6b7280',
+        }}
+    >
+        {STATUS_LABELS[status] || status}
+    </span>
+);
+
+// Formulaire de création/édition d'une tâche
+const TaskForm = ({
+    investigationId,
+    members,
+    task,
+    onSubmit,
+    onCancel,
+    loading,
+}: {
+    investigationId: number;
+    members: MemberOption[];
+    task?: TaskData | null;
+    onSubmit: (data: Record<string, unknown>) => void;
+    onCancel: () => void;
+    loading: boolean;
+}) => {
+    const [title, setTitle] = useState(task?.title || '');
+    const [description, setDescription] = useState(task?.description || '');
+    const [status, setStatus] = useState(task?.status || 'todo');
+    const [priority, setPriority] = useState(task?.priority || 'normale');
+    const [isPrivate, setIsPrivate] = useState(task?.is_private ?? false);
+    const [assignedTo, setAssignedTo] = useState<number | null>(task?.assigned_to ?? null);
+    const [dueDate, setDueDate] = useState(task?.due_date ? task.due_date.substring(0, 10) : '');
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!title.trim()) return;
+        onSubmit({
+            title: title.trim(),
+            description: description.trim() || null,
+            status,
+            priority,
+            is_private: isPrivate,
+            assigned_to: assignedTo,
+            due_date: dueDate ? new Date(dueDate).toISOString() : null,
+            clear_assigned: assignedTo === null && task?.assigned_to !== undefined,
+            clear_due_date: !dueDate && !!task?.due_date,
+        });
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Titre */}
+            <div>
+                <label className="block text-xs text-secondary mb-1">Titre *</label>
+                <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Titre de la tâche"
+                    maxLength={255}
+                    required
+                    className="w-full px-3 py-2 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm placeholder-secondary focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
+                />
+            </div>
+
+            {/* Description */}
+            <div>
+                <label className="block text-xs text-secondary mb-1">Description</label>
+                <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Description (optionnel)"
+                    rows={3}
+                    maxLength={2000}
+                    className="w-full px-3 py-2 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm placeholder-secondary focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all resize-none"
+                />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+                {/* Priorité */}
+                <div>
+                    <label className="block text-xs text-secondary mb-1">Priorité</label>
+                    <select
+                        value={priority}
+                        onChange={(e) => setPriority(e.target.value)}
+                        className="w-full px-3 py-2 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
+                    >
+                        {Object.entries(PRIORITY_LABELS).map(([val, label]) => (
+                            <option key={val} value={val}>{label}</option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Statut */}
+                <div>
+                    <label className="block text-xs text-secondary mb-1">Statut</label>
+                    <select
+                        value={status}
+                        onChange={(e) => setStatus(e.target.value)}
+                        className="w-full px-3 py-2 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
+                    >
+                        {Object.entries(STATUS_LABELS).map(([val, label]) => (
+                            <option key={val} value={val}>{label}</option>
+                        ))}
+                    </select>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+                {/* Assigné à */}
+                <div>
+                    <label className="block text-xs text-secondary mb-1">Assigné à</label>
+                    <select
+                        value={assignedTo ?? ''}
+                        onChange={(e) => setAssignedTo(e.target.value ? Number(e.target.value) : null)}
+                        className="w-full px-3 py-2 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
+                    >
+                        <option value="">— Personne —</option>
+                        {members.map((m) => (
+                            <option key={m.id_user} value={m.id_user}>{m.pseudo}</option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Date limite */}
+                <div>
+                    <label className="block text-xs text-secondary mb-1">Date limite</label>
+                    <input
+                        type="date"
+                        value={dueDate}
+                        onChange={(e) => setDueDate(e.target.value)}
+                        className="w-full px-3 py-2 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
+                    />
+                </div>
+            </div>
+
+            {/* Visibilité */}
+            <div className="flex items-center gap-3">
+                <button
+                    type="button"
+                    onClick={() => setIsPrivate(!isPrivate)}
+                    className={`relative w-10 h-5 rounded-full transition-colors ${isPrivate ? 'bg-primary' : 'bg-primary/20'}`}
+                >
+                    <span
+                        className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${isPrivate ? 'translate-x-5' : ''}`}
+                    />
+                </button>
+                <span className="text-sm text-accent flex items-center gap-1.5">
+                    {isPrivate ? <Lock size={14} className="text-primary"/> : <Globe size={14} className="text-secondary"/>}
+                    {isPrivate ? 'Privée (visible uniquement par vous)' : 'Partagée (visible par tous les membres)'}
+                </span>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+                <button
+                    type="button"
+                    onClick={onCancel}
+                    className="px-4 py-2 text-sm text-secondary hover:text-accent transition-colors"
+                >
+                    Annuler
+                </button>
+                <button
+                    type="submit"
+                    disabled={loading || !title.trim()}
+                    className="px-4 py-2 bg-primary hover:bg-primary/80 text-white rounded-lg text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                    {loading ? 'Enregistrement...' : task ? 'Modifier' : 'Créer'}
+                </button>
+            </div>
+        </form>
+    );
+};
+
+// Modal de détail d'une tâche avec réponses
+const TaskDetailModal = ({
+    task,
+    investigationId,
+    currentUserId,
+    userPermission,
+    onClose,
+    onRefresh,
+    members,
+}: {
+    task: TaskData;
+    investigationId: number;
+    currentUserId: number;
+    userPermission: string | null;
+    onClose: () => void;
+    onRefresh: () => void;
+    members: MemberOption[];
+}) => {
+    const {toast} = useToast();
+    const [responses, setResponses] = useState<TaskResponseData[]>([]);
+    const [loadingResponses, setLoadingResponses] = useState(true);
+    const [newComment, setNewComment] = useState('');
+    const [submittingComment, setSubmittingComment] = useState(false);
+    const [editing, setEditing] = useState(false);
+    const [savingEdit, setSavingEdit] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+
+    const isOwner = userPermission === 'owner';
+    const canEdit = isOwner || task.created_by === currentUserId;
+    const canDelete = isOwner || task.created_by === currentUserId;
+
+    const fetchResponses = useCallback(async () => {
+        try {
+            const data = await api.getTaskResponses(investigationId, task.id_task);
+            setResponses(data.responses);
+        } catch {
+            /* ignore */
+        } finally {
+            setLoadingResponses(false);
+        }
+    }, [investigationId, task.id_task]);
+
+    useEffect(() => {
+        fetchResponses();
+    }, [fetchResponses]);
+
+    const handleSubmitComment = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newComment.trim()) return;
+        setSubmittingComment(true);
+        try {
+            await api.createTaskResponse(investigationId, task.id_task, newComment.trim());
+            setNewComment('');
+            fetchResponses();
+        } catch (err) {
+            toast('error', err instanceof Error ? err.message : 'Erreur lors de l\'ajout du commentaire');
+        } finally {
+            setSubmittingComment(false);
+        }
+    };
+
+    const handleDeleteComment = async (responseId: number) => {
+        try {
+            await api.deleteTaskResponse(investigationId, task.id_task, responseId);
+            fetchResponses();
+        } catch (err) {
+            toast('error', err instanceof Error ? err.message : 'Erreur lors de la suppression');
+        }
+    };
+
+    const handleEditSubmit = async (formData: Record<string, unknown>) => {
+        setSavingEdit(true);
+        try {
+            await api.updateTask(investigationId, task.id_task, formData as Parameters<typeof api.updateTask>[2]);
+            toast('success', 'Tâche modifiée');
+            setEditing(false);
+            onRefresh();
+            onClose();
+        } catch (err) {
+            toast('error', err instanceof Error ? err.message : 'Erreur lors de la modification');
+        } finally {
+            setSavingEdit(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        setDeleting(true);
+        try {
+            await api.deleteTask(investigationId, task.id_task);
+            toast('success', 'Tâche supprimée');
+            onRefresh();
+            onClose();
+        } catch (err) {
+            toast('error', err instanceof Error ? err.message : 'Erreur lors de la suppression');
+        } finally {
+            setDeleting(false);
+        }
+    };
+
+    const formatDate = (dateStr: string | null) => {
+        if (!dateStr) return null;
+        return new Date(dateStr).toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+        });
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+            <div className="bg-[#1a1a2e] border border-primary/20 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+                {/* Header */}
+                <div className="flex items-start justify-between p-5 border-b border-primary/10">
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                            {task.is_private ? (
+                                <Lock size={14} className="text-primary shrink-0"/>
+                            ) : (
+                                <Globe size={14} className="text-secondary shrink-0"/>
+                            )}
+                            <h3 className="text-accent font-semibold truncate">{task.title}</h3>
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <PriorityBadge priority={task.priority}/>
+                            <StatusBadge status={task.status}/>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-1 ml-3 shrink-0">
+                        {canEdit && !editing && (
+                            <button
+                                onClick={() => setEditing(true)}
+                                className="p-2 text-secondary hover:text-accent hover:bg-primary/10 rounded-lg transition-all"
+                                title="Modifier"
+                            >
+                                <Edit2 size={14}/>
+                            </button>
+                        )}
+                        {canDelete && !editing && (
+                            <button
+                                onClick={handleDelete}
+                                disabled={deleting}
+                                className="p-2 text-secondary hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all disabled:opacity-40"
+                                title="Supprimer"
+                            >
+                                <Trash2 size={14}/>
+                            </button>
+                        )}
+                        <button
+                            onClick={onClose}
+                            className="p-2 text-secondary hover:text-accent hover:bg-primary/10 rounded-lg transition-all"
+                        >
+                            <X size={14}/>
+                        </button>
+                    </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-5 space-y-5">
+                    {editing ? (
+                        <TaskForm
+                            investigationId={investigationId}
+                            members={members}
+                            task={task}
+                            onSubmit={handleEditSubmit}
+                            onCancel={() => setEditing(false)}
+                            loading={savingEdit}
+                        />
+                    ) : (
+                        <>
+                            {/* Métadonnées */}
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                                {task.assigned_to_pseudo && (
+                                    <div className="flex items-center gap-2 text-secondary">
+                                        <User size={13} className="text-primary shrink-0"/>
+                                        <span>Assigné à <span className="text-accent">{task.assigned_to_pseudo}</span></span>
+                                    </div>
+                                )}
+                                {task.created_by_pseudo && (
+                                    <div className="flex items-center gap-2 text-secondary">
+                                        <User size={13} className="text-secondary shrink-0"/>
+                                        <span>Créé par <span className="text-accent">{task.created_by_pseudo}</span></span>
+                                    </div>
+                                )}
+                                {task.due_date && (
+                                    <div className="flex items-center gap-2 text-secondary">
+                                        <Calendar size={13} className="text-primary shrink-0"/>
+                                        <span>Échéance : <span className="text-accent">{formatDate(task.due_date)}</span></span>
+                                    </div>
+                                )}
+                                {task.created_at && (
+                                    <div className="flex items-center gap-2 text-secondary">
+                                        <Clock size={13} className="text-secondary shrink-0"/>
+                                        <span>{formatRelativeDate(task.created_at)}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Description */}
+                            {task.description && (
+                                <div className="bg-dark/40 rounded-lg p-3">
+                                    <p className="text-secondary text-sm whitespace-pre-wrap">{task.description}</p>
+                                </div>
+                            )}
+                        </>
+                    )}
+
+                    {/* Commentaires */}
+                    {!editing && (
+                        <div>
+                            <h4 className="text-accent text-sm font-medium mb-3 flex items-center gap-2">
+                                <MessageSquare size={14} className="text-primary"/>
+                                Commentaires ({responses.length})
+                            </h4>
+
+                            {loadingResponses ? (
+                                <p className="text-secondary text-sm">Chargement...</p>
+                            ) : responses.length === 0 ? (
+                                <p className="text-secondary/60 text-sm italic">Aucun commentaire</p>
+                            ) : (
+                                <div className="space-y-3">
+                                    {responses.map((resp) => (
+                                        <div key={resp.id_response} className="flex gap-2.5 group">
+                                            <span className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary shrink-0 mt-0.5">
+                                                {resp.pseudo ? resp.pseudo.charAt(0).toUpperCase() : '?'}
+                                            </span>
+                                            <div className="flex-1 bg-dark/40 rounded-lg p-2.5">
+                                                <div className="flex items-center justify-between gap-2 mb-1">
+                                                    <span className="text-accent text-xs font-medium">{resp.pseudo || 'Utilisateur supprimé'}</span>
+                                                    <div className="flex items-center gap-1">
+                                                        <span className="text-secondary/60 text-xs">
+                                                            {resp.created_at ? formatRelativeDate(resp.created_at) : ''}
+                                                        </span>
+                                                        {(resp.id_user === currentUserId || isOwner) && (
+                                                            <button
+                                                                onClick={() => handleDeleteComment(resp.id_response)}
+                                                                className="opacity-0 group-hover:opacity-100 p-0.5 text-secondary hover:text-red-400 transition-all"
+                                                            >
+                                                                <X size={12}/>
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <p className="text-secondary text-xs whitespace-pre-wrap">{resp.content}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Input commentaire */}
+                            <form onSubmit={handleSubmitComment} className="mt-3 flex gap-2">
+                                <input
+                                    type="text"
+                                    value={newComment}
+                                    onChange={(e) => setNewComment(e.target.value)}
+                                    placeholder="Ajouter un commentaire..."
+                                    maxLength={2000}
+                                    className="flex-1 px-3 py-2 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm placeholder-secondary focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
+                                />
+                                <button
+                                    type="submit"
+                                    disabled={submittingComment || !newComment.trim()}
+                                    className="px-3 py-2 bg-primary hover:bg-primary/80 text-white rounded-lg text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                                >
+                                    Envoyer
+                                </button>
+                            </form>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export const TasksTab = ({
+    investigation,
+    currentUserId,
+}: {
+    investigation: InvestigationData;
+    currentUserId: number;
+}) => {
+    const {toast} = useToast();
+    const [tasks, setTasks] = useState<TaskData[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [creating, setCreating] = useState(false);
+    const [selectedTask, setSelectedTask] = useState<TaskData | null>(null);
+    const [filterVisibility, setFilterVisibility] = useState<'all' | 'shared' | 'private'>('all');
+    const [filterStatus, setFilterStatus] = useState<string>('all');
+    const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
+    const statusDropdownRef = useRef<HTMLDivElement>(null);
+
+    const userPermission = investigation.user_permission;
+    const canCreate = userPermission === 'owner' || userPermission === 'manager' || userPermission === 'editeur';
+
+    // Membres de l'investigation pour l'assignation
+    const members: MemberOption[] = [
+        // On inclut les collaborateurs acceptés
+        ...investigation.collaborators
+            .filter((c) => c.accepted_at !== null)
+            .map((c) => ({id_user: c.id_user, pseudo: c.pseudo})),
+    ];
+
+    const fetchTasks = useCallback(async () => {
+        try {
+            const data = await api.getTasks(investigation.id_investigation);
+            setTasks(data.tasks);
+        } catch (err) {
+            toast('error', err instanceof Error ? err.message : 'Erreur lors du chargement des tâches');
+        } finally {
+            setLoading(false);
+        }
+    }, [investigation.id_investigation, toast]);
+
+    useEffect(() => {
+        fetchTasks();
+    }, [fetchTasks]);
+
+    useEffect(() => {
+        const handleClick = (e: MouseEvent) => {
+            if (statusDropdownRef.current && !statusDropdownRef.current.contains(e.target as Node)) {
+                setStatusDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+    }, []);
+
+    const handleCreate = async (formData: Record<string, unknown>) => {
+        setCreating(true);
+        try {
+            await api.createTask(investigation.id_investigation, formData as Parameters<typeof api.createTask>[1]);
+            toast('success', 'Tâche créée');
+            setShowCreateModal(false);
+            fetchTasks();
+        } catch (err) {
+            toast('error', err instanceof Error ? err.message : 'Erreur lors de la création');
+        } finally {
+            setCreating(false);
+        }
+    };
+
+    const filteredTasks = tasks.filter((task) => {
+        if (filterVisibility === 'shared' && task.is_private) return false;
+        if (filterVisibility === 'private' && !task.is_private) return false;
+        if (filterStatus !== 'all' && task.status !== filterStatus) return false;
+        return true;
+    });
+
+    const isOverdue = (dueDateStr: string | null) => {
+        if (!dueDateStr) return false;
+        return new Date(dueDateStr) < new Date();
+    };
+
+    if (loading) {
+        return <div className="text-center text-secondary py-12">Chargement...</div>;
+    }
+
+    return (
+        <div className="space-y-5">
+            {/* Header */}
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-2 flex-wrap">
+                    {/* Filtre visibilité */}
+                    <div className="flex bg-dark/50 border border-primary/20 rounded-lg p-0.5">
+                        {(['all', 'shared', 'private'] as const).map((v) => (
+                            <button
+                                key={v}
+                                onClick={() => setFilterVisibility(v)}
+                                className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                                    filterVisibility === v
+                                        ? 'bg-primary text-white'
+                                        : 'text-secondary hover:text-accent'
+                                }`}
+                            >
+                                {v === 'all' ? 'Toutes' : v === 'shared' ? 'Partagées' : 'Privées'}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Filtre statut */}
+                    <div className="relative" ref={statusDropdownRef}>
+                        <button
+                            onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-dark/50 border border-primary/20 rounded-lg text-xs text-secondary hover:text-accent transition-all"
+                        >
+                            <span>
+                                {filterStatus === 'all' ? 'Tous les statuts' : STATUS_LABELS[filterStatus]}
+                            </span>
+                            <ChevronDown size={12}/>
+                        </button>
+                        {statusDropdownOpen && (
+                            <div className="absolute top-full left-0 mt-1 z-20 bg-[#1a1a2e] border border-primary/20 rounded-xl py-1 shadow-lg min-w-[160px]">
+                                <button
+                                    onClick={() => { setFilterStatus('all'); setStatusDropdownOpen(false); }}
+                                    className={`w-full px-3 py-2 text-left text-xs hover:bg-primary/10 transition-colors ${filterStatus === 'all' ? 'text-primary' : 'text-secondary'}`}
+                                >
+                                    Tous les statuts
+                                </button>
+                                {Object.entries(STATUS_LABELS).map(([val, label]) => (
+                                    <button
+                                        key={val}
+                                        onClick={() => { setFilterStatus(val); setStatusDropdownOpen(false); }}
+                                        className={`w-full px-3 py-2 text-left text-xs hover:bg-primary/10 transition-colors ${filterStatus === val ? 'text-primary' : 'text-secondary'}`}
+                                    >
+                                        {label}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {canCreate && (
+                    <button
+                        onClick={() => setShowCreateModal(true)}
+                        className="flex items-center gap-1.5 px-3 py-2 bg-primary hover:bg-primary/80 text-white rounded-lg text-sm font-medium transition-all"
+                    >
+                        <Plus size={14}/>
+                        Nouvelle tâche
+                    </button>
+                )}
+            </div>
+
+            {/* Liste des tâches */}
+            {filteredTasks.length === 0 ? (
+                <div className="bg-dark/50 border border-primary/20 rounded-xl p-10 text-center">
+                    <CheckSquare size={32} className="mx-auto text-secondary mb-3"/>
+                    <p className="text-accent font-medium mb-1">Aucune tâche</p>
+                    <p className="text-secondary text-sm">
+                        {canCreate
+                            ? 'Créez votre première tâche pour cette investigation.'
+                            : 'Aucune tâche visible pour l\'instant.'}
+                    </p>
+                </div>
+            ) : (
+                <div className="space-y-2">
+                    {filteredTasks.map((task) => (
+                        <button
+                            key={task.id_task}
+                            onClick={() => setSelectedTask(task)}
+                            className="w-full bg-dark/50 border border-primary/20 rounded-xl p-4 text-left hover:border-primary/40 transition-all group"
+                        >
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-1.5">
+                                        {task.is_private ? (
+                                            <Lock size={12} className="text-primary shrink-0"/>
+                                        ) : (
+                                            <Globe size={12} className="text-secondary/60 shrink-0"/>
+                                        )}
+                                        <span className="text-accent text-sm font-medium truncate group-hover:text-primary transition-colors">
+                                            {task.title}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <PriorityBadge priority={task.priority}/>
+                                        <StatusBadge status={task.status}/>
+                                        {task.assigned_to_pseudo && (
+                                            <span className="inline-flex items-center gap-1 text-xs text-secondary">
+                                                <User size={11}/>
+                                                {task.assigned_to_pseudo}
+                                            </span>
+                                        )}
+                                        {task.due_date && (
+                                            <span className={`inline-flex items-center gap-1 text-xs ${isOverdue(task.due_date) && task.status !== 'termine' ? 'text-red-400' : 'text-secondary'}`}>
+                                                <Calendar size={11}/>
+                                                {new Date(task.due_date).toLocaleDateString('fr-FR')}
+                                                {isOverdue(task.due_date) && task.status !== 'termine' && (
+                                                    <AlertCircle size={11}/>
+                                                )}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                                {task.response_count > 0 && (
+                                    <span className="inline-flex items-center gap-1 text-xs text-secondary shrink-0">
+                                        <MessageSquare size={12}/>
+                                        {task.response_count}
+                                    </span>
+                                )}
+                            </div>
+                        </button>
+                    ))}
+                </div>
+            )}
+
+            {/* Modal création */}
+            {showCreateModal && (
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+                    <div className="bg-[#1a1a2e] border border-primary/20 rounded-xl w-full max-w-lg">
+                        <div className="flex items-center justify-between p-5 border-b border-primary/10">
+                            <h3 className="text-accent font-semibold flex items-center gap-2">
+                                <Plus size={16} className="text-primary"/>
+                                Nouvelle tâche
+                            </h3>
+                            <button
+                                onClick={() => setShowCreateModal(false)}
+                                className="p-1.5 text-secondary hover:text-accent hover:bg-primary/10 rounded-lg transition-all"
+                            >
+                                <X size={16}/>
+                            </button>
+                        </div>
+                        <div className="p-5">
+                            <TaskForm
+                                investigationId={investigation.id_investigation}
+                                members={members}
+                                onSubmit={handleCreate}
+                                onCancel={() => setShowCreateModal(false)}
+                                loading={creating}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal détail */}
+            {selectedTask && (
+                <TaskDetailModal
+                    task={selectedTask}
+                    investigationId={investigation.id_investigation}
+                    currentUserId={currentUserId}
+                    userPermission={userPermission}
+                    onClose={() => setSelectedTask(null)}
+                    onRefresh={fetchTasks}
+                    members={members}
+                />
+            )}
+        </div>
+    );
+};

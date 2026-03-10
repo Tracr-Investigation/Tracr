@@ -8,5 +8,7 @@ from models.notification import Notification
 from models.investigation_collaborator import InvestigationCollaborator
 from models.category import Category
 from models.investigation_category import InvestigationCategory
-__all__ = ["User", "Role", "UserRole", "Log", "Investigation", "InvestigationStatus", "Notification", "InvestigationCollaborator", "Category", "InvestigationCategory"]
+from models.task import Task
+from models.task_response import TaskResponse
+__all__ = ["User", "Role", "UserRole", "Log", "Investigation", "InvestigationStatus", "Notification", "InvestigationCollaborator", "Category", "InvestigationCategory", "Task", "TaskResponse"]
 

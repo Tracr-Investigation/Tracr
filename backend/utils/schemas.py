@@ -1,4 +1,6 @@
+from datetime import datetime
 from enum import Enum
+from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -83,3 +85,29 @@ class InvestigationUpdateRequest(BaseModel):
 
 class InvestigationTransferRequest(BaseModel):
     new_owner_pseudo: str = Field(min_length=1, max_length=50)
+
+
+class TaskCreateRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=255)
+    description: Optional[str] = Field(default=None, max_length=2000)
+    status: str = Field(default="todo", pattern="^(todo|en_cours|termine)$")
+    priority: str = Field(default="normale", pattern="^(basse|normale|haute|urgente)$")
+    is_private: bool = Field(default=False)
+    assigned_to: Optional[int] = Field(default=None)
+    due_date: Optional[datetime] = Field(default=None)
+
+
+class TaskUpdateRequest(BaseModel):
+    title: Optional[str] = Field(default=None, min_length=1, max_length=255)
+    description: Optional[str] = Field(default=None, max_length=2000)
+    status: Optional[str] = Field(default=None, pattern="^(todo|en_cours|termine)$")
+    priority: Optional[str] = Field(default=None, pattern="^(basse|normale|haute|urgente)$")
+    is_private: Optional[bool] = Field(default=None)
+    assigned_to: Optional[int] = Field(default=None)
+    clear_assigned: bool = Field(default=False)
+    due_date: Optional[datetime] = Field(default=None)
+    clear_due_date: bool = Field(default=False)
+
+
+class TaskResponseCreateRequest(BaseModel):
+    content: str = Field(min_length=1, max_length=2000)

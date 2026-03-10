@@ -626,6 +626,102 @@ export const api = {
         return data;
     },
 
+    getTasks: async (investigationId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/tasks`, {
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching tasks'));
+        return data;
+    },
+
+    createTask: async (investigationId: number, body: {
+        title: string;
+        description?: string | null;
+        status?: string;
+        priority?: string;
+        is_private?: boolean;
+        assigned_to?: number | null;
+        due_date?: string | null;
+    }) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/tasks`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+            body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error creating task'));
+        return data;
+    },
+
+    updateTask: async (investigationId: number, taskId: number, body: {
+        title?: string | null;
+        description?: string | null;
+        status?: string | null;
+        priority?: string | null;
+        is_private?: boolean | null;
+        assigned_to?: number | null;
+        clear_assigned?: boolean;
+        due_date?: string | null;
+        clear_due_date?: boolean;
+    }) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/tasks/${taskId}`, {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+            body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error updating task'));
+        return data;
+    },
+
+    deleteTask: async (investigationId: number, taskId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/tasks/${taskId}`, {
+            method: 'DELETE',
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error deleting task'));
+        return data;
+    },
+
+    getTaskResponses: async (investigationId: number, taskId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/tasks/${taskId}/responses`, {
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching responses'));
+        return data;
+    },
+
+    createTaskResponse: async (investigationId: number, taskId: number, content: string) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/tasks/${taskId}/responses`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+            body: JSON.stringify({content}),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error creating response'));
+        return data;
+    },
+
+    deleteTaskResponse: async (investigationId: number, taskId: number, responseId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/tasks/${taskId}/responses/${responseId}`, {
+            method: 'DELETE',
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error deleting response'));
+        return data;
+    },
+
     getLogs: async (page: number = 1, limit: number = 10, category: string = '', search: string = '', excludeReads: boolean = false) => {
         const token = localStorage.getItem('token');
         const params = new URLSearchParams({page: String(page), limit: String(limit), category, search});
