@@ -23,8 +23,8 @@ async def connect(sid, environ, auth):
     if not user_id:
         raise socketio.exceptions.ConnectionRefusedError("Token invalide")
 
-    await sio.save_session(sid, {"user_id": user_id})
     sio.enter_room(sid, f"user_{user_id}")
+    await sio.save_session(sid, {"user_id": user_id})
 
 
 @sio.event

@@ -5,11 +5,11 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 let socket: Socket | null = null;
 
 export function connectSocket(): Socket {
-    const token = localStorage.getItem('token');
-
-    if (socket?.connected) {
+    if (socket) {
         return socket;
     }
+
+    const token = localStorage.getItem('token');
 
     socket = io(API_URL, {
         path: '/socket.io',

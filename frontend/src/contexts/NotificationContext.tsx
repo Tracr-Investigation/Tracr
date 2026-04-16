@@ -32,6 +32,16 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     const [loading, setLoading] = useState(false);
     const { isAuthenticated } = useAuth();
 
+    const silentRefresh = useCallback(async () => {
+        try {
+            const data = await api.getNotifications();
+            setNotifications(data.notifications);
+            setUnreadCount(data.unread_count);
+        } catch {
+            // silent
+        }
+    }, []);
+
     const fetchNotifications = useCallback(async () => {
         setLoading(true);
         try {
@@ -69,6 +79,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 
     useEffect(() => {
         if (!isAuthenticated) {
+            disconnectSocket();
             setNotifications([]);
             setUnreadCount(0);
             return;
@@ -84,12 +95,16 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
         };
 
         socket.on('new_notification', handleNewNotification);
+        socket.on('connect', silentRefresh);
+
+        const pollInterval = setInterval(silentRefresh, 5000);
 
         return () => {
             socket.off('new_notification', handleNewNotification);
-            disconnectSocket();
+            socket.off('connect', silentRefresh);
+            clearInterval(pollInterval);
         };
-    }, [isAuthenticated, fetchNotifications]);
+    }, [isAuthenticated, fetchNotifications, silentRefresh]);
 
     return (
         <NotificationContext.Provider
