@@ -1,10 +1,11 @@
 import {useState, useEffect, useCallback, useRef} from 'react';
 import {useNavigate} from 'react-router-dom';
+import {useTranslation} from 'react-i18next';
 import {Layout} from '../../components/Layout';
 import {StatusBadge} from '../../components/StatusBadge';
 import {useToast} from '../../contexts/ToastContext';
 import {api} from '../../services/api';
-import {FileSearch, Plus, X, Calendar, AlignLeft, Users, RotateCcw, Tag, Search, Filter} from 'lucide-react';
+import {FileSearch, Plus, X, Calendar, Users, RotateCcw, Tag, Search, Filter} from 'lucide-react';
 import {formatRelativeDate} from '../../utils/date';
 import {toInvestigationSlug} from '../../utils/slug';
 import * as LucideIcons from 'lucide-react';
@@ -83,6 +84,7 @@ const StatusDropdown = ({
 };
 
 const CreateModal = ({onClose, onSave}: { onClose: () => void; onSave: () => void }) => {
+    const {t} = useTranslation();
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [loading, setLoading] = useState(false);
@@ -95,7 +97,7 @@ const CreateModal = ({onClose, onSave}: { onClose: () => void; onSave: () => voi
         setError('');
         try {
             await api.createInvestigation(title, description || null);
-            toast('success', 'Investigation created successfully');
+            toast('success', t('investigations.created'));
             onSave();
         } catch (err) {
             const message = err instanceof Error ? err.message : 'An error occurred';
@@ -111,7 +113,7 @@ const CreateModal = ({onClose, onSave}: { onClose: () => void; onSave: () => voi
             <div className="bg-[#1a1a2e] border border-primary/20 rounded-xl p-6 w-full max-w-lg"
                  onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-semibold text-accent">New investigation</h3>
+                    <h3 className="text-lg font-semibold text-accent">{t('investigations.modal.title')}</h3>
                     <button onClick={onClose} className="text-secondary hover:text-accent transition-colors">
                         <X size={20}/>
                     </button>
@@ -119,7 +121,7 @@ const CreateModal = ({onClose, onSave}: { onClose: () => void; onSave: () => voi
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm text-secondary mb-1.5">Title</label>
+                        <label className="block text-sm text-secondary mb-1.5">{t('investigations.modal.titleLabel')}</label>
                         <input
                             type="text"
                             value={title}
@@ -127,25 +129,23 @@ const CreateModal = ({onClose, onSave}: { onClose: () => void; onSave: () => voi
                             required
                             maxLength={255}
                             className="w-full px-4 py-3 bg-dark/50 border border-primary/30 rounded-xl text-accent placeholder-secondary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
-                            placeholder="Investigation title..."
+                            placeholder={t('investigations.modal.titlePlaceholder')}
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm text-secondary mb-1.5">Description (optional)</label>
+                        <label className="block text-sm text-secondary mb-1.5">{t('investigations.modal.descLabel')}</label>
                         <textarea
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             maxLength={2000}
                             rows={4}
                             className="w-full px-4 py-3 bg-dark/50 border border-primary/30 rounded-xl text-accent placeholder-secondary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all resize-none"
-                            placeholder="Describe the investigation..."
+                            placeholder={t('investigations.modal.descPlaceholder')}
                         />
                     </div>
 
-                    {error && (
-                        <p className="text-red-400 text-sm">{error}</p>
-                    )}
+                    {error && <p className="text-red-400 text-sm">{error}</p>}
 
                     <div className="flex justify-end gap-3 pt-2">
                         <button
@@ -153,14 +153,14 @@ const CreateModal = ({onClose, onSave}: { onClose: () => void; onSave: () => voi
                             onClick={onClose}
                             className="px-4 py-2.5 rounded-xl text-sm font-medium bg-dark/50 border border-primary/20 text-secondary hover:bg-primary/10 hover:text-accent transition-all"
                         >
-                            Cancel
+                            {t('investigations.modal.cancel')}
                         </button>
                         <button
                             type="submit"
                             disabled={loading || !title.trim()}
                             className="px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-accent border border-primary/30 hover:bg-primary/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                         >
-                            {loading ? 'Creating...' : 'Create'}
+                            {loading ? t('investigations.modal.creating') : t('investigations.modal.create')}
                         </button>
                     </div>
                 </form>
@@ -170,6 +170,7 @@ const CreateModal = ({onClose, onSave}: { onClose: () => void; onSave: () => voi
 };
 
 export const Investigations = () => {
+    const {t} = useTranslation();
     const [investigations, setInvestigations] = useState<InvestigationData[]>([]);
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(true);
@@ -224,7 +225,7 @@ export const Investigations = () => {
         setOpenDropdown(null);
         try {
             await api.updateInvestigationStatus(investigationId, newStatusId);
-            toast('success', 'Status updated');
+            toast('success', t('investigations.statusUpdated'));
             fetchInvestigations();
         } catch (err) {
             toast('error', err instanceof Error ? err.message : 'Error updating status');
@@ -251,31 +252,20 @@ export const Investigations = () => {
         return matchesSearch && matchesStatus && matchesCategory;
     });
 
-    const formatDate = (dateStr: string | null) => {
-        if (!dateStr) return '\u2014';
-        return new Date(dateStr).toLocaleDateString('en-US', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    };
-
     return (
         <Layout>
             <div className="p-8">
                 <div className="flex items-center justify-between mb-8">
                     <div>
-                        <h1 className="text-3xl font-bold text-accent mb-2">Investigations</h1>
-                        <p className="text-secondary">Your ongoing investigations</p>
+                        <h1 className="text-3xl font-bold text-accent mb-2">{t('investigations.title')}</h1>
+                        <p className="text-secondary">{t('investigations.subtitle')}</p>
                     </div>
                     <button
                         onClick={() => setShowCreate(true)}
                         className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-accent border border-primary/30 hover:bg-primary/30 transition-all"
                     >
                         <Plus size={16}/>
-                        New investigation
+                        {t('investigations.newInvestigation')}
                     </button>
                 </div>
 
@@ -287,20 +277,19 @@ export const Investigations = () => {
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Search for an investigation..."
+                            placeholder={t('investigations.search')}
                             className="w-full pl-9 pr-4 py-2.5 bg-dark/50 border border-primary/20 rounded-xl text-sm text-accent placeholder-secondary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
                         />
                     </div>
 
                     <div className="relative">
-                        <Filter size={16}
-                                className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary pointer-events-none"/>
+                        <Filter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary pointer-events-none"/>
                         <select
                             value={filterStatusId ?? ''}
                             onChange={(e) => setFilterStatusId(e.target.value ? Number(e.target.value) : null)}
                             className="pl-9 pr-8 py-2.5 bg-dark/50 border border-primary/20 rounded-xl text-sm text-accent focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all appearance-none cursor-pointer"
                         >
-                            <option value="">All statuses</option>
+                            <option value="">{t('investigations.allStatuses')}</option>
                             {statuses.map((s) => (
                                 <option key={s.id_status} value={s.id_status}>{s.name}</option>
                             ))}
@@ -308,14 +297,13 @@ export const Investigations = () => {
                     </div>
 
                     <div className="relative">
-                        <Tag size={16}
-                             className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary pointer-events-none"/>
+                        <Tag size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary pointer-events-none"/>
                         <select
                             value={filterCategoryId ?? ''}
                             onChange={(e) => setFilterCategoryId(e.target.value ? Number(e.target.value) : null)}
                             className="pl-9 pr-8 py-2.5 bg-dark/50 border border-primary/20 rounded-xl text-sm text-accent focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all appearance-none cursor-pointer"
                         >
-                            <option value="">All categories</option>
+                            <option value="">{t('investigations.allCategories')}</option>
                             {categories.map((c) => (
                                 <option key={c.id_category} value={c.id_category}>{c.name}</option>
                             ))}
@@ -326,32 +314,32 @@ export const Investigations = () => {
                         <button
                             onClick={handleResetFilters}
                             className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-medium text-secondary hover:text-accent hover:bg-primary/10 border border-primary/20 transition-all"
-                            title="Reset filters"
+                            title={t('investigations.reset')}
                         >
                             <RotateCcw size={14}/>
-                            Reset
+                            {t('investigations.reset')}
                         </button>
                     )}
 
                     <span className="text-secondary text-sm ml-auto">
-                        {total} investigation{total > 1 ? 's' : ''}
+                        {total} {t('investigations.title').toLowerCase()}
                     </span>
                 </div>
 
                 {/* List */}
                 {loading ? (
-                    <div className="text-center text-secondary py-12">Loading...</div>
+                    <div className="text-center text-secondary py-12">{t('investigations.loading')}</div>
                 ) : filteredInvestigations.length === 0 ? (
                     <div className="bg-dark/50 border border-primary/20 rounded-xl p-12 text-center">
                         <FileSearch size={48} className="mx-auto text-secondary mb-4"/>
-                        <p className="text-accent text-lg font-medium mb-2">No investigations</p>
-                        <p className="text-secondary mb-6">Create your first investigation to get started.</p>
+                        <p className="text-accent text-lg font-medium mb-2">{t('investigations.empty')}</p>
+                        <p className="text-secondary mb-6">{t('investigations.emptyDesc')}</p>
                         <button
                             onClick={() => setShowCreate(true)}
                             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-accent border border-primary/30 hover:bg-primary/30 transition-all"
                         >
                             <Plus size={16}/>
-                            New investigation
+                            {t('investigations.newInvestigation')}
                         </button>
                     </div>
                 ) : (
@@ -362,14 +350,13 @@ export const Investigations = () => {
                                 onClick={() => navigate(`/investigations/${toInvestigationSlug(inv.title, inv.id_investigation)}`)}
                                 className="bg-dark/50 border border-primary/20 rounded-xl px-5 py-4 hover:border-primary/40 transition-all cursor-pointer group"
                             >
-                                {/* Row 1: ID + Title + Status */}
                                 <div className="flex items-center gap-3 min-w-0">
                                     <span className="text-secondary/50 text-xs font-mono flex-shrink-0">#{inv.id_investigation}</span>
                                     <h3 className="text-accent font-semibold truncate">{inv.title}</h3>
                                     {!inv.is_owner && (
                                         <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-blue-500/20 text-blue-400 flex-shrink-0">
                                             <Users size={9}/>
-                                            Collab
+                                            {t('investigations.collab')}
                                         </span>
                                     )}
                                     <div className="ml-auto flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -418,12 +405,10 @@ export const Investigations = () => {
                                     </div>
                                 </div>
 
-                                {/* Row 2: Description (compact) */}
                                 {inv.description && (
                                     <p className="text-secondary/70 text-sm mt-1.5 line-clamp-1 pl-8">{inv.description}</p>
                                 )}
 
-                                {/* Row 3: Metadata */}
                                 <div className="flex items-center gap-3 mt-2 pl-8 text-[11px] text-secondary/50">
                                     <span className="flex items-center gap-1">
                                         <Calendar size={10}/>
@@ -431,7 +416,7 @@ export const Investigations = () => {
                                     </span>
                                     {inv.updated_at && inv.updated_at !== inv.created_at && (
                                         <span className="flex items-center gap-1">
-                                            Updated {formatRelativeDate(inv.updated_at)}
+                                            {t('investigations.updated')} {formatRelativeDate(inv.updated_at)}
                                         </span>
                                     )}
                                 </div>

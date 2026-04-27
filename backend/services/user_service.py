@@ -80,6 +80,12 @@ def update_last_login(db: Session, user: User) -> None:
     db.commit()
 
 
+def update_language(db: Session, user: User, language: str) -> None:
+    user.language = language
+    db.add(user)
+    db.commit()
+
+
 def get_users_paginated(db: Session, skip: int, limit: int, search: str = ""):
     """Get paginated list of users with their roles"""
     query = db.query(User)

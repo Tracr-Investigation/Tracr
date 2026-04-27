@@ -1,5 +1,6 @@
 import {useState, useEffect, useCallback} from 'react';
 import {useNavigate} from 'react-router-dom';
+import {useTranslation} from 'react-i18next';
 import {Layout} from '../../components/Layout';
 import {StatusBadge} from '../../components/StatusBadge';
 import {useAuth} from '../../contexts/AuthContext';
@@ -43,6 +44,7 @@ interface InvestigationData {
 export const Home = () => {
     const {user} = useAuth();
     const navigate = useNavigate();
+    const {t} = useTranslation();
     const [recentInvestigations, setRecentInvestigations] = useState<InvestigationData[]>([]);
     const [loading, setLoading] = useState(true);
     const [myTasks, setMyTasks] = useState<Awaited<ReturnType<typeof api.getMyTasks>>['tasks']>([]);
@@ -81,9 +83,9 @@ export const Home = () => {
             <div className="p-8">
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-accent mb-2">Dashboard</h1>
+                    <h1 className="text-3xl font-bold text-accent mb-2">{t('home.title')}</h1>
                     <p className="text-secondary">
-                        Welcome back, <span className="text-accent font-medium">{user?.pseudo}</span>
+                        {t('home.welcome')} <span className="text-accent font-medium">{user?.pseudo}</span>
                     </p>
                 </div>
 
@@ -91,12 +93,12 @@ export const Home = () => {
                 {/* Recent investigations block */}
                 <div className="lg:col-span-3 bg-dark/50 border border-primary/20 rounded-xl p-5">
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-sm font-semibold text-accent uppercase tracking-wide">Recently viewed</h2>
+                        <h2 className="text-sm font-semibold text-accent uppercase tracking-wide">{t('home.recentlyViewed')}</h2>
                         <button
                             onClick={() => navigate('/investigations')}
                             className="flex items-center gap-1 text-xs text-secondary hover:text-accent transition-colors"
                         >
-                            View all
+                            {t('home.viewAll')}
                             <ArrowRight size={12}/>
                         </button>
                     </div>
@@ -106,7 +108,7 @@ export const Home = () => {
                     ) : recentInvestigations.length === 0 ? (
                         <div className="py-6 text-center">
                             <FileSearch size={32} className="mx-auto text-secondary/50 mb-2"/>
-                            <p className="text-secondary text-sm">No recently viewed investigations</p>
+                            <p className="text-secondary text-sm">{t('home.noRecentInvestigations')}</p>
                         </div>
                     ) : (
                         <div className="space-y-2">
@@ -121,7 +123,7 @@ export const Home = () => {
                                     {!inv.is_owner && (
                                         <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-blue-500/20 text-blue-400 flex-shrink-0">
                                             <Users size={8}/>
-                                            Collab
+                                            {t('home.collab')}
                                         </span>
                                     )}
                                     <div className="ml-auto flex items-center gap-2 flex-shrink-0">
@@ -165,14 +167,14 @@ export const Home = () => {
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-sm font-semibold text-accent uppercase tracking-wide flex items-center gap-2">
                             <CheckSquare size={14} className="text-primary"/>
-                            My tasks
+                            {t('home.myTasks')}
                         </h2>
                         <button
                             onClick={() => navigate('/calendar')}
                             className="flex items-center gap-1 text-xs text-secondary hover:text-accent transition-colors"
                         >
                             <Calendar size={12}/>
-                            View calendar
+                            {t('home.viewCalendar')}
                         </button>
                     </div>
 
@@ -181,7 +183,7 @@ export const Home = () => {
                     ) : myTasks.length === 0 ? (
                         <div className="py-6 text-center">
                             <CheckSquare size={28} className="mx-auto text-secondary/30 mb-2"/>
-                            <p className="text-secondary/60 text-xs">No assigned tasks</p>
+                            <p className="text-secondary/60 text-xs">{t('home.noAssignedTasks')}</p>
                         </div>
                     ) : (
                         <div className="space-y-2">
@@ -191,7 +193,9 @@ export const Home = () => {
                                     basse: '#6b7280', normale: '#3b82f6', haute: '#f97316', urgente: '#ef4444',
                                 };
                                 const STATUS_LABEL: Record<string, string> = {
-                                    todo: 'To do', en_cours: 'In progress', termine: 'Done',
+                                    todo: t('home.taskStatus.todo'),
+                                    en_cours: t('home.taskStatus.en_cours'),
+                                    termine: t('home.taskStatus.termine'),
                                 };
                                 return (
                                     <div

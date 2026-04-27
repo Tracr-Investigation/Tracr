@@ -4,7 +4,7 @@ from sqlmodel import Session
 
 from services import user_service, log_service
 from utils.security import verify_token, create_token
-from utils.schemas import LoginRequest, RegisterRequest, ChangePasswordRequest, DeleteAccountRequest
+from utils.schemas import LoginRequest, RegisterRequest, ChangePasswordRequest, DeleteAccountRequest, UpdateLanguageRequest
 from app.dependencies import get_db, limiter
 
 router = APIRouter()
@@ -29,6 +29,7 @@ async def login(request: Request, body: LoginRequest, db: Session = Depends(get_
         "id_user": user.id_user,
         "pseudo": user.pseudo,
         "role": role,
+        "language": user.language,
     }
 
 
@@ -71,7 +72,22 @@ async def get_me(request: Request, payload: dict = Depends(verify_token), db: Se
         "id_user": user.id_user,
         "pseudo": user.pseudo,
         "role": role,
+        "language": user.language,
     }
+
+
+@router.patch("/me/language")
+async def update_language(
+    body: UpdateLanguageRequest,
+    payload: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+):
+    user = user_service.get_user_by_id(db, payload["user_id"])
+    if not user or not user.is_active:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    user_service.update_language(db, user, body.language)
+    return {"language": user.language}
 
 
 @router.post("/change-password")

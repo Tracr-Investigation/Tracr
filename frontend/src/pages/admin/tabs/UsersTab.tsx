@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { api } from '../../../services/api';
 import { SearchBar } from '../../../components/SearchBar';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface UserData {
   id_user: number;
@@ -13,6 +14,7 @@ interface UserData {
 }
 
 export const UsersTab = () => {
+  const { t } = useTranslation();
   const [users, setUsers] = useState<UserData[]>([]);
   const [total, setTotal] = useState(0);
   const [filtered, setFiltered] = useState(0);
@@ -75,39 +77,37 @@ export const UsersTab = () => {
 
   return (
     <div>
-      {/* Filtres */}
       <SearchBar
         query={search}
         onQueryChange={setSearch}
-        placeholder="Rechercher par nom d'utilisateur..."
+        placeholder={t('admin.users.searchPlaceholder')}
         total={total}
-        totalLabel="utilisateur"
+        totalLabel="user"
       />
 
-      {/* Table */}
       <div className="bg-dark/50 border border-primary/20 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-primary/20">
-                <th className="text-left px-6 py-4 text-sm font-medium text-secondary">Username</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-secondary">Role</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-secondary">Created</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-secondary">Status</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-secondary">Last login</th>
+                <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.users.colUsername')}</th>
+                <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.users.colRole')}</th>
+                <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.users.colCreated')}</th>
+                <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.users.colStatus')}</th>
+                <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.users.colLastLogin')}</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-secondary">
-                    Loading...
+                    {t('admin.users.loading')}
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-secondary">
-                    No user found
+                    {t('admin.users.empty')}
                   </td>
                 </tr>
               ) : (
@@ -133,7 +133,7 @@ export const UsersTab = () => {
                         <span className={`w-2 h-2 rounded-full ${
                           u.is_active ? 'bg-green-400' : 'bg-red-400'
                         }`} />
-                        {u.is_active ? 'Active' : 'Inactive'}
+                        {u.is_active ? t('admin.users.active') : t('admin.users.inactive')}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-secondary text-sm">{formatDate(u.last_login_at)}</td>
@@ -144,11 +144,10 @@ export const UsersTab = () => {
           </table>
         </div>
 
-        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-6 py-4 border-t border-primary/20">
             <p className="text-sm text-secondary">
-              Page {page} / {totalPages} ({filtered} users)
+              {t('admin.users.pagination', { page, total: totalPages, count: filtered })}
             </p>
             <div className="flex items-center gap-1">
               <button

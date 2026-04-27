@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, AlertCircle } from 'lucide-react';
 import { Layout } from '../../components/Layout';
 import { api } from '../../services/api';
@@ -22,13 +23,6 @@ const PRIORITY_COLORS: Record<string, string> = {
     haute: '#f97316',
     urgente: '#ef4444',
 };
-
-const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-const MONTHS = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December',
-];
 
 function getDaysInMonth(year: number, month: number): Date[] {
     const firstDay = new Date(year, month, 1);
@@ -68,7 +62,10 @@ function toDateKey(date: Date): string {
 
 export const Calendar = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const today = new Date();
+    const DAYS = t('calendar.days', { returnObjects: true }) as string[];
+    const MONTHS = t('calendar.months', { returnObjects: true }) as string[];
 
     const [currentYear, setCurrentYear] = useState(today.getFullYear());
     const [currentMonth, setCurrentMonth] = useState(today.getMonth());
@@ -144,8 +141,8 @@ export const Calendar = () => {
                 {/* Header */}
                 <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold text-accent mb-1">Calendar</h1>
-                        <p className="text-secondary text-sm">Your assigned tasks by due date</p>
+                        <h1 className="text-3xl font-bold text-accent mb-1">{t('calendar.title')}</h1>
+                        <p className="text-secondary text-sm">{t('calendar.subtitle')}</p>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -153,7 +150,7 @@ export const Calendar = () => {
                             onClick={goToToday}
                             className="px-3 py-1.5 text-sm border border-primary/30 text-secondary hover:text-accent hover:border-primary/60 rounded-lg transition-all"
                         >
-                            Today
+                            {t('calendar.today')}
                         </button>
                         <button
                             onClick={goToPrevMonth}
@@ -252,7 +249,7 @@ export const Calendar = () => {
                                                 ))}
                                                 {dayTasks.length > 3 && (
                                                     <p className="text-[10px] text-secondary/60 pl-1">
-                                                        +{dayTasks.length - 3} more
+                                                        {t('calendar.more', { count: dayTasks.length - 3 })}
                                                     </p>
                                                 )}
                                             </div>
@@ -278,14 +275,14 @@ export const Calendar = () => {
                                     onClick={() => setSelectedDay(null)}
                                     className="text-secondary hover:text-accent transition-colors text-xs"
                                 >
-                                    Close
+                                    {t('calendar.close')}
                                 </button>
                             </div>
 
                             {selectedDayTasks.length === 0 ? (
                                 <div className="text-center py-6">
                                     <CalendarIcon size={28} className="mx-auto text-secondary/30 mb-2" />
-                                    <p className="text-secondary/60 text-xs">No tasks due this day</p>
+                                    <p className="text-secondary/60 text-xs">{t('calendar.noTasksDueThisDay')}</p>
                                 </div>
                             ) : (
                                 <div className="space-y-2">
@@ -340,20 +337,15 @@ export const Calendar = () => {
 
                 {/* Legend */}
                 <div className="mt-4 flex items-center gap-4 flex-wrap">
-                    {Object.entries({ basse: 'Low', normale: 'Normal', haute: 'High', urgente: 'Urgent' }).map(
-                        ([key, label]) => (
-                            <div key={key} className="flex items-center gap-1.5">
-                                <span
-                                    className="w-2 h-2 rounded-full"
-                                    style={{ backgroundColor: PRIORITY_COLORS[key] }}
-                                />
-                                <span className="text-xs text-secondary">{label}</span>
-                            </div>
-                        )
-                    )}
+                    {(Object.keys(PRIORITY_COLORS) as string[]).map((key) => (
+                        <div key={key} className="flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: PRIORITY_COLORS[key] }} />
+                            <span className="text-xs text-secondary">{t(`calendar.priority.${key}`)}</span>
+                        </div>
+                    ))}
                     <div className="flex items-center gap-1.5">
                         <AlertCircle size={11} className="text-red-400" />
-                        <span className="text-xs text-secondary">Overdue</span>
+                        <span className="text-xs text-secondary">{t('calendar.overdue')}</span>
                     </div>
                 </div>
             </div>

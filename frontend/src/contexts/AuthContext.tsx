@@ -1,10 +1,12 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { API_URL } from '../services/api';
 
 interface User {
   id_user: number;
   pseudo: string;
   role: string;
+  language: string;
 }
 
 interface AuthContextType {
@@ -20,6 +22,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const { i18n } = useTranslation();
 
   useEffect(() => {
       const checkAuth = async () => {
@@ -39,7 +42,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         if (response.ok) {
           const data = await response.json();
-          setUser({ id_user: data.id_user, pseudo: data.pseudo, role: data.role });
+          const language = data.language ?? 'en';
+          setUser({ id_user: data.id_user, pseudo: data.pseudo, role: data.role, language });
+          i18n.changeLanguage(language);
         } else {
           localStorage.removeItem('token');
         }
@@ -51,11 +56,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     checkAuth();
-  }, []);
+  }, [i18n]);
 
   const login = (user: User, token: string) => {
     setUser(user);
     localStorage.setItem('token', token);
+    i18n.changeLanguage(user.language ?? 'en');
   };
 
   const logout = () => {

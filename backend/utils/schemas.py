@@ -111,3 +111,7 @@ class TaskUpdateRequest(BaseModel):
 
 class TaskResponseCreateRequest(BaseModel):
     content: str = Field(min_length=1, max_length=2000)
+
+
+class UpdateLanguageRequest(BaseModel):
+    language: str = Field(pattern="^(en|fr)$")

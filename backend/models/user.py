@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from sqlalchemy import Column, DateTime
+from sqlalchemy import Column, DateTime, String
 from sqlmodel import Field, SQLModel
 from zoneinfo import ZoneInfo
 
@@ -23,4 +23,8 @@ class User(SQLModel, table=True):
     last_login_at: Optional[datetime] = Field(
         default=None,
         sa_column=Column(DateTime(timezone=True), nullable=True),
+    )
+    language: str = Field(
+        default="en",
+        sa_column=Column(String(5), nullable=False, server_default="en"),
     )

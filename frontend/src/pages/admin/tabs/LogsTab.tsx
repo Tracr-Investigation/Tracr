@@ -3,6 +3,7 @@ import {api} from '../../../services/api';
 import {LogCategoryBadge} from '../../../components/LogCategoryBadge';
 import {SearchBar} from '../../../components/SearchBar';
 import {ChevronLeft, ChevronRight} from 'lucide-react';
+import {useTranslation} from 'react-i18next';
 
 interface LogData {
     id_log: number;
@@ -16,6 +17,7 @@ interface LogData {
 }
 
 export const LogsTab = () => {
+    const {t} = useTranslation();
     const [logs, setLogs] = useState<LogData[]>([]);
     const [total, setTotal] = useState(0);
     const [filtered, setFiltered] = useState(0);
@@ -91,22 +93,20 @@ export const LogsTab = () => {
 
     return (
         <div>
-            {/* Filtres */}
             <SearchBar
                 query={search}
                 onQueryChange={setSearch}
-                placeholder="Rechercher par ID, action ou utilisateur..."
+                placeholder={t('admin.logs.searchPlaceholder')}
                 filter={{
                     value: category || null,
                     onChange: (v) => setCategory((v as string) || ''),
                     options: categories.map((cat) => ({value: cat, label: cat})),
-                    placeholder: 'Toutes les catégories',
+                    placeholder: t('admin.logs.allCategories'),
                 }}
                 total={total}
                 totalLabel="log"
             />
 
-            {/* Filtre consultations */}
             <div className="flex items-center gap-2 mb-4">
                 <label className="flex items-center gap-2 cursor-pointer text-sm text-secondary hover:text-accent transition-colors">
                     <input
@@ -115,36 +115,35 @@ export const LogsTab = () => {
                         onChange={(e) => setExcludeReads(e.target.checked)}
                         className="w-4 h-4 rounded border-primary/30 bg-dark/50 text-primary focus:ring-primary/20 cursor-pointer accent-[#8b5cf6]"
                     />
-                    Masquer les consultations
+                    {t('admin.logs.hideConsultations')}
                 </label>
             </div>
 
-            {/* Table */}
             <div className="bg-dark/50 border border-primary/20 rounded-xl overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
                         <tr className="border-b border-primary/20">
-                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">ID</th>
-                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">Date</th>
-                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">User</th>
-                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">Category</th>
-                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">Action</th>
-                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">Detail</th>
-                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">IP</th>
+                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.logs.colId')}</th>
+                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.logs.colDate')}</th>
+                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.logs.colUser')}</th>
+                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.logs.colCategory')}</th>
+                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.logs.colAction')}</th>
+                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.logs.colDetail')}</th>
+                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.logs.colIp')}</th>
                         </tr>
                         </thead>
                         <tbody>
                         {loading ? (
                             <tr>
                                 <td colSpan={7} className="px-6 py-12 text-center text-secondary">
-                                    Loading...
+                                    {t('admin.logs.loading')}
                                 </td>
                             </tr>
                         ) : logs.length === 0 ? (
                             <tr>
                                 <td colSpan={7} className="px-6 py-12 text-center text-secondary">
-                                    No log found
+                                    {t('admin.logs.empty')}
                                 </td>
                             </tr>
                         ) : (
@@ -167,11 +166,10 @@ export const LogsTab = () => {
                     </table>
                 </div>
 
-                {/* Pagination */}
                 {totalPages > 1 && (
                     <div className="flex items-center justify-between px-6 py-4 border-t border-primary/20">
                         <p className="text-sm text-secondary">
-                            Page {page} / {totalPages} ({filtered} logs)
+                            {t('admin.logs.pagination', {page, total: totalPages, count: filtered})}
                         </p>
                         <div className="flex items-center gap-1">
                             <button

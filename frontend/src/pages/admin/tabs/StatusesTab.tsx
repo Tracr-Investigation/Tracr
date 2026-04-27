@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { api } from '../../../services/api';
 import { StatusBadge } from '../../../components/StatusBadge';
 import { CircleDot, Plus, Pencil, Trash2, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface StatusData {
   id_status: number;
@@ -17,6 +18,7 @@ interface ModalProps {
 }
 
 const StatusFormModal = ({ status, onClose, onSave }: ModalProps) => {
+  const { t } = useTranslation();
   const [name, setName] = useState(status?.name || '');
   const [color, setColor] = useState(status?.color || '#8b5cf6');
   const [loading, setLoading] = useState(false);
@@ -34,7 +36,7 @@ const StatusFormModal = ({ status, onClose, onSave }: ModalProps) => {
       }
       onSave();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -45,7 +47,7 @@ const StatusFormModal = ({ status, onClose, onSave }: ModalProps) => {
       <div className="bg-[#1a1a2e] border border-primary/20 rounded-xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold text-accent">
-            {status ? 'Modifier le statut' : 'Nouveau statut'}
+            {status ? t('admin.statuses.editTitle') : t('admin.statuses.newTitle')}
           </h3>
           <button onClick={onClose} className="text-secondary hover:text-accent transition-colors">
             <X size={20} />
@@ -54,7 +56,7 @@ const StatusFormModal = ({ status, onClose, onSave }: ModalProps) => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm text-secondary mb-1.5">Nom</label>
+            <label className="block text-sm text-secondary mb-1.5">{t('admin.statuses.nameLabel')}</label>
             <input
               type="text"
               value={name}
@@ -62,12 +64,12 @@ const StatusFormModal = ({ status, onClose, onSave }: ModalProps) => {
               required
               maxLength={50}
               className="w-full px-4 py-3 bg-dark/50 border border-primary/30 rounded-xl text-accent placeholder-secondary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
-              placeholder="Ex: En cours, Terminé..."
+              placeholder={t('admin.statuses.namePlaceholder')}
             />
           </div>
 
           <div>
-            <label className="block text-sm text-secondary mb-1.5">Couleur</label>
+            <label className="block text-sm text-secondary mb-1.5">{t('admin.statuses.colorLabel')}</label>
             <div className="flex items-center gap-3">
               <input
                 type="color"
@@ -87,9 +89,9 @@ const StatusFormModal = ({ status, onClose, onSave }: ModalProps) => {
           </div>
 
           <div>
-            <label className="block text-sm text-secondary mb-1.5">Aperçu</label>
+            <label className="block text-sm text-secondary mb-1.5">{t('admin.statuses.previewLabel')}</label>
             <div className="p-3 bg-dark/30 rounded-xl">
-              <StatusBadge name={name || 'Statut'} color={color} />
+              <StatusBadge name={name || t('admin.statuses.previewDefault')} color={color} />
             </div>
           </div>
 
@@ -103,14 +105,14 @@ const StatusFormModal = ({ status, onClose, onSave }: ModalProps) => {
               onClick={onClose}
               className="px-4 py-2.5 rounded-xl text-sm font-medium bg-dark/50 border border-primary/20 text-secondary hover:bg-primary/10 hover:text-accent transition-all"
             >
-              Annuler
+              {t('admin.statuses.cancel')}
             </button>
             <button
               type="submit"
               disabled={loading || !name.trim()}
               className="px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-accent border border-primary/30 hover:bg-primary/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
             >
-              {loading ? 'Enregistrement...' : status ? 'Modifier' : 'Créer'}
+              {loading ? t('admin.statuses.saving') : status ? t('admin.statuses.update') : t('admin.statuses.create')}
             </button>
           </div>
         </form>
@@ -120,6 +122,7 @@ const StatusFormModal = ({ status, onClose, onSave }: ModalProps) => {
 };
 
 const DeleteModal = ({ status, onClose, onSave }: ModalProps) => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
 
   const handleDelete = async () => {
@@ -138,9 +141,9 @@ const DeleteModal = ({ status, onClose, onSave }: ModalProps) => {
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={onClose}>
       <div className="bg-[#1a1a2e] border border-primary/20 rounded-xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-        <h3 className="text-lg font-semibold text-accent mb-3">Supprimer le statut</h3>
+        <h3 className="text-lg font-semibold text-accent mb-3">{t('admin.statuses.deleteTitle')}</h3>
         <p className="text-secondary mb-2">
-          Êtes-vous sûr de vouloir supprimer le statut :
+          {t('admin.statuses.deleteConfirm')}
         </p>
         <div className="mb-6">
           <StatusBadge name={status?.name || ''} color={status?.color || null} />
@@ -150,14 +153,14 @@ const DeleteModal = ({ status, onClose, onSave }: ModalProps) => {
             onClick={onClose}
             className="px-4 py-2.5 rounded-xl text-sm font-medium bg-dark/50 border border-primary/20 text-secondary hover:bg-primary/10 hover:text-accent transition-all"
           >
-            Annuler
+            {t('admin.statuses.cancel')}
           </button>
           <button
             onClick={handleDelete}
             disabled={loading}
             className="px-4 py-2.5 rounded-xl text-sm font-medium bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
           >
-            {loading ? 'Suppression...' : 'Supprimer'}
+            {loading ? t('admin.statuses.deleting') : t('admin.statuses.delete')}
           </button>
         </div>
       </div>
@@ -166,6 +169,7 @@ const DeleteModal = ({ status, onClose, onSave }: ModalProps) => {
 };
 
 export const StatusesTab = () => {
+  const { t } = useTranslation();
   const [statuses, setStatuses] = useState<StatusData[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -210,14 +214,13 @@ export const StatusesTab = () => {
 
   return (
     <div>
-      {/* Stat Card + Bouton créer */}
       <div className="mb-8 flex items-center justify-between">
         <div className="bg-gradient-to-r from-primary to-secondary rounded-xl p-6 inline-flex items-center gap-4">
           <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
             <CircleDot size={24} className="text-white" />
           </div>
           <div>
-            <p className="text-white/80 text-sm">Total statuts</p>
+            <p className="text-white/80 text-sm">{t('admin.statuses.totalLabel')}</p>
             <p className="text-white text-3xl font-bold">{total}</p>
           </div>
         </div>
@@ -227,34 +230,33 @@ export const StatusesTab = () => {
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-accent border border-primary/30 hover:bg-primary/30 transition-all"
         >
           <Plus size={16} />
-          Nouveau statut
+          {t('admin.statuses.newStatus')}
         </button>
       </div>
 
-      {/* Table */}
       <div className="bg-dark/50 border border-primary/20 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-primary/20">
-                <th className="text-left px-6 py-4 text-sm font-medium text-secondary">ID</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-secondary">Statut</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-secondary">Couleur</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-secondary">Créé le</th>
-                <th className="text-right px-6 py-4 text-sm font-medium text-secondary">Actions</th>
+                <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.statuses.colId')}</th>
+                <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.statuses.colStatus')}</th>
+                <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.statuses.colColor')}</th>
+                <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.statuses.colCreated')}</th>
+                <th className="text-right px-6 py-4 text-sm font-medium text-secondary">{t('admin.statuses.colActions')}</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-secondary">
-                    Chargement...
+                    {t('admin.statuses.loading')}
                   </td>
                 </tr>
               ) : statuses.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-secondary">
-                    Aucun statut trouvé
+                    {t('admin.statuses.empty')}
                   </td>
                 </tr>
               ) : (
@@ -279,14 +281,14 @@ export const StatusesTab = () => {
                         <button
                           onClick={() => setEditStatus(s)}
                           className="p-2 rounded-lg bg-dark/50 border border-primary/20 text-secondary hover:bg-primary/20 hover:text-accent transition-all"
-                          title="Modifier"
+                          title={t('admin.statuses.editTooltip')}
                         >
                           <Pencil size={14} />
                         </button>
                         <button
                           onClick={() => setDeleteStatus(s)}
                           className="p-2 rounded-lg bg-dark/50 border border-red-500/20 text-secondary hover:bg-red-500/20 hover:text-red-400 transition-all"
-                          title="Supprimer"
+                          title={t('admin.statuses.deleteTooltip')}
                         >
                           <Trash2 size={14} />
                         </button>
@@ -300,7 +302,6 @@ export const StatusesTab = () => {
         </div>
       </div>
 
-      {/* Modales */}
       {showCreate && (
         <StatusFormModal onClose={() => setShowCreate(false)} onSave={handleSave} />
       )}

@@ -18,6 +18,7 @@ import {
 import {api} from '../../../services/api';
 import {useToast} from '../../../contexts/ToastContext';
 import {formatRelativeDate} from '../../../utils/date';
+import {useTranslation} from 'react-i18next';
 
 interface CollaboratorData {
     id_collaborator: number;
@@ -74,48 +75,44 @@ const PRIORITY_COLORS: Record<string, string> = {
     urgente: '#ef4444',
 };
 
-const PRIORITY_LABELS: Record<string, string> = {
-    basse: 'Low',
-    normale: 'Normal',
-    haute: 'High',
-    urgente: 'Urgent',
-};
-
 const STATUS_COLORS: Record<string, string> = {
     todo: '#6b7280',
     en_cours: '#f59e0b',
     termine: '#22c55e',
 };
 
-const STATUS_LABELS: Record<string, string> = {
-    todo: 'To do',
-    en_cours: 'In progress',
-    termine: 'Done',
+const PRIORITY_KEYS = ['basse', 'normale', 'haute', 'urgente'] as const;
+const STATUS_KEYS = ['todo', 'en_cours', 'termine'] as const;
+
+const PriorityBadge = ({priority}: { priority: string }) => {
+    const {t} = useTranslation();
+    return (
+        <span
+            className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+            style={{
+                backgroundColor: `${PRIORITY_COLORS[priority] || '#6b7280'}20`,
+                color: PRIORITY_COLORS[priority] || '#6b7280',
+            }}
+        >
+            {t(`tasks.priority.${priority}`, priority)}
+        </span>
+    );
 };
 
-const PriorityBadge = ({priority}: { priority: string }) => (
-    <span
-        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
-        style={{
-            backgroundColor: `${PRIORITY_COLORS[priority] || '#6b7280'}20`,
-            color: PRIORITY_COLORS[priority] || '#6b7280',
-        }}
-    >
-        {PRIORITY_LABELS[priority] || priority}
-    </span>
-);
-
-const StatusBadge = ({status}: { status: string }) => (
-    <span
-        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
-        style={{
-            backgroundColor: `${STATUS_COLORS[status] || '#6b7280'}20`,
-            color: STATUS_COLORS[status] || '#6b7280',
-        }}
-    >
-        {STATUS_LABELS[status] || status}
-    </span>
-);
+const TaskStatusBadge = ({status}: { status: string }) => {
+    const {t} = useTranslation();
+    return (
+        <span
+            className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+            style={{
+                backgroundColor: `${STATUS_COLORS[status] || '#6b7280'}20`,
+                color: STATUS_COLORS[status] || '#6b7280',
+            }}
+        >
+            {t(`tasks.status.${status}`, status)}
+        </span>
+    );
+};
 
 // Task creation / edit form
 const TaskForm = ({
@@ -131,6 +128,7 @@ const TaskForm = ({
     onCancel: () => void;
     loading: boolean;
 }) => {
+    const {t} = useTranslation();
     const [title, setTitle] = useState(task?.title || '');
     const [description, setDescription] = useState(task?.description || '');
     const [status, setStatus] = useState(task?.status || 'todo');
@@ -159,12 +157,12 @@ const TaskForm = ({
         <form onSubmit={handleSubmit} className="space-y-4">
             {/* Title */}
             <div>
-                <label className="block text-xs text-secondary mb-1">Title *</label>
+                <label className="block text-xs text-secondary mb-1">{t('tasks.titleLabel')}</label>
                 <input
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Task title"
+                    placeholder={t('tasks.titlePlaceholder')}
                     maxLength={255}
                     required
                     className="w-full px-3 py-2 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm placeholder-secondary focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
@@ -173,11 +171,11 @@ const TaskForm = ({
 
             {/* Description */}
             <div>
-                <label className="block text-xs text-secondary mb-1">Description</label>
+                <label className="block text-xs text-secondary mb-1">{t('tasks.descLabel')}</label>
                 <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Description (optional)"
+                    placeholder={t('tasks.descPlaceholder')}
                     rows={3}
                     maxLength={2000}
                     className="w-full px-3 py-2 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm placeholder-secondary focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all resize-none"
@@ -187,28 +185,28 @@ const TaskForm = ({
             <div className="grid grid-cols-2 gap-3">
                 {/* Priority */}
                 <div>
-                    <label className="block text-xs text-secondary mb-1">Priority</label>
+                    <label className="block text-xs text-secondary mb-1">{t('tasks.priorityLabel')}</label>
                     <select
                         value={priority}
                         onChange={(e) => setPriority(e.target.value as TaskData['priority'])}
                         className="w-full px-3 py-2 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
                     >
-                        {Object.entries(PRIORITY_LABELS).map(([val, label]) => (
-                            <option key={val} value={val}>{label}</option>
+                        {PRIORITY_KEYS.map((val) => (
+                            <option key={val} value={val}>{t(`tasks.priority.${val}`)}</option>
                         ))}
                     </select>
                 </div>
 
                 {/* Status */}
                 <div>
-                    <label className="block text-xs text-secondary mb-1">Status</label>
+                    <label className="block text-xs text-secondary mb-1">{t('tasks.statusLabel')}</label>
                     <select
                         value={status}
                         onChange={(e) => setStatus(e.target.value as 'todo' | 'en_cours' | 'termine')}
                         className="w-full px-3 py-2 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
                     >
-                        {Object.entries(STATUS_LABELS).map(([val, label]) => (
-                            <option key={val} value={val}>{label}</option>
+                        {STATUS_KEYS.map((val) => (
+                            <option key={val} value={val}>{t(`tasks.status.${val}`)}</option>
                         ))}
                     </select>
                 </div>
@@ -217,13 +215,13 @@ const TaskForm = ({
             <div className="grid grid-cols-2 gap-3">
                 {/* Assigned to */}
                 <div>
-                    <label className="block text-xs text-secondary mb-1">Assigned to</label>
+                    <label className="block text-xs text-secondary mb-1">{t('tasks.assignedLabel')}</label>
                     <select
                         value={assignedTo ?? ''}
                         onChange={(e) => setAssignedTo(e.target.value ? Number(e.target.value) : null)}
                         className="w-full px-3 py-2 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
                     >
-                        <option value="">— Nobody —</option>
+                        <option value="">{t('tasks.assignedNobody')}</option>
                         {members.map((m) => (
                             <option key={m.id_user} value={m.id_user}>{m.pseudo}</option>
                         ))}
@@ -232,7 +230,7 @@ const TaskForm = ({
 
                 {/* Due date */}
                 <div>
-                    <label className="block text-xs text-secondary mb-1">Due date</label>
+                    <label className="block text-xs text-secondary mb-1">{t('tasks.dueDateLabel')}</label>
                     <input
                         type="date"
                         value={dueDate}
@@ -256,7 +254,7 @@ const TaskForm = ({
                 <span className="text-sm text-accent flex items-center gap-1.5">
                     {isPrivate ? <Lock size={14} className="text-primary"/> :
                         <Globe size={14} className="text-secondary"/>}
-                    {isPrivate ? 'Private (visible only to you)' : 'Shared (visible to all members)'}
+                    {isPrivate ? t('tasks.privateLabel') : t('tasks.sharedLabel')}
                 </span>
             </div>
 
@@ -266,14 +264,14 @@ const TaskForm = ({
                     onClick={onCancel}
                     className="px-4 py-2 text-sm text-secondary hover:text-accent transition-colors"
                 >
-                    Cancel
+                    {t('tasks.cancel')}
                 </button>
                 <button
                     type="submit"
                     disabled={loading || !title.trim()}
                     className="px-4 py-2 bg-primary hover:bg-primary/80 text-white rounded-lg text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                    {loading ? 'Saving...' : task ? 'Save' : 'Create'}
+                    {loading ? t('tasks.saving') : task ? t('tasks.save') : t('tasks.create')}
                 </button>
             </div>
         </form>
@@ -298,6 +296,7 @@ const TaskDetailModal = ({
     onRefresh: () => void;
     members: MemberOption[];
 }) => {
+    const {t} = useTranslation();
     const {toast} = useToast();
     const [responses, setResponses] = useState<TaskResponseData[]>([]);
     const [loadingResponses, setLoadingResponses] = useState(true);
@@ -354,7 +353,7 @@ const TaskDetailModal = ({
         setSavingEdit(true);
         try {
             await api.updateTask(investigationId, task.id_task, formData as Parameters<typeof api.updateTask>[2]);
-            toast('success', 'Task updated');
+            toast('success', t('tasks.updated'));
             setEditing(false);
             onRefresh();
             onClose();
@@ -369,7 +368,7 @@ const TaskDetailModal = ({
         setDeleting(true);
         try {
             await api.deleteTask(investigationId, task.id_task);
-            toast('success', 'Task deleted');
+            toast('success', t('tasks.deleted'));
             onRefresh();
             onClose();
         } catch (err) {
@@ -405,7 +404,7 @@ const TaskDetailModal = ({
                         </div>
                         <div className="flex items-center gap-2 flex-wrap">
                             <PriorityBadge priority={task.priority}/>
-                            <StatusBadge status={task.status}/>
+                            <TaskStatusBadge status={task.status}/>
                         </div>
                     </div>
                     <div className="flex items-center gap-1 ml-3 shrink-0">
@@ -413,7 +412,6 @@ const TaskDetailModal = ({
                             <button
                                 onClick={() => setEditing(true)}
                                 className="p-2 text-secondary hover:text-accent hover:bg-primary/10 rounded-lg transition-all"
-                                title="Edit"
                             >
                                 <Edit2 size={14}/>
                             </button>
@@ -423,7 +421,6 @@ const TaskDetailModal = ({
                                 onClick={handleDelete}
                                 disabled={deleting}
                                 className="p-2 text-secondary hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all disabled:opacity-40"
-                                title="Delete"
                             >
                                 <Trash2 size={14}/>
                             </button>
@@ -453,7 +450,7 @@ const TaskDetailModal = ({
                                 {task.assigned_to_pseudo && (
                                     <div className="flex items-center gap-2 text-secondary">
                                         <User size={13} className="text-primary shrink-0"/>
-                                        <span>Assigned to <span
+                                        <span>{t('tasks.assignedLabel')} <span
                                             className="text-accent">{task.assigned_to_pseudo}</span></span>
                                     </div>
                                 )}
@@ -467,7 +464,7 @@ const TaskDetailModal = ({
                                 {task.due_date && (
                                     <div className="flex items-center gap-2 text-secondary">
                                         <Calendar size={13} className="text-primary shrink-0"/>
-                                        <span>Due: <span
+                                        <span>{t('tasks.dueDateLabel')}: <span
                                             className="text-accent">{formatDate(task.due_date)}</span></span>
                                     </div>
                                 )}
@@ -493,13 +490,13 @@ const TaskDetailModal = ({
                         <div>
                             <h4 className="text-accent text-sm font-medium mb-3 flex items-center gap-2">
                                 <MessageSquare size={14} className="text-primary"/>
-                                Comments ({responses.length})
+                                {t('tasks.comments', {count: responses.length})}
                             </h4>
 
                             {loadingResponses ? (
-                                <p className="text-secondary text-sm">Loading...</p>
+                                <p className="text-secondary text-sm">{t('tasks.loading')}</p>
                             ) : responses.length === 0 ? (
-                                <p className="text-secondary/60 text-sm italic">No comments</p>
+                                <p className="text-secondary/60 text-sm italic">{t('tasks.noComments')}</p>
                             ) : (
                                 <div className="space-y-3">
                                     {responses.map((resp) => (
@@ -539,7 +536,7 @@ const TaskDetailModal = ({
                                     type="text"
                                     value={newComment}
                                     onChange={(e) => setNewComment(e.target.value)}
-                                    placeholder="Add a comment..."
+                                    placeholder={t('tasks.addCommentPlaceholder')}
                                     maxLength={2000}
                                     className="flex-1 px-3 py-2 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm placeholder-secondary focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
                                 />
@@ -548,7 +545,7 @@ const TaskDetailModal = ({
                                     disabled={submittingComment || !newComment.trim()}
                                     className="px-3 py-2 bg-primary hover:bg-primary/80 text-white rounded-lg text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                                 >
-                                    Send
+                                    {t('tasks.send')}
                                 </button>
                             </form>
                         </div>
@@ -566,6 +563,7 @@ export const TasksTab = ({
     investigation: InvestigationData;
     currentUserId: number;
 }) => {
+    const {t} = useTranslation();
     const {toast} = useToast();
     const [tasks, setTasks] = useState<TaskData[]>([]);
     const [loading, setLoading] = useState(true);
@@ -582,7 +580,6 @@ export const TasksTab = ({
     const userPermission = investigation.user_permission;
     const canCreate = userPermission === 'owner' || userPermission === 'manager' || userPermission === 'editeur';
 
-    // Membres de l'investigation pour l'assignation : owner + collaborateurs acceptés
     const members: MemberOption[] = [
         {id_user: investigation.owner.id_user, pseudo: investigation.owner.pseudo},
         ...investigation.collaborators
@@ -633,7 +630,7 @@ export const TasksTab = ({
         setCreating(true);
         try {
             await api.createTask(investigation.id_investigation, formData as Parameters<typeof api.createTask>[1]);
-            toast('success', 'Task created');
+            toast('success', t('tasks.created'));
             setShowCreateModal(false);
             fetchTasks();
         } catch (err) {
@@ -659,7 +656,7 @@ export const TasksTab = ({
     };
 
     if (loading) {
-        return <div className="text-center text-secondary py-12">Loading...</div>;
+        return <div className="text-center text-secondary py-12">{t('tasks.loading')}</div>;
     }
 
     return (
@@ -679,7 +676,7 @@ export const TasksTab = ({
                                         : 'text-secondary hover:text-accent'
                                 }`}
                             >
-                                {v === 'all' ? 'All' : v === 'shared' ? 'Shared' : 'Private'}
+                                {v === 'all' ? t('tasks.filterAll') : v === 'shared' ? t('tasks.filterShared') : t('tasks.filterPrivate')}
                             </button>
                         ))}
                     </div>
@@ -691,7 +688,7 @@ export const TasksTab = ({
                             className="flex items-center gap-1.5 px-3 py-1.5 bg-dark/50 border border-primary/20 rounded-lg text-xs text-secondary hover:text-accent transition-all"
                         >
                             <span>
-                                {filterStatus === 'all' ? 'All statuses' : STATUS_LABELS[filterStatus]}
+                                {filterStatus === 'all' ? t('tasks.allStatuses') : t(`tasks.status.${filterStatus}`)}
                             </span>
                             <ChevronDown size={12}/>
                         </button>
@@ -705,9 +702,9 @@ export const TasksTab = ({
                                     }}
                                     className={`w-full px-3 py-2 text-left text-xs hover:bg-primary/10 transition-colors ${filterStatus === 'all' ? 'text-primary' : 'text-secondary'}`}
                                 >
-                                    All statuses
+                                    {t('tasks.allStatuses')}
                                 </button>
-                                {Object.entries(STATUS_LABELS).map(([val, label]) => (
+                                {STATUS_KEYS.map((val) => (
                                     <button
                                         key={val}
                                         onClick={() => {
@@ -716,7 +713,7 @@ export const TasksTab = ({
                                         }}
                                         className={`w-full px-3 py-2 text-left text-xs hover:bg-primary/10 transition-colors ${filterStatus === val ? 'text-primary' : 'text-secondary'}`}
                                     >
-                                        {label}
+                                        {t(`tasks.status.${val}`)}
                                     </button>
                                 ))}
                             </div>
@@ -735,7 +732,7 @@ export const TasksTab = ({
                             }`}
                         >
                             <CheckSquare size={13}/>
-                            {showCompleted ? 'Hide completed' : `Completed (${completedCount})`}
+                            {showCompleted ? t('tasks.hideCompleted') : t('tasks.showCompleted', {count: completedCount})}
                         </button>
                     )}
                     {canCreate && (
@@ -744,7 +741,7 @@ export const TasksTab = ({
                             className="flex items-center gap-1.5 px-3 py-2 bg-primary hover:bg-primary/80 text-white rounded-lg text-sm font-medium transition-all"
                         >
                             <Plus size={14}/>
-                            New task
+                            {t('tasks.newTask')}
                         </button>
                     )}
                 </div>
@@ -754,11 +751,9 @@ export const TasksTab = ({
             {filteredTasks.length === 0 ? (
                 <div className="bg-dark/50 border border-primary/20 rounded-xl p-10 text-center">
                     <CheckSquare size={32} className="mx-auto text-secondary mb-3"/>
-                    <p className="text-accent font-medium mb-1">No tasks</p>
+                    <p className="text-accent font-medium mb-1">{t('tasks.empty')}</p>
                     <p className="text-secondary text-sm">
-                        {canCreate
-                            ? 'Create your first task for this investigation.'
-                            : 'No visible tasks at the moment.'}
+                        {canCreate ? t('tasks.emptyDesc') : t('tasks.emptyReadonly')}
                     </p>
                 </div>
             ) : (
@@ -778,12 +773,11 @@ export const TasksTab = ({
                         >
                             <div className="flex items-start justify-between gap-3">
                                 <div className="flex items-start gap-2.5 flex-1 min-w-0">
-                                    {/* Bouton fermer/rouvrir tâche */}
                                     {canToggleStatus && (
                                         <button
                                             onClick={(e) => handleToggleStatus(e, task)}
                                             disabled={isClosing}
-                                            title={task.status === 'termine' ? 'Reopen task' : 'Mark as done'}
+                                            title={task.status === 'termine' ? t('tasks.reopen') : t('tasks.markDone')}
                                             className={`mt-0.5 shrink-0 transition-colors disabled:opacity-40 ${
                                                 task.status === 'termine'
                                                     ? 'text-green-500 hover:text-secondary'
@@ -809,7 +803,7 @@ export const TasksTab = ({
                                         </div>
                                         <div className="flex items-center gap-2 flex-wrap">
                                             <PriorityBadge priority={task.priority}/>
-                                            <StatusBadge status={task.status}/>
+                                            <TaskStatusBadge status={task.status}/>
                                             {task.assigned_to_pseudo && (
                                                 <span className="inline-flex items-center gap-1 text-xs text-secondary">
                                                     <User size={11}/>
@@ -841,14 +835,14 @@ export const TasksTab = ({
                 </div>
             )}
 
-            {/* Modal création */}
+            {/* Create modal */}
             {showCreateModal && (
                 <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
                     <div className="bg-[#1a1a2e] border border-primary/20 rounded-xl w-full max-w-lg">
                         <div className="flex items-center justify-between p-5 border-b border-primary/10">
                             <h3 className="text-accent font-semibold flex items-center gap-2">
                                 <Plus size={16} className="text-primary"/>
-                                New task
+                                {t('tasks.newTask')}
                             </h3>
                             <button
                                 onClick={() => setShowCreateModal(false)}
@@ -869,7 +863,7 @@ export const TasksTab = ({
                 </div>
             )}
 
-            {/* Modal détail */}
+            {/* Detail modal */}
             {selectedTask && (
                 <TaskDetailModal
                     task={selectedTask}

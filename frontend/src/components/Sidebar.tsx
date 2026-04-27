@@ -1,5 +1,6 @@
 import {useState, useEffect} from 'react';
 import {useNavigate, useLocation} from 'react-router-dom';
+import {useTranslation} from 'react-i18next';
 import {useAuth} from '../contexts/AuthContext';
 import {useNotifications} from '../contexts/NotificationContext';
 import {
@@ -28,6 +29,7 @@ export const Sidebar = () => {
     const {unreadCount} = useNotifications();
     const navigate = useNavigate();
     const location = useLocation();
+    const {t} = useTranslation();
 
     useEffect(() => {
         localStorage.setItem('sidebar-collapsed', collapsed.toString());
@@ -36,12 +38,12 @@ export const Sidebar = () => {
     const isAdmin = user?.role === 'admin' || user?.role === 'super-admin';
 
     const menuItems = [
-        {icon: LayoutDashboard, label: 'Dashboard', path: '/'},
-        {icon: FileSearch, label: 'Investigations', path: '/investigations'},
-        {icon: Calendar, label: 'Calendar', path: '/calendar'},
-        {icon: FileText, label: 'Templates', path: '/templates'},
-        {icon: Settings, label: 'Settings', path: '/settings'},
-        ...(isAdmin ? [{icon: Shield, label: 'Administration', path: '/admin'}] : []),
+        {icon: LayoutDashboard, label: t('sidebar.dashboard'), path: '/'},
+        {icon: FileSearch, label: t('sidebar.investigations'), path: '/investigations'},
+        {icon: Calendar, label: t('sidebar.calendar'), path: '/calendar'},
+        {icon: FileText, label: t('sidebar.templates'), path: '/templates'},
+        {icon: Settings, label: t('sidebar.settings'), path: '/settings'},
+        ...(isAdmin ? [{icon: Shield, label: t('sidebar.administration'), path: '/admin'}] : []),
     ];
 
     const handleLogout = () => {
@@ -159,7 +161,7 @@ export const Sidebar = () => {
                             )}
                         </div>
                         {!collapsed && (
-                            <span className="font-medium">Notifications</span>
+                            <span className="font-medium">{t('sidebar.notifications')}</span>
                         )}
                     </button>
 
@@ -195,7 +197,7 @@ export const Sidebar = () => {
                         title={collapsed ? 'Logout' : ''}
                     >
                         <LogOut size={22} className="flex-shrink-0"/>
-                        {!collapsed && <span className="font-medium">Logout</span>}
+                        {!collapsed && <span className="font-medium">{t('sidebar.logout')}</span>}
                     </button>
                 </div>
             </aside>

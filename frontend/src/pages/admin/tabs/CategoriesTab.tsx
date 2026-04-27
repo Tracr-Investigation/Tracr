@@ -2,6 +2,7 @@ import {useState, useEffect, useCallback} from 'react';
 import {api} from '../../../services/api';
 import {Tag, Plus, Pencil, Trash2, X} from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
+import {useTranslation} from 'react-i18next';
 
 const ICON_OPTIONS = [
     'Tag', 'Shield', 'Search', 'AlertTriangle', 'Bug', 'Globe', 'Lock',
@@ -51,6 +52,7 @@ interface ModalProps {
 }
 
 const CategoryFormModal = ({category, onClose, onSave}: ModalProps) => {
+    const {t} = useTranslation();
     const [name, setName] = useState(category?.name || '');
     const [color, setColor] = useState(category?.color || '#8b5cf6');
     const [icon, setIcon] = useState(category?.icon || 'Tag');
@@ -81,7 +83,7 @@ const CategoryFormModal = ({category, onClose, onSave}: ModalProps) => {
                  onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-6">
                     <h3 className="text-lg font-semibold text-accent">
-                        {category ? 'Edit category' : 'New category'}
+                        {category ? t('admin.categories.editTitle') : t('admin.categories.newTitle')}
                     </h3>
                     <button onClick={onClose} className="text-secondary hover:text-accent transition-colors">
                         <X size={20}/>
@@ -90,7 +92,7 @@ const CategoryFormModal = ({category, onClose, onSave}: ModalProps) => {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm text-secondary mb-1.5">Name</label>
+                        <label className="block text-sm text-secondary mb-1.5">{t('admin.categories.nameLabel')}</label>
                         <input
                             type="text"
                             value={name}
@@ -98,12 +100,12 @@ const CategoryFormModal = ({category, onClose, onSave}: ModalProps) => {
                             required
                             maxLength={50}
                             className="w-full px-4 py-3 bg-dark/50 border border-primary/30 rounded-xl text-accent placeholder-secondary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
-                            placeholder="e.g. Malware, Phishing..."
+                            placeholder={t('admin.categories.namePlaceholder')}
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm text-secondary mb-1.5">Color</label>
+                        <label className="block text-sm text-secondary mb-1.5">{t('admin.categories.colorLabel')}</label>
                         <div className="flex items-center gap-3">
                             <input
                                 type="color"
@@ -123,7 +125,7 @@ const CategoryFormModal = ({category, onClose, onSave}: ModalProps) => {
                     </div>
 
                     <div>
-                        <label className="block text-sm text-secondary mb-1.5">Icon</label>
+                        <label className="block text-sm text-secondary mb-1.5">{t('admin.categories.iconLabel')}</label>
                         <div className="grid grid-cols-8 gap-1.5 max-h-40 overflow-y-auto p-2 bg-dark/30 rounded-xl border border-primary/20">
                             {ICON_OPTIONS.map((iconName) => {
                                 const IconComp = getIconComponent(iconName);
@@ -147,9 +149,9 @@ const CategoryFormModal = ({category, onClose, onSave}: ModalProps) => {
                     </div>
 
                     <div>
-                        <label className="block text-sm text-secondary mb-1.5">Preview</label>
+                        <label className="block text-sm text-secondary mb-1.5">{t('admin.categories.previewLabel')}</label>
                         <div className="p-3 bg-dark/30 rounded-xl">
-                            <CategoryBadge name={name || 'Category'} color={color} icon={icon}/>
+                            <CategoryBadge name={name || t('admin.categories.previewDefault')} color={color} icon={icon}/>
                         </div>
                     </div>
 
@@ -161,14 +163,14 @@ const CategoryFormModal = ({category, onClose, onSave}: ModalProps) => {
                             onClick={onClose}
                             className="px-4 py-2.5 rounded-xl text-sm font-medium bg-dark/50 border border-primary/20 text-secondary hover:bg-primary/10 hover:text-accent transition-all"
                         >
-                            Cancel
+                            {t('admin.categories.cancel')}
                         </button>
                         <button
                             type="submit"
                             disabled={loading || !name.trim()}
                             className="px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-accent border border-primary/30 hover:bg-primary/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                         >
-                            {loading ? 'Saving...' : category ? 'Update' : 'Create'}
+                            {loading ? t('admin.categories.saving') : category ? t('admin.categories.update') : t('admin.categories.create')}
                         </button>
                     </div>
                 </form>
@@ -178,6 +180,7 @@ const CategoryFormModal = ({category, onClose, onSave}: ModalProps) => {
 };
 
 const DeleteModal = ({category, onClose, onSave}: ModalProps) => {
+    const {t} = useTranslation();
     const [loading, setLoading] = useState(false);
 
     const handleDelete = async () => {
@@ -197,9 +200,9 @@ const DeleteModal = ({category, onClose, onSave}: ModalProps) => {
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={onClose}>
             <div className="bg-[#1a1a2e] border border-primary/20 rounded-xl p-6 w-full max-w-md"
                  onClick={(e) => e.stopPropagation()}>
-                <h3 className="text-lg font-semibold text-accent mb-3">Delete category</h3>
+                <h3 className="text-lg font-semibold text-accent mb-3">{t('admin.categories.deleteTitle')}</h3>
                 <p className="text-secondary mb-2">
-                    Are you sure you want to delete:
+                    {t('admin.categories.deleteConfirm')}
                 </p>
                 <div className="mb-6">
                     <CategoryBadge name={category?.name || ''} color={category?.color || null}
@@ -210,14 +213,14 @@ const DeleteModal = ({category, onClose, onSave}: ModalProps) => {
                         onClick={onClose}
                         className="px-4 py-2.5 rounded-xl text-sm font-medium bg-dark/50 border border-primary/20 text-secondary hover:bg-primary/10 hover:text-accent transition-all"
                     >
-                        Cancel
+                        {t('admin.categories.cancel')}
                     </button>
                     <button
                         onClick={handleDelete}
                         disabled={loading}
                         className="px-4 py-2.5 rounded-xl text-sm font-medium bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                     >
-                        {loading ? 'Deleting...' : 'Delete'}
+                        {loading ? t('admin.categories.deleting') : t('admin.categories.delete')}
                     </button>
                 </div>
             </div>
@@ -226,6 +229,7 @@ const DeleteModal = ({category, onClose, onSave}: ModalProps) => {
 };
 
 export const CategoriesTab = () => {
+    const {t} = useTranslation();
     const [categories, setCategories] = useState<CategoryData[]>([]);
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(true);
@@ -273,7 +277,7 @@ export const CategoriesTab = () => {
                         <Tag size={24} className="text-white"/>
                     </div>
                     <div>
-                        <p className="text-white/80 text-sm">Total categories</p>
+                        <p className="text-white/80 text-sm">{t('admin.categories.totalLabel')}</p>
                         <p className="text-white text-3xl font-bold">{total}</p>
                     </div>
                 </div>
@@ -283,7 +287,7 @@ export const CategoriesTab = () => {
                     className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-accent border border-primary/30 hover:bg-primary/30 transition-all"
                 >
                     <Plus size={16}/>
-                    New category
+                    {t('admin.categories.newCategory')}
                 </button>
             </div>
 
@@ -292,22 +296,22 @@ export const CategoriesTab = () => {
                     <table className="w-full">
                         <thead>
                         <tr className="border-b border-primary/20">
-                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">ID</th>
-                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">Category</th>
-                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">Color</th>
-                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">Icon</th>
-                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">Created</th>
-                            <th className="text-right px-6 py-4 text-sm font-medium text-secondary">Actions</th>
+                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.categories.colId')}</th>
+                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.categories.colCategory')}</th>
+                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.categories.colColor')}</th>
+                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.categories.colIcon')}</th>
+                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.categories.colCreated')}</th>
+                            <th className="text-right px-6 py-4 text-sm font-medium text-secondary">{t('admin.categories.colActions')}</th>
                         </tr>
                         </thead>
                         <tbody>
                         {loading ? (
                             <tr>
-                                <td colSpan={6} className="px-6 py-12 text-center text-secondary">Loading...</td>
+                                <td colSpan={6} className="px-6 py-12 text-center text-secondary">{t('admin.categories.loading')}</td>
                             </tr>
                         ) : categories.length === 0 ? (
                             <tr>
-                                <td colSpan={6} className="px-6 py-12 text-center text-secondary">No categories found</td>
+                                <td colSpan={6} className="px-6 py-12 text-center text-secondary">{t('admin.categories.empty')}</td>
                             </tr>
                         ) : (
                             categories.map((c) => {
@@ -340,14 +344,14 @@ export const CategoriesTab = () => {
                                                 <button
                                                     onClick={() => setEditCategory(c)}
                                                     className="p-2 rounded-lg bg-dark/50 border border-primary/20 text-secondary hover:bg-primary/20 hover:text-accent transition-all"
-                                                    title="Edit"
+                                                    title={t('admin.categories.editTooltip')}
                                                 >
                                                     <Pencil size={14}/>
                                                 </button>
                                                 <button
                                                     onClick={() => setDeleteCategory(c)}
                                                     className="p-2 rounded-lg bg-dark/50 border border-red-500/20 text-secondary hover:bg-red-500/20 hover:text-red-400 transition-all"
-                                                    title="Delete"
+                                                    title={t('admin.categories.deleteTooltip')}
                                                 >
                                                     <Trash2 size={14}/>
                                                 </button>

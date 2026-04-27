@@ -63,6 +63,26 @@ export const api = {
         return data;
     },
 
+    updateLanguage: async (language: string) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/me/language`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({language}),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error updating language'));
+        }
+
+        return data as { language: string };
+    },
+
     deleteAccount: async (password: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/delete-account`, {

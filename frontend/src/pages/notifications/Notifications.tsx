@@ -5,6 +5,7 @@ import {useNotifications} from '../../contexts/NotificationContext';
 import {useToast} from '../../contexts/ToastContext';
 import {api} from '../../services/api';
 import {formatRelativeDate} from '../../utils/date';
+import {useTranslation} from 'react-i18next';
 import {
     Bell,
     CheckCheck,
@@ -33,13 +34,8 @@ const typeIcons: Record<string, typeof Bell> = {
     system: Info,
 };
 
-const permissionLabels: Record<string, string> = {
-    manager: 'Manager',
-    editeur: 'Editor',
-    lecteur: 'Reader',
-};
-
 export const Notifications = () => {
+    const {t} = useTranslation();
     const {notifications, unreadCount, loading, markAsRead, markAllAsRead} = useNotifications();
     const {toast} = useToast();
     const navigate = useNavigate();
@@ -66,7 +62,7 @@ export const Notifications = () => {
         setProcessingId(id);
         try {
             await api.acceptInvitation(id);
-            toast('success', 'Invitation accepted');
+            toast('success', t('notifications.invitationAccepted'));
             fetchInvitations();
         } catch (err) {
             toast('error', err instanceof Error ? err.message : 'Error accepting invitation');
@@ -79,7 +75,7 @@ export const Notifications = () => {
         setProcessingId(id);
         try {
             await api.rejectInvitation(id);
-            toast('success', 'Invitation rejected');
+            toast('success', t('notifications.invitationRejected'));
             fetchInvitations();
         } catch (err) {
             toast('error', err instanceof Error ? err.message : 'Error rejecting invitation');
@@ -107,11 +103,11 @@ export const Notifications = () => {
             <div className="p-8">
                 <div className="flex items-center justify-between mb-8">
                     <div>
-                        <h1 className="text-3xl font-bold text-accent mb-2">Notifications</h1>
+                        <h1 className="text-3xl font-bold text-accent mb-2">{t('notifications.title')}</h1>
                         <p className="text-secondary">
                             {unreadCount > 0
-                                ? `${unreadCount} unread`
-                                : 'All read'}
+                                ? t('notifications.unread', {count: unreadCount})
+                                : t('notifications.allRead')}
                         </p>
                     </div>
                     {unreadCount > 0 && (
@@ -120,7 +116,7 @@ export const Notifications = () => {
                             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-accent border border-primary/30 hover:bg-primary/30 transition-all"
                         >
                             <CheckCheck size={16}/>
-                            Mark all as read
+                            {t('notifications.markAllAsRead')}
                         </button>
                     )}
                 </div>
@@ -130,7 +126,7 @@ export const Notifications = () => {
                     <div className="mb-8">
                         <h2 className="text-lg font-semibold text-accent mb-4 flex items-center gap-2">
                             <UserPlus size={18} className="text-primary"/>
-                            Pending invitations
+                            {t('notifications.pendingInvitations')}
                         </h2>
                         <div className="grid gap-3">
                             {invitations.map((inv) => (
@@ -148,9 +144,8 @@ export const Notifications = () => {
                                                 <p className="text-accent font-medium">
                                                     {inv.invited_by_pseudo
                                                         ? <><span
-                                                            className="text-primary">{inv.invited_by_pseudo}</span> invited
-                                                            you to</>
-                                                        : 'Invitation to'
+                                                            className="text-primary">{inv.invited_by_pseudo}</span>{' '}{t('notifications.invitedBy')}</>
+                                                        : t('notifications.invitationTo')
                                                     }
                                                     {' '}
                                                     <span
@@ -159,7 +154,7 @@ export const Notifications = () => {
                                                 <div className="flex items-center gap-3 mt-1">
                                                     <span
                                                         className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary">
-                                                        {permissionLabels[inv.permission_level] || inv.permission_level}
+                                                        {t(`notifications.permissions.${inv.permission_level}`) || inv.permission_level}
                                                     </span>
                                                     {inv.invited_at && (
                                                         <span className="text-xs text-secondary">
@@ -176,7 +171,7 @@ export const Notifications = () => {
                                                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30 disabled:opacity-50 transition-all"
                                             >
                                                 <Check size={14}/>
-                                                Accept
+                                                {t('notifications.accept')}
                                             </button>
                                             <button
                                                 onClick={() => handleReject(inv.id_collaborator)}
@@ -184,7 +179,7 @@ export const Notifications = () => {
                                                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 disabled:opacity-50 transition-all"
                                             >
                                                 <X size={14}/>
-                                                Reject
+                                                {t('notifications.reject')}
                                             </button>
                                         </div>
                                     </div>
@@ -195,13 +190,13 @@ export const Notifications = () => {
                 )}
 
                 {loading ? (
-                    <div className="text-center text-secondary py-12">Loading...</div>
+                    <div className="text-center text-secondary py-12">{t('notifications.loading')}</div>
                 ) : notifications.length === 0 && invitations.length === 0 ? (
                     <div className="bg-dark/50 border border-primary/20 rounded-xl p-12 text-center">
                         <Bell size={48} className="mx-auto text-secondary mb-4"/>
-                        <p className="text-accent text-lg font-medium mb-2">No notifications</p>
+                        <p className="text-accent text-lg font-medium mb-2">{t('notifications.empty')}</p>
                         <p className="text-secondary">
-                            You will receive notifications for invitations, status changes, etc.
+                            {t('notifications.emptyDesc')}
                         </p>
                     </div>
                 ) : (

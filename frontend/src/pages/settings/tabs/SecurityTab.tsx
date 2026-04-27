@@ -5,12 +5,13 @@ import {PasswordStrength} from '../../../components/PasswordStrength';
 import {isPasswordValid} from '../../../utils/passwordValidation';
 import {api} from '../../../services/api';
 import {Shield, Eye, EyeOff, Trash2, AlertTriangle} from 'lucide-react';
+import {useTranslation} from 'react-i18next';
 
 export const SecurityTab = () => {
+    const {t} = useTranslation();
     const {logout} = useAuth();
     const navigate = useNavigate();
 
-    // Change password state
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -21,7 +22,6 @@ export const SecurityTab = () => {
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
 
-    // Delete account state
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deletePassword, setDeletePassword] = useState('');
     const [showDeletePassword, setShowDeletePassword] = useState(false);
@@ -34,17 +34,17 @@ export const SecurityTab = () => {
         setSuccess('');
 
         if (!isPasswordValid(newPassword)) {
-            setError('New password does not meet security requirements');
+            setError(t('security.passwordWeak'));
             return;
         }
 
         if (newPassword !== confirmPassword) {
-            setError('Passwords do not match');
+            setError(t('security.passwordNoMatch'));
             return;
         }
 
         if (currentPassword === newPassword) {
-            setError('New password must be different from the current one');
+            setError(t('security.passwordSame'));
             return;
         }
 
@@ -52,7 +52,7 @@ export const SecurityTab = () => {
 
         try {
             await api.changePassword(currentPassword, newPassword);
-            setSuccess('Password changed successfully');
+            setSuccess(t('security.passwordChanged'));
             setCurrentPassword('');
             setNewPassword('');
             setConfirmPassword('');
@@ -95,8 +95,8 @@ export const SecurityTab = () => {
                         <Shield size={22} className="text-primary"/>
                     </div>
                     <div>
-                        <h2 className="text-lg font-semibold text-accent">Password</h2>
-                        <p className="text-sm text-secondary">Change your password to secure your account</p>
+                        <h2 className="text-lg font-semibold text-accent">{t('security.passwordTitle')}</h2>
+                        <p className="text-sm text-secondary">{t('security.passwordSubtitle')}</p>
                     </div>
                 </div>
 
@@ -105,7 +105,7 @@ export const SecurityTab = () => {
                 <form onSubmit={handleChangePassword} className="space-y-5">
                     <div>
                         <label className="block text-sm font-medium text-accent mb-2">
-                            Current password
+                            {t('security.currentPassword')}
                         </label>
                         <div className="relative">
                             <input
@@ -113,7 +113,7 @@ export const SecurityTab = () => {
                                 value={currentPassword}
                                 onChange={(e) => setCurrentPassword(e.target.value)}
                                 className="w-full px-4 py-3 pr-12 bg-dark/80 border border-primary/20 rounded-xl text-accent placeholder-secondary/40 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                                placeholder="Enter your current password"
+                                placeholder={t('security.currentPasswordPlaceholder')}
                                 required
                             />
                             <button
@@ -128,7 +128,7 @@ export const SecurityTab = () => {
 
                     <div>
                         <label className="block text-sm font-medium text-accent mb-2">
-                            New password
+                            {t('security.newPassword')}
                         </label>
                         <div className="relative">
                             <input
@@ -136,7 +136,7 @@ export const SecurityTab = () => {
                                 value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
                                 className="w-full px-4 py-3 pr-12 bg-dark/80 border border-primary/20 rounded-xl text-accent placeholder-secondary/40 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                                placeholder="Enter your new password"
+                                placeholder={t('security.newPasswordPlaceholder')}
                                 required
                             />
                             <button
@@ -152,7 +152,7 @@ export const SecurityTab = () => {
 
                     <div>
                         <label className="block text-sm font-medium text-accent mb-2">
-                            Confirm new password
+                            {t('security.confirmPassword')}
                         </label>
                         <div className="relative">
                             <input
@@ -160,7 +160,7 @@ export const SecurityTab = () => {
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 className="w-full px-4 py-3 pr-12 bg-dark/80 border border-primary/20 rounded-xl text-accent placeholder-secondary/40 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                                placeholder="Confirm your new password"
+                                placeholder={t('security.confirmPasswordPlaceholder')}
                                 required
                             />
                             <button
@@ -190,7 +190,7 @@ export const SecurityTab = () => {
                         disabled={loading}
                         className="w-full py-3 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     >
-                        {loading ? 'Updating...' : 'Change password'}
+                        {loading ? t('security.updating') : t('security.changePassword')}
                     </button>
                 </form>
             </div>
@@ -202,8 +202,8 @@ export const SecurityTab = () => {
                         <Trash2 size={22} className="text-red-400"/>
                     </div>
                     <div>
-                        <h2 className="text-lg font-semibold text-accent">Delete account</h2>
-                        <p className="text-sm text-red-400">Permanently delete your account and all associated data</p>
+                        <h2 className="text-lg font-semibold text-accent">{t('security.deleteTitle')}</h2>
+                        <p className="text-sm text-red-400">{t('security.deleteSubtitle')}</p>
                     </div>
                 </div>
 
@@ -211,8 +211,7 @@ export const SecurityTab = () => {
 
                 <div className="p-4 bg-red-500/5 border border-red-500/20 rounded-xl">
                     <p className="text-sm text-red-400">
-                        This action is irreversible. Your account will be deactivated and you will no longer be able to
-                        log in.
+                        {t('security.deleteWarning')}
                     </p>
                 </div>
 
@@ -220,7 +219,7 @@ export const SecurityTab = () => {
                     onClick={() => setShowDeleteModal(true)}
                     className="px-6 py-3 bg-red-500/10 border border-red-500/30 text-red-400 font-semibold rounded-xl hover:bg-red-500/20 transition-all"
                 >
-                    Delete my account
+                    {t('security.deleteButton')}
                 </button>
             </div>
 
@@ -235,8 +234,8 @@ export const SecurityTab = () => {
                                 <AlertTriangle size={22} className="text-red-400"/>
                             </div>
                             <div>
-                                <h3 className="text-lg font-semibold text-accent">Confirm deletion</h3>
-                                <p className="text-sm text-red-400">Enter your password to confirm</p>
+                                <h3 className="text-lg font-semibold text-accent">{t('security.confirmDeletion')}</h3>
+                                <p className="text-sm text-red-400">{t('security.confirmDeletionSubtitle')}</p>
                             </div>
                         </div>
 
@@ -247,7 +246,7 @@ export const SecurityTab = () => {
                                     value={deletePassword}
                                     onChange={(e) => setDeletePassword(e.target.value)}
                                     className="w-full px-4 py-3 pr-12 bg-dark/80 border border-red-500/30 rounded-xl text-accent placeholder-secondary/40 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20 transition-all"
-                                    placeholder="Your password"
+                                    placeholder={t('security.passwordPlaceholder')}
                                     required
                                     autoFocus
                                 />
@@ -272,14 +271,14 @@ export const SecurityTab = () => {
                                     onClick={closeDeleteModal}
                                     className="flex-1 py-3 bg-dark/50 border border-primary/20 text-secondary font-medium rounded-xl hover:bg-primary/10 hover:text-accent transition-all"
                                 >
-                                    Cancel
+                                    {t('security.cancel')}
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={deleteLoading || !deletePassword}
                                     className="flex-1 py-3 bg-red-500/20 border border-red-500/30 text-red-400 font-semibold rounded-xl hover:bg-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                 >
-                                    {deleteLoading ? 'Deleting...' : 'Delete'}
+                                    {deleteLoading ? t('security.deleting') : t('security.delete')}
                                 </button>
                             </div>
                         </form>
