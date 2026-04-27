@@ -13,6 +13,7 @@ import { Templates } from './pages/templates/Templates';
 import { Settings } from './pages/settings/Settings';
 import { Admin } from './pages/admin/Admin';
 import { Notifications } from './pages/notifications/Notifications';
+import { Calendar } from './pages/calendar/Calendar';
 import { NotFound } from './pages/not-found/NotFound';
 
 function App() {
@@ -69,6 +70,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Notifications />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/calendar"
+            element={
+              <ProtectedRoute>
+                <Calendar />
               </ProtectedRoute>
             }
           />

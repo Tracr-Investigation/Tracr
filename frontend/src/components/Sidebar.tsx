@@ -13,7 +13,9 @@ import {
     Menu,
     X,
     User,
-    Bell, LayoutDashboard
+    Bell,
+    LayoutDashboard,
+    Calendar,
 } from 'lucide-react';
 
 export const Sidebar = () => {
@@ -36,6 +38,7 @@ export const Sidebar = () => {
     const menuItems = [
         {icon: LayoutDashboard, label: 'Dashboard', path: '/'},
         {icon: FileSearch, label: 'Investigations', path: '/investigations'},
+        {icon: Calendar, label: 'Calendar', path: '/calendar'},
         {icon: FileText, label: 'Templates', path: '/templates'},
         {icon: Settings, label: 'Settings', path: '/settings'},
         ...(isAdmin ? [{icon: Shield, label: 'Administration', path: '/admin'}] : []),

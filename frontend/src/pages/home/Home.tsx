@@ -162,10 +162,19 @@ export const Home = () => {
 
                 {/* My assigned tasks */}
                 <div className="lg:col-span-2 bg-dark/50 border border-primary/20 rounded-xl p-5">
-                    <h2 className="text-sm font-semibold text-accent uppercase tracking-wide mb-4 flex items-center gap-2">
-                        <CheckSquare size={14} className="text-primary"/>
-                        My tasks
-                    </h2>
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-sm font-semibold text-accent uppercase tracking-wide flex items-center gap-2">
+                            <CheckSquare size={14} className="text-primary"/>
+                            My tasks
+                        </h2>
+                        <button
+                            onClick={() => navigate('/calendar')}
+                            className="flex items-center gap-1 text-xs text-secondary hover:text-accent transition-colors"
+                        >
+                            <Calendar size={12}/>
+                            View calendar
+                        </button>
+                    </div>
 
                     {loadingTasks ? (
                         <p className="text-secondary text-sm py-4 text-center">Loading...</p>
