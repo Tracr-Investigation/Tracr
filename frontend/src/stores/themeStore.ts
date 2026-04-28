@@ -1,22 +1,27 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-type Theme = 'dark' | 'light';
+export type ThemeMode = 'dark' | 'light';
+export type ThemeAccent = 'violet' | 'emerald' | 'blue' | 'rose' | 'amber' | 'cyan';
 
 interface ThemeStore {
-    theme: Theme;
-    toggleTheme: () => void;
-    setTheme: (theme: Theme) => void;
+    mode: ThemeMode;
+    accent: ThemeAccent;
+    setMode: (mode: ThemeMode) => void;
+    setAccent: (accent: ThemeAccent) => void;
+    toggleMode: () => void;
 }
 
 export const useThemeStore = create<ThemeStore>()(
     persist(
         (set) => ({
-            theme: 'dark',
-            toggleTheme: () =>
-                set((state) => ({ theme: state.theme === 'dark' ? 'light' : 'dark' })),
-            setTheme: (theme) => set({ theme }),
+            mode: 'dark',
+            accent: 'violet',
+            setMode: (mode) => set({ mode }),
+            setAccent: (accent) => set({ accent }),
+            toggleMode: () =>
+                set((state) => ({ mode: state.mode === 'dark' ? 'light' : 'dark' })),
         }),
-        { name: 'tracr-theme' }
+        { name: 'tracr-theme-v2' }
     )
 );

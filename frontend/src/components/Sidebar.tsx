@@ -30,7 +30,7 @@ export const Sidebar = () => {
     const [mobileOpen, setMobileOpen] = useState(false);
     const {user, logout} = useAuth();
     const {unreadCount} = useNotifications();
-    const {theme, toggleTheme} = useThemeStore();
+    const {mode, toggleMode} = useThemeStore();
     const navigate = useNavigate();
     const location = useLocation();
     const {t} = useTranslation();
@@ -171,21 +171,21 @@ export const Sidebar = () => {
 
                     {/* Theme toggle */}
                     <button
-                        onClick={toggleTheme}
+                        onClick={toggleMode}
                         className={`
                             w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all
                             text-text-muted hover:bg-primary/10 hover:text-text-default
                             ${collapsed ? 'justify-center' : ''}
                         `}
-                        title={theme === 'dark' ? 'Mode clair' : 'Mode sombre'}
+                        title={mode === 'dark' ? 'Mode clair' : 'Mode sombre'}
                     >
-                        {theme === 'dark'
+                        {mode === 'dark'
                             ? <Sun size={22} className="flex-shrink-0"/>
                             : <Moon size={22} className="flex-shrink-0"/>
                         }
                         {!collapsed && (
                             <span className="font-medium">
-                                {theme === 'dark' ? 'Mode clair' : 'Mode sombre'}
+                                {mode === 'dark' ? 'Mode clair' : 'Mode sombre'}
                             </span>
                         )}
                     </button>
