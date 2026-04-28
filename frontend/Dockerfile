@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1.7
-
 # Build Dependance
 FROM node:20-alpine AS deps
 
