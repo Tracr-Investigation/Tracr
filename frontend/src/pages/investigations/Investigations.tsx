@@ -67,7 +67,7 @@ const StatusDropdown = ({
     return (
         <div
             ref={ref}
-            className="absolute top-full left-0 mt-1 z-20 bg-[#1a1a2e] border border-primary/20 rounded-xl py-1 shadow-lg min-w-[160px]"
+            className="absolute top-full left-0 mt-1 z-20 bg-card border border-border rounded-xl py-1 shadow-lg min-w-[160px]"
         >
             {statuses.map((s) => (
                 <button
@@ -109,38 +109,38 @@ const CreateModal = ({onClose, onSave}: { onClose: () => void; onSave: () => voi
     };
 
     return (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={onClose}>
-            <div className="bg-[#1a1a2e] border border-primary/20 rounded-xl p-6 w-full max-w-lg"
+        <div className="fixed inset-0 bg-overlay flex items-center justify-center z-50" onClick={onClose}>
+            <div className="bg-card border border-border rounded-xl p-6 w-full max-w-lg"
                  onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-semibold text-accent">{t('investigations.modal.title')}</h3>
-                    <button onClick={onClose} className="text-secondary hover:text-accent transition-colors">
+                    <h3 className="text-lg font-semibold text-text-default">{t('investigations.modal.title')}</h3>
+                    <button onClick={onClose} className="text-text-muted hover:text-text-default transition-colors">
                         <X size={20}/>
                     </button>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm text-secondary mb-1.5">{t('investigations.modal.titleLabel')}</label>
+                        <label className="block text-sm text-text-muted mb-1.5">{t('investigations.modal.titleLabel')}</label>
                         <input
                             type="text"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             required
                             maxLength={255}
-                            className="w-full px-4 py-3 bg-dark/50 border border-primary/30 rounded-xl text-accent placeholder-secondary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
+                            className="w-full px-4 py-3 bg-input-bg border border-border rounded-xl text-text-default placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-border-focus transition-all"
                             placeholder={t('investigations.modal.titlePlaceholder')}
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm text-secondary mb-1.5">{t('investigations.modal.descLabel')}</label>
+                        <label className="block text-sm text-text-muted mb-1.5">{t('investigations.modal.descLabel')}</label>
                         <textarea
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             maxLength={2000}
                             rows={4}
-                            className="w-full px-4 py-3 bg-dark/50 border border-primary/30 rounded-xl text-accent placeholder-secondary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all resize-none"
+                            className="w-full px-4 py-3 bg-input-bg border border-border rounded-xl text-text-default placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-border-focus transition-all resize-none"
                             placeholder={t('investigations.modal.descPlaceholder')}
                         />
                     </div>
@@ -151,14 +151,14 @@ const CreateModal = ({onClose, onSave}: { onClose: () => void; onSave: () => voi
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2.5 rounded-xl text-sm font-medium bg-dark/50 border border-primary/20 text-secondary hover:bg-primary/10 hover:text-accent transition-all"
+                            className="px-4 py-2.5 rounded-xl text-sm font-medium bg-card border border-border text-text-muted hover:bg-primary/10 hover:text-text-default transition-all"
                         >
                             {t('investigations.modal.cancel')}
                         </button>
                         <button
                             type="submit"
                             disabled={loading || !title.trim()}
-                            className="px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-accent border border-primary/30 hover:bg-primary/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                            className="px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-text-default border border-primary/30 hover:bg-primary/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                         >
                             {loading ? t('investigations.modal.creating') : t('investigations.modal.create')}
                         </button>
@@ -257,12 +257,12 @@ export const Investigations = () => {
             <div className="p-8">
                 <div className="flex items-center justify-between mb-8">
                     <div>
-                        <h1 className="text-3xl font-bold text-accent mb-2">{t('investigations.title')}</h1>
-                        <p className="text-secondary">{t('investigations.subtitle')}</p>
+                        <h1 className="text-3xl font-bold text-text-default mb-2">{t('investigations.title')}</h1>
+                        <p className="text-text-muted">{t('investigations.subtitle')}</p>
                     </div>
                     <button
                         onClick={() => setShowCreate(true)}
-                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-accent border border-primary/30 hover:bg-primary/30 transition-all"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-text-default border border-primary/30 hover:bg-primary/30 transition-all"
                     >
                         <Plus size={16}/>
                         {t('investigations.newInvestigation')}
@@ -272,22 +272,22 @@ export const Investigations = () => {
                 {/* Filters */}
                 <div className="flex items-center gap-3 mb-6">
                     <div className="relative flex-1 max-w-sm">
-                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary"/>
+                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"/>
                         <input
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder={t('investigations.search')}
-                            className="w-full pl-9 pr-4 py-2.5 bg-dark/50 border border-primary/20 rounded-xl text-sm text-accent placeholder-secondary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
+                            className="w-full pl-9 pr-4 py-2.5 bg-input-bg border border-border rounded-xl text-sm text-text-default placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-border-focus transition-all"
                         />
                     </div>
 
                     <div className="relative">
-                        <Filter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary pointer-events-none"/>
+                        <Filter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"/>
                         <select
                             value={filterStatusId ?? ''}
                             onChange={(e) => setFilterStatusId(e.target.value ? Number(e.target.value) : null)}
-                            className="pl-9 pr-8 py-2.5 bg-dark/50 border border-primary/20 rounded-xl text-sm text-accent focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all appearance-none cursor-pointer"
+                            className="pl-9 pr-8 py-2.5 bg-input-bg border border-border rounded-xl text-sm text-text-default focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-border-focus transition-all appearance-none cursor-pointer"
                         >
                             <option value="">{t('investigations.allStatuses')}</option>
                             {statuses.map((s) => (
@@ -297,11 +297,11 @@ export const Investigations = () => {
                     </div>
 
                     <div className="relative">
-                        <Tag size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary pointer-events-none"/>
+                        <Tag size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"/>
                         <select
                             value={filterCategoryId ?? ''}
                             onChange={(e) => setFilterCategoryId(e.target.value ? Number(e.target.value) : null)}
-                            className="pl-9 pr-8 py-2.5 bg-dark/50 border border-primary/20 rounded-xl text-sm text-accent focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all appearance-none cursor-pointer"
+                            className="pl-9 pr-8 py-2.5 bg-input-bg border border-border rounded-xl text-sm text-text-default focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-border-focus transition-all appearance-none cursor-pointer"
                         >
                             <option value="">{t('investigations.allCategories')}</option>
                             {categories.map((c) => (
@@ -313,7 +313,7 @@ export const Investigations = () => {
                     {hasActiveFilters && (
                         <button
                             onClick={handleResetFilters}
-                            className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-medium text-secondary hover:text-accent hover:bg-primary/10 border border-primary/20 transition-all"
+                            className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-medium text-text-muted hover:text-text-default hover:bg-primary/10 border border-border transition-all"
                             title={t('investigations.reset')}
                         >
                             <RotateCcw size={14}/>
@@ -321,22 +321,22 @@ export const Investigations = () => {
                         </button>
                     )}
 
-                    <span className="text-secondary text-sm ml-auto">
+                    <span className="text-text-muted text-sm ml-auto">
                         {total} {t('investigations.title').toLowerCase()}
                     </span>
                 </div>
 
                 {/* List */}
                 {loading ? (
-                    <div className="text-center text-secondary py-12">{t('investigations.loading')}</div>
+                    <div className="text-center text-text-muted py-12">{t('investigations.loading')}</div>
                 ) : filteredInvestigations.length === 0 ? (
-                    <div className="bg-dark/50 border border-primary/20 rounded-xl p-12 text-center">
-                        <FileSearch size={48} className="mx-auto text-secondary mb-4"/>
-                        <p className="text-accent text-lg font-medium mb-2">{t('investigations.empty')}</p>
-                        <p className="text-secondary mb-6">{t('investigations.emptyDesc')}</p>
+                    <div className="bg-card border border-border rounded-xl p-12 text-center">
+                        <FileSearch size={48} className="mx-auto text-text-muted mb-4"/>
+                        <p className="text-text-default text-lg font-medium mb-2">{t('investigations.empty')}</p>
+                        <p className="text-text-muted mb-6">{t('investigations.emptyDesc')}</p>
                         <button
                             onClick={() => setShowCreate(true)}
-                            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-accent border border-primary/30 hover:bg-primary/30 transition-all"
+                            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-text-default border border-primary/30 hover:bg-primary/30 transition-all"
                         >
                             <Plus size={16}/>
                             {t('investigations.newInvestigation')}
@@ -348,11 +348,11 @@ export const Investigations = () => {
                             <div
                                 key={inv.id_investigation}
                                 onClick={() => navigate(`/investigations/${toInvestigationSlug(inv.title, inv.id_investigation)}`)}
-                                className="bg-dark/50 border border-primary/20 rounded-xl px-5 py-4 hover:border-primary/40 transition-all cursor-pointer group"
+                                className="bg-card border border-border rounded-xl px-5 py-4 hover:border-primary/40 transition-all cursor-pointer group"
                             >
                                 <div className="flex items-center gap-3 min-w-0">
-                                    <span className="text-secondary/50 text-xs font-mono flex-shrink-0">#{inv.id_investigation}</span>
-                                    <h3 className="text-accent font-semibold truncate">{inv.title}</h3>
+                                    <span className="text-text-dim text-xs font-mono flex-shrink-0">#{inv.id_investigation}</span>
+                                    <h3 className="text-text-default font-semibold truncate">{inv.title}</h3>
                                     {!inv.is_owner && (
                                         <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-blue-500/20 text-blue-400 flex-shrink-0">
                                             <Users size={9}/>
@@ -380,7 +380,7 @@ export const Investigations = () => {
                                                     );
                                                 })}
                                                 {inv.categories.length > 2 && (
-                                                    <span className="text-[10px] text-secondary/60 font-medium px-1 py-0.5" title={inv.categories.slice(2).map(c => c.name).join(', ')}>
+                                                    <span className="text-[10px] text-text-dim font-medium px-1 py-0.5" title={inv.categories.slice(2).map(c => c.name).join(', ')}>
                                                         +{inv.categories.length - 2}
                                                     </span>
                                                 )}
@@ -406,10 +406,10 @@ export const Investigations = () => {
                                 </div>
 
                                 {inv.description && (
-                                    <p className="text-secondary/70 text-sm mt-1.5 line-clamp-1 pl-8">{inv.description}</p>
+                                    <p className="text-text-muted text-sm mt-1.5 line-clamp-1 pl-8">{inv.description}</p>
                                 )}
 
-                                <div className="flex items-center gap-3 mt-2 pl-8 text-[11px] text-secondary/50">
+                                <div className="flex items-center gap-3 mt-2 pl-8 text-[11px] text-text-dim">
                                     <span className="flex items-center gap-1">
                                         <Calendar size={10}/>
                                         {formatRelativeDate(inv.created_at)}
