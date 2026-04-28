@@ -65,10 +65,10 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
               className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border backdrop-blur-sm shadow-lg animate-slide-in ${config.colors}`}
             >
               <Icon size={18} className="flex-shrink-0" />
-              <span className="text-sm font-medium text-accent">{t.message}</span>
+              <span className="text-sm font-medium">{t.message}</span>
               <button
                 onClick={() => removeToast(t.id)}
-                className="ml-2 text-secondary hover:text-accent transition-colors flex-shrink-0"
+                className="ml-2 opacity-70 hover:opacity-100 transition-opacity flex-shrink-0"
               >
                 <X size={14} />
               </button>

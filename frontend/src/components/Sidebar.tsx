@@ -3,6 +3,7 @@ import {useNavigate, useLocation} from 'react-router-dom';
 import {useTranslation} from 'react-i18next';
 import {useAuth} from '../contexts/AuthContext';
 import {useNotifications} from '../contexts/NotificationContext';
+import {useThemeStore} from '../stores/themeStore';
 import {
     FileSearch,
     FileText,
@@ -17,6 +18,8 @@ import {
     Bell,
     LayoutDashboard,
     Calendar,
+    Moon,
+    Sun,
 } from 'lucide-react';
 
 export const Sidebar = () => {
@@ -27,6 +30,7 @@ export const Sidebar = () => {
     const [mobileOpen, setMobileOpen] = useState(false);
     const {user, logout} = useAuth();
     const {unreadCount} = useNotifications();
+    const {theme, toggleTheme} = useThemeStore();
     const navigate = useNavigate();
     const location = useLocation();
     const {t} = useTranslation();
@@ -58,7 +62,7 @@ export const Sidebar = () => {
             {/* Mobile Menu Button */}
             <button
                 onClick={() => setMobileOpen(!mobileOpen)}
-                className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-dark/80 backdrop-blur-sm border border-primary/20 rounded-lg text-accent"
+                className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-card backdrop-blur-sm border border-border rounded-lg text-text-default"
             >
                 {mobileOpen ? <X size={24}/> : <Menu size={24}/>}
             </button>
@@ -66,7 +70,7 @@ export const Sidebar = () => {
             {/* Overlay Mobile */}
             {mobileOpen && (
                 <div
-                    className="lg:hidden fixed inset-0 bg-dark/80 backdrop-blur-sm z-40"
+                    className="lg:hidden fixed inset-0 bg-overlay backdrop-blur-sm z-40"
                     onClick={() => setMobileOpen(false)}
                 />
             )}
@@ -74,14 +78,14 @@ export const Sidebar = () => {
             {/* Sidebar */}
             <aside
                 className={`
-          fixed top-0 left-0 h-screen bg-dark/95 backdrop-blur-sm border-r border-primary/20 z-40
+          fixed top-0 left-0 h-screen bg-card backdrop-blur-sm border-r border-border z-40
           transition-all duration-300 flex flex-col
           ${collapsed ? 'w-20' : 'w-64'}
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
             >
                 {/* Logo */}
-                <div className="p-6 border-b border-primary/20 flex items-center justify-between">
+                <div className="p-6 border-b border-border flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <img src="/logo.svg" alt="Logo" className="w-10 h-10 flex-shrink-0"/>
                         {!collapsed && (
@@ -95,7 +99,7 @@ export const Sidebar = () => {
                     {/* Toggle Button Desktop */}
                     <button
                         onClick={() => setCollapsed(!collapsed)}
-                        className="hidden lg:block p-1.5 hover:bg-primary/10 rounded-lg transition-colors text-secondary flex-shrink-0"
+                        className="hidden lg:block p-1.5 hover:bg-primary/10 rounded-lg transition-colors text-text-muted flex-shrink-0"
                     >
                         {collapsed ? <ChevronRight size={20}/> : <ChevronLeft size={20}/>}
                     </button>
@@ -117,8 +121,8 @@ export const Sidebar = () => {
                                 className={`
                   w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all
                   ${active
-                                    ? 'bg-gradient-to-r from-primary/20 to-secondary/20 text-accent border border-primary/30'
-                                    : 'text-secondary hover:bg-primary/10 hover:text-accent'
+                                    ? 'bg-gradient-to-r from-primary/20 to-secondary/20 text-text-default border border-primary/30'
+                                    : 'text-text-muted hover:bg-primary/10 hover:text-text-default'
                                 }
                   ${collapsed ? 'justify-center' : ''}
                 `}
@@ -134,7 +138,7 @@ export const Sidebar = () => {
                 </nav>
 
                 {/* Notifications & User Profile & Logout */}
-                <div className="p-4 border-t border-primary/20 space-y-2">
+                <div className="p-4 border-t border-border space-y-2">
                     {/* Notifications */}
                     <button
                         onClick={() => {
@@ -144,8 +148,8 @@ export const Sidebar = () => {
                         className={`
                             w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all relative
                             ${isActive('/notifications')
-                            ? 'bg-gradient-to-r from-primary/20 to-secondary/20 text-accent border border-primary/30'
-                            : 'text-secondary hover:bg-primary/10 hover:text-accent'
+                            ? 'bg-gradient-to-r from-primary/20 to-secondary/20 text-text-default border border-primary/30'
+                            : 'text-text-muted hover:bg-primary/10 hover:text-text-default'
                         }
                             ${collapsed ? 'justify-center' : ''}
                         `}
@@ -165,10 +169,31 @@ export const Sidebar = () => {
                         )}
                     </button>
 
+                    {/* Theme toggle */}
+                    <button
+                        onClick={toggleTheme}
+                        className={`
+                            w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all
+                            text-text-muted hover:bg-primary/10 hover:text-text-default
+                            ${collapsed ? 'justify-center' : ''}
+                        `}
+                        title={theme === 'dark' ? 'Mode clair' : 'Mode sombre'}
+                    >
+                        {theme === 'dark'
+                            ? <Sun size={22} className="flex-shrink-0"/>
+                            : <Moon size={22} className="flex-shrink-0"/>
+                        }
+                        {!collapsed && (
+                            <span className="font-medium">
+                                {theme === 'dark' ? 'Mode clair' : 'Mode sombre'}
+                            </span>
+                        )}
+                    </button>
+
                     {/* Profile */}
                     <div
                         className={`
-              flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/5 border border-primary/20 md:border-none md:bg-non
+              flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/5 border border-border md:border-none md:bg-transparent
               ${collapsed ? 'justify-center' : ''}
             `}
                     >
@@ -178,10 +203,10 @@ export const Sidebar = () => {
                         </div>
                         {!collapsed && (
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-accent truncate">
+                                <p className="text-sm font-medium text-text-default truncate">
                                     {user?.pseudo}
                                 </p>
-                                <p className="text-xs text-secondary capitalize">{user?.role}</p>
+                                <p className="text-xs text-text-muted capitalize">{user?.role}</p>
                             </div>
                         )}
                     </div>
