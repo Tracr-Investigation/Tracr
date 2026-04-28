@@ -32,7 +32,6 @@ services:
     image: redis:7-alpine
     container_name: tracr_redis
     user: "999:1000"
-    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
     volumes:
       - redis_data:/data
     networks:
