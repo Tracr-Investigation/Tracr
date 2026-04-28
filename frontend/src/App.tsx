@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
@@ -15,8 +16,20 @@ import { Admin } from './pages/admin/Admin';
 import { Notifications } from './pages/notifications/Notifications';
 import { Calendar } from './pages/calendar/Calendar';
 import { NotFound } from './pages/not-found/NotFound';
+import { useThemeStore } from './stores/themeStore';
 
 function App() {
+  const { theme } = useThemeStore();
+
+  useEffect(() => {
+    const html = document.documentElement;
+    if (theme === 'light') {
+      html.classList.add('light');
+    } else {
+      html.classList.remove('light');
+    }
+  }, [theme]);
+
   return (
     <BrowserRouter>
       <AuthProvider>

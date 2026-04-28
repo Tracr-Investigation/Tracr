@@ -1,30 +1,112 @@
-@import url('https://fonts.googleapis.com/css2?family=Jura:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 @import "tailwindcss";
 
-@theme {
-  --color-dark: #1a1a1a;
-  --color-primary: #8b5cf6;
-  --color-secondary: #a78bfa;
-  --color-accent: #ffffff;
+/* ─── Variables de thème (runtime) ────────────────────────── */
+/* Thème sombre — par défaut */
+:root {
+    --bg-surface:  #1a1a1a;
+    --bg-card:     #1e1e2e;
+    --bg-input:    rgba(255, 255, 255, 0.04);
+    --bg-overlay:  rgba(0, 0, 0, 0.65);
 
-  --font-sans: "Jura", sans-serif;
+    --text-default: #ffffff;
+    --text-muted:   #a78bfa;
+    --text-dim:     rgba(167, 139, 250, 0.5);
 
-  --font-weight-light: 300;
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
-
-  --animate-slide-in: slide-in 0.3s ease-out;
+    --border-default: rgba(139, 92, 246, 0.2);
+    --border-subtle:  rgba(139, 92, 246, 0.1);
+    --border-focus:   #8b5cf6;
+    --border-error:   rgba(239, 68, 68, 0.35);
 }
 
+/* Thème clair */
+.light {
+    --bg-surface:  #f1f5f9;
+    --bg-card:     #ffffff;
+    --bg-input:    #f8fafc;
+    --bg-overlay:  rgba(0, 0, 0, 0.4);
+
+    --text-default: #0f172a;
+    --text-muted:   #64748b;
+    --text-dim:     #94a3b8;
+
+    --border-default: #e2e8f0;
+    --border-subtle:  #f1f5f9;
+    --border-focus:   #8b5cf6;
+    --border-error:   rgba(239, 68, 68, 0.4);
+}
+
+/* ─── Design tokens Tailwind ──────────────────────────────── */
+@theme {
+    /* Police */
+    --font-sans: "Inter", sans-serif;
+
+    --font-weight-light:    300;
+    --font-weight-normal:   400;
+    --font-weight-medium:   500;
+    --font-weight-semibold: 600;
+    --font-weight-bold:     700;
+
+    /* Couleurs de marque (statiques) */
+    --color-primary:   #8b5cf6;
+    --color-secondary: #a78bfa;
+
+    /* Héritage — conservés pour la compatibilité */
+    --color-dark:   #1a1a1a;
+    --color-accent: #ffffff;
+
+    /* Fonds sémantiques */
+    --color-surface:  var(--bg-surface);
+    --color-card:     var(--bg-card);
+    --color-input-bg: var(--bg-input);
+    --color-overlay:  var(--bg-overlay);
+
+    /* Textes sémantiques */
+    --color-text-default: var(--text-default);
+    --color-text-muted:   var(--text-muted);
+    --color-text-dim:     var(--text-dim);
+
+    /* Bordures sémantiques */
+    --color-border:        var(--border-default);
+    --color-border-subtle: var(--border-subtle);
+    --color-border-focus:  var(--border-focus);
+    --color-border-error:  var(--border-error);
+
+    /* Statuts (identiques dans les deux thèmes) */
+    --color-success: #22c55e;
+    --color-danger:  #ef4444;
+    --color-warning: #f59e0b;
+    --color-info:    #3b82f6;
+
+    /* Priorités tâches */
+    --color-priority-low:    #6b7280;
+    --color-priority-normal: #3b82f6;
+    --color-priority-high:   #f97316;
+    --color-priority-urgent: #ef4444;
+
+    /* Animation */
+    --animate-slide-in: slide-in 0.3s ease-out;
+}
+
+/* ─── Base ────────────────────────────────────────────────── */
+@layer base {
+    body {
+        background-color: var(--bg-surface);
+        color: var(--text-default);
+        font-family: "Inter", sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+}
+
+/* ─── Animations ──────────────────────────────────────────── */
 @keyframes slide-in {
-  from {
-    opacity: 0;
-    transform: translateX(100%);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
