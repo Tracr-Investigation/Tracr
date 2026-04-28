@@ -28,36 +28,36 @@ export const Login = () => {
     };
 
     return (
-        <div className="min-h-screen bg-dark flex items-center justify-center p-4">
+        <div className="min-h-screen bg-surface flex items-center justify-center p-4">
             <div className="w-full max-w-md">
-                <div className="bg-dark/50 backdrop-blur-sm border border-primary/20 rounded-2xl p-8 shadow-2xl">
+                <div className="bg-card backdrop-blur-sm border border-border rounded-2xl p-8 shadow-2xl">
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
-                            <label className="block text-sm font-medium text-accent mb-2">Username</label>
+                            <label className="block text-sm font-medium text-text-default mb-2">Username</label>
                             <input
                                 type="text"
                                 value={pseudo}
                                 onChange={(e) => setPseudo(e.target.value)}
-                                className="w-full px-4 py-3 bg-dark/50 border border-primary/30 rounded-xl text-accent placeholder-secondary/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                                className="w-full px-4 py-3 bg-input-bg border border-border rounded-xl text-text-default placeholder-text-dim focus:outline-none focus:border-border-focus focus:ring-2 focus:ring-primary/20 transition-all"
                                 placeholder="Your username"
                                 required
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-accent mb-2">Password</label>
+                            <label className="block text-sm font-medium text-text-default mb-2">Password</label>
                             <input
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full px-4 py-3 bg-dark/50 border border-primary/30 rounded-xl text-accent placeholder-secondary/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                                className="w-full px-4 py-3 bg-input-bg border border-border rounded-xl text-text-default placeholder-text-dim focus:outline-none focus:border-border-focus focus:ring-2 focus:ring-primary/20 transition-all"
                                 placeholder="••••••••"
                                 required
                             />
                         </div>
 
                         {error && (
-                            <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
+                            <div className="p-4 bg-red-500/10 border border-border-error rounded-xl">
                                 <p className="text-red-400 text-sm">{error}</p>
                             </div>
                         )}
@@ -72,7 +72,7 @@ export const Login = () => {
                     </form>
 
                     <div className="mt-6 text-center">
-                        <p className="text-secondary text-sm">
+                        <p className="text-text-muted text-sm">
                             Don't have an account?{' '}
                             <button
                                 onClick={() => navigate('/register')}

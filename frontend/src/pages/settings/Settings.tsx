@@ -3,7 +3,8 @@ import { Layout } from '../../components/Layout';
 import { Tabs, type TabItem } from '../../components/Tabs';
 import { SecurityTab } from './tabs/SecurityTab';
 import { LanguageTab } from './tabs/LanguageTab';
-import { Lock, UserCog, Bell, Globe } from 'lucide-react';
+import { AppearanceTab } from './tabs/AppearanceTab';
+import { Lock, UserCog, Bell, Globe, Palette } from 'lucide-react';
 
 const PlaceholderTab = ({ title, description }: { title: string; description: string }) => {
   const { t } = useTranslation();
@@ -12,9 +13,9 @@ const PlaceholderTab = ({ title, description }: { title: string; description: st
       <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
         <span className="text-3xl text-primary/50">...</span>
       </div>
-      <h3 className="text-lg font-semibold text-accent mb-2">{title}</h3>
-      <p className="text-sm text-secondary">{description}</p>
-      <span className="mt-4 text-xs text-secondary/50 border border-primary/10 rounded-full px-3 py-1">{t('settings.comingSoon')}</span>
+      <h3 className="text-lg font-semibold text-text-default mb-2">{title}</h3>
+      <p className="text-sm text-text-muted">{description}</p>
+      <span className="mt-4 text-xs text-text-dim border border-border-subtle rounded-full px-3 py-1">{t('settings.comingSoon')}</span>
     </div>
   );
 };
@@ -40,6 +41,12 @@ export const Settings = () => {
       content: <LanguageTab />,
     },
     {
+      id: 'appearance',
+      label: 'Apparence',
+      icon: Palette,
+      content: <AppearanceTab />,
+    },
+    {
       id: 'profile',
       label: t('settings.tabs.profile'),
       icon: UserCog,
@@ -56,8 +63,8 @@ export const Settings = () => {
   return (
     <Layout>
       <div className="p-8">
-        <h1 className="text-3xl font-bold text-accent mb-2">{t('settings.title')}</h1>
-        <p className="text-secondary mb-6">{t('settings.subtitle')}</p>
+        <h1 className="text-3xl font-bold text-text-default mb-2">{t('settings.title')}</h1>
+        <p className="text-text-muted mb-6">{t('settings.subtitle')}</p>
 
         <Tabs tabs={TABS} defaultTab="security" />
       </div>
