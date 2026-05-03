@@ -28,11 +28,16 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PATH="/opt/venv/bin:$PATH"
 
-# libpq5 (runtime) + tini (PID 1, signal handling)
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       libpq5 \
       tini \
+      libcairo2 \
+      libpango-1.0-0 \
+      libpangoft2-1.0-0 \
+      libgdk-pixbuf-2.0-0 \
+      shared-mime-info \
+      fonts-dejavu-core \
  && rm -rf /var/lib/apt/lists/* \
  && groupadd --system --gid 1001 app \
  && useradd  --system --uid 1001 --gid app --home /app --shell /usr/sbin/nologin app

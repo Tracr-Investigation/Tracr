@@ -115,3 +115,37 @@ class TaskResponseCreateRequest(BaseModel):
 
 class UpdateLanguageRequest(BaseModel):
     language: str = Field(pattern="^(en|fr)$")
+
+
+class DocumentCreateRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=255)
+    content_html: str | None = Field(default="")
+    id_template: int | None = Field(default=None)
+
+class DocumentUpdateRequest(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=255)
+    content_html: str | None = Field(default=None)
+
+class DocumentCommentCreateRequest(BaseModel):
+    comment_id: str = Field(min_length=1, max_length=64)
+    quote: str = Field(default="", max_length=500)
+    content: str = Field(min_length=1, max_length=2000)
+class TemplateCreateRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=255)
+    description: str | None = Field(default="", max_length=2000)
+    content_html: str | None = Field(default="", max_length=1_000_000)
+    is_public: bool = Field(default=False)
+
+class TemplateUpdateRequest(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    description: str | None = Field(default=None, max_length=2000)
+    content_html: str | None = Field(default=None, max_length=1_000_000)
+    is_public: bool | None = Field(default=None)
+
+    @field_validator("name")
+    @classmethod
+    def name_not_blank(cls, v: str | None) -> str | None:
+        if v is not None and not v.strip():
+            raise ValueError("Name cannot be blank")
+        return v
+

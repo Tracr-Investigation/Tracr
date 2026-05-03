@@ -25,6 +25,7 @@ import {
     CheckSquare,
 } from 'lucide-react';
 import {TasksTab} from './tabs/TasksTab';
+import {DocumentsTab} from './tabs/DocumentsTab';
 import * as LucideIcons from 'lucide-react';
 import {formatRelativeDate} from '../../utils/date';
 import {extractIdFromSlug, toInvestigationSlug} from '../../utils/slug';
@@ -978,6 +979,18 @@ export const InvestigationDetail = () => {
                                         <TasksTab
                                             investigation={investigation}
                                             currentUserId={currentUser?.id_user ?? 0}
+                                        />
+                                    ),
+                                },
+                                {
+                                    id: 'documents',
+                                    label: 'Documents',
+                                    icon: FileText,
+                                    content: (
+                                        <DocumentsTab
+                                            investigationId={investigation.id_investigation}
+                                            investigationTitle={investigation.title}
+                                            userPermission={investigation.user_permission}
                                         />
                                     ),
                                 },

@@ -9,6 +9,7 @@ import { Register } from './pages/register/Register';
 import { Home } from './pages/home/Home';
 import { Investigations } from './pages/investigations/Investigations';
 import { InvestigationDetail } from './pages/investigations/InvestigationDetail';
+import { DocumentDetail } from './pages/investigations/DocumentDetail';
 import { Templates } from './pages/templates/Templates';
 import { Settings } from './pages/settings/Settings';
 import { Admin } from './pages/admin/Admin';
@@ -46,6 +47,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <InvestigationDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/investigations/:slug/documents/:docId"
+            element={
+              <ProtectedRoute>
+                <DocumentDetail />
               </ProtectedRoute>
             }
           />

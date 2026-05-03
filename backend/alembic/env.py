@@ -19,7 +19,12 @@ config = context.config
 
 # Surcharge de l'URL de connexion avec la variable d'environnement DATABASE_URL
 # Évite de stocker des mots de passe dans alembic.ini
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+# Ajout de client_encoding pour éviter les UnicodeDecodeError sur Windows
+db_url = settings.DATABASE_URL
+if "client_encoding" not in db_url:
+    sep = "&" if "?" in db_url else "?"
+    db_url = f"{db_url}{sep}client_encoding=utf8"
+config.set_main_option("sqlalchemy.url", db_url)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

@@ -761,6 +761,211 @@ export const api = {
         return data;
     },
 
+    listTemplates: async () => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/templates`, {
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching templates'));
+        return data as { templates: Array<{
+            id_template: number;
+            name: string;
+            description: string;
+            is_public: boolean;
+            created_by: number | null;
+            created_by_pseudo: string | null;
+            is_owner: boolean;
+            created_at: string | null;
+            updated_at: string | null;
+        }> };
+    },
+
+    getTemplate: async (id: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/templates/${id}`, {
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching template'));
+        return data as {
+            id_template: number;
+            name: string;
+            description: string;
+            content_html: string;
+            is_public: boolean;
+            created_by: number | null;
+            created_by_pseudo: string | null;
+            is_owner: boolean;
+            created_at: string | null;
+            updated_at: string | null;
+        };
+    },
+
+    createTemplate: async (body: {
+        name: string;
+        description?: string;
+        content_html?: string;
+        is_public?: boolean;
+    }) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/templates`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+            body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error creating template'));
+        return data;
+    },
+
+    updateTemplate: async (id: number, body: {
+        name?: string;
+        description?: string;
+        content_html?: string;
+        is_public?: boolean;
+    }) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/templates/${id}`, {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+            body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error updating template'));
+        return data;
+    },
+
+    deleteTemplate: async (id: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/templates/${id}`, {
+            method: 'DELETE',
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error deleting template'));
+        return data;
+    },
+
+    listDocuments: async (investigationId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/documents`, {
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching documents'));
+        return data;
+    },
+
+    createDocument: async (investigationId: number, body: {
+        title: string;
+        content_html?: string;
+        id_template?: number | null;
+    }) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/documents`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+            body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error creating document'));
+        return data;
+    },
+
+    getDocument: async (id: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/documents/${id}`, {
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching document'));
+        return data;
+    },
+
+    updateDocument: async (id: number, body: { title?: string; content_html?: string }) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/documents/${id}`, {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+            body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error updating document'));
+        return data;
+    },
+
+    deleteDocument: async (id: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/documents/${id}`, {
+            method: 'DELETE',
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error deleting document'));
+        return data;
+    },
+
+    exportDocument: async (id: number, format: 'pdf') => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/documents/${id}/export?format=${format}`, {
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            throw new Error(parseApiError(data.detail, 'Export failed'));
+        }
+        const cd = response.headers.get('Content-Disposition') || '';
+        const match = cd.match(/filename\*=UTF-8''([^;]+)/) || cd.match(/filename="?([^";]+)"?/);
+        const filename = match ? decodeURIComponent(match[1]) : `document.${format}`;
+        const blob = await response.blob();
+        return { blob, filename };
+    },
+
+    listDocumentComments: async (documentId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/documents/${documentId}/comments`, {
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching comments'));
+        return data;
+    },
+
+    createDocumentComment: async (documentId: number, body: { comment_id: string; quote: string; content: string }) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/documents/${documentId}/comments`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+            body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error creating comment'));
+        return data;
+    },
+
+    toggleResolveDocumentComment: async (documentId: number, commentId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/documents/${documentId}/comments/${commentId}/resolve`, {
+            method: 'POST',
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error toggling comment'));
+        return data;
+    },
+
+    deleteDocumentComment: async (documentId: number, commentId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/documents/${documentId}/comments/${commentId}`, {
+            method: 'DELETE',
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error deleting comment'));
+        return data;
+    },
+
     getLogs: async (page: number = 1, limit: number = 10, category: string = '', search: string = '', excludeReads: boolean = false) => {
         const token = localStorage.getItem('token');
         const params = new URLSearchParams({page: String(page), limit: String(limit), category, search});

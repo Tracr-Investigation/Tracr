@@ -23,7 +23,7 @@ async def connect(sid, environ, auth):
     if not user_id:
         raise socketio.exceptions.ConnectionRefusedError("Token invalide")
 
-    sio.enter_room(sid, f"user_{user_id}")
+    await sio.enter_room(sid, f"user_{user_id}")
     await sio.save_session(sid, {"user_id": user_id})
 
 
@@ -32,7 +32,7 @@ async def disconnect(sid):
     session = await sio.get_session(sid)
     user_id = session.get("user_id")
     if user_id:
-        sio.leave_room(sid, f"user_{user_id}")
+        await sio.leave_room(sid, f"user_{user_id}")
 
 
 async def emit_notification(user_id: int, data: dict):

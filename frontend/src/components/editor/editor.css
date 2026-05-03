@@ -1,0 +1,199 @@
+.prose-document .ProseMirror {
+  outline: none;
+  color: #e2e8f0;
+  font-size: 1rem;
+  line-height: 1.8;
+  min-height: 400px;
+}
+
+.prose-document .ProseMirror > * + * {
+  margin-top: 0.75em;
+}
+
+.prose-document .ProseMirror h1 {
+  font-size: 1.9em;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-top: 1.4em;
+  color: #fff;
+}
+
+.prose-document .ProseMirror h2 {
+  font-size: 1.5em;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-top: 1.2em;
+  color: #fff;
+}
+
+.prose-document .ProseMirror h3 {
+  font-size: 1.2em;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-top: 1em;
+  color: #fff;
+}
+
+.prose-document .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: #6b7280;
+  pointer-events: none;
+  height: 0;
+  float: left;
+}
+
+.prose-document .ProseMirror a {
+  color: #8b5cf6;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.prose-document .ProseMirror strong { font-weight: 700; }
+.prose-document .ProseMirror em { font-style: italic; }
+.prose-document .ProseMirror u { text-decoration: underline; }
+
+.prose-document .ProseMirror ul {
+  list-style-type: disc;
+  padding-left: 1.5em;
+}
+
+.prose-document .ProseMirror ol {
+  list-style-type: decimal;
+  padding-left: 1.5em;
+}
+
+.prose-document .ProseMirror li + li {
+  margin-top: 0.2em;
+}
+
+/* Task list */
+.prose-document .ProseMirror ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+}
+
+.prose-document .ProseMirror ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5em;
+}
+
+.prose-document .ProseMirror ul[data-type="taskList"] li > label {
+  flex-shrink: 0;
+  margin-top: 0.2em;
+}
+
+.prose-document .ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  accent-color: #8b5cf6;
+}
+
+.prose-document .ProseMirror ul[data-type="taskList"] li > div {
+  flex: 1;
+}
+
+.prose-document .ProseMirror ul[data-type="taskList"] li[data-checked="true"] > div {
+  text-decoration: line-through;
+  color: #6b7280;
+}
+
+/* Blockquote */
+.prose-document .ProseMirror blockquote {
+  border-left: 4px solid #8b5cf6;
+  margin-left: 0;
+  padding-left: 1em;
+  color: #a1a1aa;
+  font-style: italic;
+}
+
+/* Code */
+.prose-document .ProseMirror code {
+  background: rgba(139, 92, 246, 0.15);
+  color: #c4b5fd;
+  border-radius: 3px;
+  padding: 0.15em 0.35em;
+  font-family: 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.875em;
+}
+
+.prose-document .ProseMirror pre {
+  background: #0a0a14;
+  color: #e2e8f0;
+  border-radius: 8px;
+  padding: 1em;
+  overflow-x: auto;
+  font-family: 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.875em;
+}
+
+.prose-document .ProseMirror pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+/* Image */
+.prose-document .ProseMirror img {
+  max-width: 100%;
+  border-radius: 8px;
+  display: block;
+  margin: 0.5em 0;
+}
+
+/* Horizontal rule */
+.prose-document .ProseMirror hr {
+  border: none;
+  border-top: 2px solid rgba(139, 92, 246, 0.2);
+  margin: 1.5em 0;
+}
+
+/* Selection */
+.prose-document .ProseMirror ::selection {
+  background: rgba(139, 92, 246, 0.3);
+}
+
+/* Highlight (mark) */
+.prose-document .ProseMirror mark {
+  border-radius: 2px;
+  padding: 0.05em 0.15em;
+}
+
+/* ── Texte commenté (CommentMark) ── */
+.comment-mark {
+  background: rgba(255, 212, 0, 0.18);
+  border-bottom: 2px solid rgba(255, 180, 0, 0.6);
+  border-radius: 2px;
+}
+
+.comment-mark[data-resolved="true"] {
+  background: rgba(34, 197, 94, 0.1);
+  border-bottom-color: rgba(34, 197, 94, 0.5);
+}
+
+/* ── Curseurs distants (CollaborationCursor) ── */
+.prose-document .ProseMirror .collaboration-cursor__caret {
+  position: relative;
+  margin-left: -1px;
+  margin-right: -1px;
+  border-left: 1px solid;
+  border-right: 1px solid;
+  word-break: normal;
+  pointer-events: none;
+}
+
+.prose-document .ProseMirror .collaboration-cursor__label {
+  position: absolute;
+  top: -1.4em;
+  left: -1px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  user-select: none;
+  pointer-events: none;
+}
