@@ -37,19 +37,16 @@ export const SecurityTab = () => {
             setError(t('security.passwordWeak'));
             return;
         }
-
         if (newPassword !== confirmPassword) {
             setError(t('security.passwordNoMatch'));
             return;
         }
-
         if (currentPassword === newPassword) {
             setError(t('security.passwordSame'));
             return;
         }
 
         setLoading(true);
-
         try {
             await api.changePassword(currentPassword, newPassword);
             setSuccess(t('security.passwordChanged'));
@@ -67,7 +64,6 @@ export const SecurityTab = () => {
         e.preventDefault();
         setDeleteError('');
         setDeleteLoading(true);
-
         try {
             await api.deleteAccount(deletePassword);
             logout();
@@ -95,55 +91,43 @@ export const SecurityTab = () => {
                         <Shield size={22} className="text-primary"/>
                     </div>
                     <div>
-                        <h2 className="text-lg font-semibold text-accent">{t('security.passwordTitle')}</h2>
-                        <p className="text-sm text-secondary">{t('security.passwordSubtitle')}</p>
+                        <h2 className="text-lg font-semibold text-text-default">{t('security.passwordTitle')}</h2>
+                        <p className="text-sm text-text-muted">{t('security.passwordSubtitle')}</p>
                     </div>
                 </div>
 
-                <div className="h-px bg-primary/10"/>
+                <div className="h-px bg-border-subtle"/>
 
                 <form onSubmit={handleChangePassword} className="space-y-5">
                     <div>
-                        <label className="block text-sm font-medium text-accent mb-2">
-                            {t('security.currentPassword')}
-                        </label>
+                        <label className="block text-sm font-medium text-text-default mb-2">{t('security.currentPassword')}</label>
                         <div className="relative">
                             <input
                                 type={showCurrent ? 'text' : 'password'}
                                 value={currentPassword}
                                 onChange={(e) => setCurrentPassword(e.target.value)}
-                                className="w-full px-4 py-3 pr-12 bg-dark/80 border border-primary/20 rounded-xl text-accent placeholder-secondary/40 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                                className="w-full px-4 py-3 pr-12 bg-input-bg border border-border rounded-xl text-text-default placeholder-text-dim focus:outline-none focus:border-border-focus focus:ring-2 focus:ring-primary/20 transition-all"
                                 placeholder={t('security.currentPasswordPlaceholder')}
                                 required
                             />
-                            <button
-                                type="button"
-                                onClick={() => setShowCurrent(!showCurrent)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary/50 hover:text-secondary transition-colors"
-                            >
+                            <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-dim hover:text-text-muted transition-colors">
                                 {showCurrent ? <EyeOff size={18}/> : <Eye size={18}/>}
                             </button>
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-accent mb-2">
-                            {t('security.newPassword')}
-                        </label>
+                        <label className="block text-sm font-medium text-text-default mb-2">{t('security.newPassword')}</label>
                         <div className="relative">
                             <input
                                 type={showNew ? 'text' : 'password'}
                                 value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
-                                className="w-full px-4 py-3 pr-12 bg-dark/80 border border-primary/20 rounded-xl text-accent placeholder-secondary/40 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                                className="w-full px-4 py-3 pr-12 bg-input-bg border border-border rounded-xl text-text-default placeholder-text-dim focus:outline-none focus:border-border-focus focus:ring-2 focus:ring-primary/20 transition-all"
                                 placeholder={t('security.newPasswordPlaceholder')}
                                 required
                             />
-                            <button
-                                type="button"
-                                onClick={() => setShowNew(!showNew)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary/50 hover:text-secondary transition-colors"
-                            >
+                            <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-dim hover:text-text-muted transition-colors">
                                 {showNew ? <EyeOff size={18}/> : <Eye size={18}/>}
                             </button>
                         </div>
@@ -151,45 +135,34 @@ export const SecurityTab = () => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-accent mb-2">
-                            {t('security.confirmPassword')}
-                        </label>
+                        <label className="block text-sm font-medium text-text-default mb-2">{t('security.confirmPassword')}</label>
                         <div className="relative">
                             <input
                                 type={showConfirm ? 'text' : 'password'}
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
-                                className="w-full px-4 py-3 pr-12 bg-dark/80 border border-primary/20 rounded-xl text-accent placeholder-secondary/40 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                                className="w-full px-4 py-3 pr-12 bg-input-bg border border-border rounded-xl text-text-default placeholder-text-dim focus:outline-none focus:border-border-focus focus:ring-2 focus:ring-primary/20 transition-all"
                                 placeholder={t('security.confirmPasswordPlaceholder')}
                                 required
                             />
-                            <button
-                                type="button"
-                                onClick={() => setShowConfirm(!showConfirm)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary/50 hover:text-secondary transition-colors"
-                            >
+                            <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-dim hover:text-text-muted transition-colors">
                                 {showConfirm ? <EyeOff size={18}/> : <Eye size={18}/>}
                             </button>
                         </div>
                     </div>
 
                     {error && (
-                        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
+                        <div className="p-4 bg-red-500/10 border border-border-error rounded-xl">
                             <p className="text-red-400 text-sm">{error}</p>
                         </div>
                     )}
-
                     {success && (
                         <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
                             <p className="text-green-400 text-sm">{success}</p>
                         </div>
                     )}
 
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full py-3 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                    >
+                    <button type="submit" disabled={loading} className="w-full py-3 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
                         {loading ? t('security.updating') : t('security.changePassword')}
                     </button>
                 </form>
@@ -202,7 +175,7 @@ export const SecurityTab = () => {
                         <Trash2 size={22} className="text-red-400"/>
                     </div>
                     <div>
-                        <h2 className="text-lg font-semibold text-accent">{t('security.deleteTitle')}</h2>
+                        <h2 className="text-lg font-semibold text-text-default">{t('security.deleteTitle')}</h2>
                         <p className="text-sm text-red-400">{t('security.deleteSubtitle')}</p>
                     </div>
                 </div>
@@ -210,31 +183,24 @@ export const SecurityTab = () => {
                 <div className="h-px bg-red-500/10"/>
 
                 <div className="p-4 bg-red-500/5 border border-red-500/20 rounded-xl">
-                    <p className="text-sm text-red-400">
-                        {t('security.deleteWarning')}
-                    </p>
+                    <p className="text-sm text-red-400">{t('security.deleteWarning')}</p>
                 </div>
 
-                <button
-                    onClick={() => setShowDeleteModal(true)}
-                    className="px-6 py-3 bg-red-500/10 border border-red-500/30 text-red-400 font-semibold rounded-xl hover:bg-red-500/20 transition-all"
-                >
+                <button onClick={() => setShowDeleteModal(true)} className="px-6 py-3 bg-red-500/10 border border-red-500/30 text-red-400 font-semibold rounded-xl hover:bg-red-500/20 transition-all">
                     {t('security.deleteButton')}
                 </button>
             </div>
 
             {/* Delete confirmation modal */}
             {showDeleteModal && (
-                <div className="fixed inset-0 bg-dark/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-                     onClick={closeDeleteModal}>
-                    <div className="bg-dark border border-red-500/30 rounded-2xl p-6 w-full max-w-md space-y-5"
-                         onClick={(e) => e.stopPropagation()}>
+                <div className="fixed inset-0 bg-overlay backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={closeDeleteModal}>
+                    <div className="bg-card border border-red-500/30 rounded-2xl p-6 w-full max-w-md space-y-5" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-3">
                             <div className="p-2.5 bg-red-500/10 rounded-xl">
                                 <AlertTriangle size={22} className="text-red-400"/>
                             </div>
                             <div>
-                                <h3 className="text-lg font-semibold text-accent">{t('security.confirmDeletion')}</h3>
+                                <h3 className="text-lg font-semibold text-text-default">{t('security.confirmDeletion')}</h3>
                                 <p className="text-sm text-red-400">{t('security.confirmDeletionSubtitle')}</p>
                             </div>
                         </div>
@@ -245,16 +211,12 @@ export const SecurityTab = () => {
                                     type={showDeletePassword ? 'text' : 'password'}
                                     value={deletePassword}
                                     onChange={(e) => setDeletePassword(e.target.value)}
-                                    className="w-full px-4 py-3 pr-12 bg-dark/80 border border-red-500/30 rounded-xl text-accent placeholder-secondary/40 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20 transition-all"
+                                    className="w-full px-4 py-3 pr-12 bg-input-bg border border-red-500/30 rounded-xl text-text-default placeholder-text-dim focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20 transition-all"
                                     placeholder={t('security.passwordPlaceholder')}
                                     required
                                     autoFocus
                                 />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowDeletePassword(!showDeletePassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary/50 hover:text-secondary transition-colors"
-                                >
+                                <button type="button" onClick={() => setShowDeletePassword(!showDeletePassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-dim hover:text-text-muted transition-colors">
                                     {showDeletePassword ? <EyeOff size={18}/> : <Eye size={18}/>}
                                 </button>
                             </div>
@@ -266,18 +228,10 @@ export const SecurityTab = () => {
                             )}
 
                             <div className="flex gap-3">
-                                <button
-                                    type="button"
-                                    onClick={closeDeleteModal}
-                                    className="flex-1 py-3 bg-dark/50 border border-primary/20 text-secondary font-medium rounded-xl hover:bg-primary/10 hover:text-accent transition-all"
-                                >
+                                <button type="button" onClick={closeDeleteModal} className="flex-1 py-3 bg-card border border-border text-text-muted font-medium rounded-xl hover:bg-primary/10 hover:text-text-default transition-all">
                                     {t('security.cancel')}
                                 </button>
-                                <button
-                                    type="submit"
-                                    disabled={deleteLoading || !deletePassword}
-                                    className="flex-1 py-3 bg-red-500/20 border border-red-500/30 text-red-400 font-semibold rounded-xl hover:bg-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                >
+                                <button type="submit" disabled={deleteLoading || !deletePassword} className="flex-1 py-3 bg-red-500/20 border border-red-500/30 text-red-400 font-semibold rounded-xl hover:bg-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
                                     {deleteLoading ? t('security.deleting') : t('security.delete')}
                                 </button>
                             </div>

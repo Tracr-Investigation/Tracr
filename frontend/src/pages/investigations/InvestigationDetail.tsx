@@ -118,7 +118,7 @@ const StatusDropdown = ({
     return (
         <div
             ref={ref}
-            className="absolute top-full left-0 mt-1 z-20 bg-[#1a1a2e] border border-primary/20 rounded-xl py-1 shadow-lg min-w-[160px]"
+            className="absolute top-full left-0 mt-1 z-20 bg-card border border-border rounded-xl py-1 shadow-lg min-w-[160px]"
         >
             {statuses.map((s) => (
                 <button
@@ -237,10 +237,9 @@ const CollaboratorsTab = ({
 
     return (
         <div className="space-y-6">
-            {/* Invite form */}
             {canInvite && (
-                <div className="bg-dark/50 border border-primary/20 rounded-xl p-5">
-                    <h3 className="text-accent font-semibold mb-4 flex items-center gap-2">
+                <div className="bg-card border border-border rounded-xl p-5">
+                    <h3 className="text-text-default font-semibold mb-4 flex items-center gap-2">
                         <UserPlus size={16} className="text-primary"/>
                         {t('investigationDetail.collaborators.inviteTitle')}
                     </h3>
@@ -248,25 +247,25 @@ const CollaboratorsTab = ({
                         <div className="flex-1 relative" ref={searchRef}>
                             <div className="relative">
                                 <Search size={16}
-                                        className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary"/>
+                                        className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"/>
                                 <input
                                     type="text"
                                     value={searchQuery}
                                     onChange={(e) => handleSearch(e.target.value)}
                                     placeholder={t('investigationDetail.collaborators.searchPlaceholder')}
                                     disabled={inviting}
-                                    className="w-full pl-10 pr-4 py-2.5 bg-dark/50 border border-primary/30 rounded-xl text-accent placeholder-secondary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all text-sm"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-input-bg border border-border rounded-xl text-text-default placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-border-focus transition-all text-sm"
                                 />
                             </div>
                             {searchResults.length > 0 && (
                                 <div
-                                    className="absolute top-full left-0 right-0 mt-1 z-20 bg-[#1a1a2e] border border-primary/20 rounded-xl py-1 shadow-lg max-h-48 overflow-y-auto">
+                                    className="absolute top-full left-0 right-0 mt-1 z-20 bg-card border border-border rounded-xl py-1 shadow-lg max-h-48 overflow-y-auto">
                                     {searchResults.map((u) => (
                                         <button
                                             key={u.id_user}
                                             onClick={() => handleInvite(u.pseudo)}
                                             disabled={inviting}
-                                            className="w-full px-4 py-2.5 text-left text-sm text-accent hover:bg-primary/10 transition-colors flex items-center gap-2"
+                                            className="w-full px-4 py-2.5 text-left text-sm text-text-default hover:bg-primary/10 transition-colors flex items-center gap-2"
                                         >
                                             <span
                                                 className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
@@ -279,7 +278,7 @@ const CollaboratorsTab = ({
                             )}
                             {searching && (
                                 <div
-                                    className="absolute top-full left-0 right-0 mt-1 z-20 bg-[#1a1a2e] border border-primary/20 rounded-xl py-3 shadow-lg text-center text-sm text-secondary">
+                                    className="absolute top-full left-0 right-0 mt-1 z-20 bg-card border border-border rounded-xl py-3 shadow-lg text-center text-sm text-text-muted">
                                     {t('investigationDetail.collaborators.searching')}
                                 </div>
                             )}
@@ -287,7 +286,7 @@ const CollaboratorsTab = ({
                         <select
                             value={selectedPermission}
                             onChange={(e) => setSelectedPermission(e.target.value)}
-                            className="px-4 py-2.5 bg-dark/50 border border-primary/30 rounded-xl text-accent text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
+                            className="px-4 py-2.5 bg-input-bg border border-border rounded-xl text-text-default text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-border-focus transition-all"
                         >
                             {permissionOptions.map((p) => (
                                 <option key={p} value={p}>{permissionLabels[p]}</option>
@@ -297,13 +296,12 @@ const CollaboratorsTab = ({
                 </div>
             )}
 
-            {/* Collaborators list */}
             <div className="space-y-2">
                 {investigation.collaborators.length === 0 ? (
-                    <div className="bg-dark/50 border border-primary/20 rounded-xl p-8 text-center">
-                        <Users size={32} className="mx-auto text-secondary mb-3"/>
-                        <p className="text-accent font-medium mb-1">{t('investigationDetail.collaborators.empty')}</p>
-                        <p className="text-secondary text-sm">
+                    <div className="bg-card border border-border rounded-xl p-8 text-center">
+                        <Users size={32} className="mx-auto text-text-muted mb-3"/>
+                        <p className="text-text-default font-medium mb-1">{t('investigationDetail.collaborators.empty')}</p>
+                        <p className="text-text-muted text-sm">
                             {canInvite
                                 ? t('investigationDetail.collaborators.emptyDesc')
                                 : t('investigationDetail.collaborators.emptyDescReadonly')}
@@ -313,7 +311,7 @@ const CollaboratorsTab = ({
                     investigation.collaborators.map((collab) => (
                         <div
                             key={collab.id_collaborator}
-                            className="bg-dark/50 border border-primary/20 rounded-xl p-4 flex items-center justify-between"
+                            className="bg-card border border-border rounded-xl p-4 flex items-center justify-between"
                         >
                             <div className="flex items-center gap-3">
                                 <span
@@ -322,7 +320,7 @@ const CollaboratorsTab = ({
                                 </span>
                                 <div>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-accent font-medium text-sm">{collab.pseudo}</span>
+                                        <span className="text-text-default font-medium text-sm">{collab.pseudo}</span>
                                         <span
                                             className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
                                             style={{
@@ -340,7 +338,7 @@ const CollaboratorsTab = ({
                                             </span>
                                         )}
                                     </div>
-                                    <p className="text-secondary text-xs mt-0.5">
+                                    <p className="text-text-muted text-xs mt-0.5">
                                         {t('investigationDetail.collaborators.invited')} {collab.invited_at ? formatRelativeDate(collab.invited_at) : ''}
                                     </p>
                                 </div>
@@ -352,13 +350,13 @@ const CollaboratorsTab = ({
                                          ref={permDropdown === collab.id_collaborator ? permRef : null}>
                                         <button
                                             onClick={() => setPermDropdown(permDropdown === collab.id_collaborator ? null : collab.id_collaborator)}
-                                            className="p-2 text-secondary hover:text-accent hover:bg-primary/10 rounded-lg transition-all"
+                                            className="p-2 text-text-muted hover:text-text-default hover:bg-primary/10 rounded-lg transition-all"
                                         >
                                             <ChevronDown size={14}/>
                                         </button>
                                         {permDropdown === collab.id_collaborator && (
                                             <div
-                                                className="absolute top-full right-0 mt-1 z-20 bg-[#1a1a2e] border border-primary/20 rounded-xl py-1 shadow-lg min-w-[140px]">
+                                                className="absolute top-full right-0 mt-1 z-20 bg-card border border-border rounded-xl py-1 shadow-lg min-w-[140px]">
                                                 {['manager', 'editeur', 'lecteur'].map((p) => (
                                                     <button
                                                         key={p}
@@ -376,7 +374,7 @@ const CollaboratorsTab = ({
                                     </div>
                                     <button
                                         onClick={() => handleRemove(collab.id_collaborator, collab.pseudo)}
-                                        className="p-2 text-secondary hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                                        className="p-2 text-text-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
                                     >
                                         <Trash2 size={14}/>
                                     </button>
@@ -482,16 +480,16 @@ const CategoriesSection = ({
                 <div className="relative" ref={pickerRef}>
                     <button
                         onClick={() => setShowPicker(!showPicker)}
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium text-secondary border border-dashed border-primary/30 hover:border-primary/50 hover:text-accent transition-all"
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium text-text-muted border border-dashed border-border hover:border-primary/50 hover:text-text-default transition-all"
                     >
                         <Plus size={12}/>
                         {t('investigationDetail.categories.add')}
                     </button>
                     {showPicker && (
                         <div
-                            className="absolute top-full left-0 mt-1 z-20 bg-[#1a1a2e] border border-primary/20 rounded-xl py-1 shadow-lg min-w-[180px] max-h-48 overflow-y-auto">
+                            className="absolute top-full left-0 mt-1 z-20 bg-card border border-border rounded-xl py-1 shadow-lg min-w-[180px] max-h-48 overflow-y-auto">
                             {unassigned.length === 0 ? (
-                                <p className="px-3 py-2 text-secondary text-sm">{t('investigationDetail.categories.noMore')}</p>
+                                <p className="px-3 py-2 text-text-muted text-sm">{t('investigationDetail.categories.noMore')}</p>
                             ) : (
                                 unassigned.map((cat) => {
                                     const CatIcon = getIconComponent(cat.icon);
@@ -505,7 +503,7 @@ const CategoriesSection = ({
                                             className="w-full px-3 py-2 flex items-center gap-2 hover:bg-primary/10 transition-colors text-sm"
                                         >
                                             <CatIcon size={14} className="shrink-0" style={{color: cat.color || '#8b5cf6'} as React.CSSProperties}/>
-                                            <span className="text-accent">{cat.name}</span>
+                                            <span className="text-text-default">{cat.name}</span>
                                         </button>
                                     );
                                 })
@@ -622,31 +620,28 @@ const SettingsTab = ({
     };
 
     return (
-        <div className="max-w-2xl divide-y divide-primary/10">
-            {/* Title */}
+        <div className="max-w-2xl divide-y divide-border-subtle">
             <div className="flex items-center gap-4 py-3">
-                <label className="text-sm text-secondary w-24 shrink-0">{t('investigationDetail.settings.titleLabel')}</label>
+                <label className="text-sm text-text-muted w-24 shrink-0">{t('investigationDetail.settings.titleLabel')}</label>
                 <input
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="flex-1 px-3 py-1.5 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
+                    className="flex-1 px-3 py-1.5 bg-input-bg border border-border rounded-lg text-text-default text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
                 />
             </div>
 
-            {/* Description */}
             <div className="flex items-start gap-4 py-3">
-                <label className="text-sm text-secondary w-24 shrink-0 pt-1.5">{t('investigationDetail.settings.descLabel')}</label>
+                <label className="text-sm text-text-muted w-24 shrink-0 pt-1.5">{t('investigationDetail.settings.descLabel')}</label>
                 <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={2}
-                    className="flex-1 px-3 py-1.5 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all resize-none"
+                    className="flex-1 px-3 py-1.5 bg-input-bg border border-border rounded-lg text-text-default text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all resize-none"
                     placeholder={t('investigationDetail.settings.descPlaceholder')}
                 />
             </div>
 
-            {/* Save */}
             {hasChanges && (
                 <div className="flex justify-end py-3">
                     <button
@@ -659,24 +654,23 @@ const SettingsTab = ({
                 </div>
             )}
 
-            {/* Transfer */}
             <div className="flex items-center gap-4 py-3">
                 <div className="w-24 shrink-0">
-                    <span className="text-sm text-secondary">{t('investigationDetail.settings.transferLabel')}</span>
+                    <span className="text-sm text-text-muted">{t('investigationDetail.settings.transferLabel')}</span>
                 </div>
                 <div className="flex-1 flex gap-2 items-center relative" ref={transferRef}>
                     <div className="flex-1 relative">
-                        <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-secondary"/>
+                        <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted"/>
                         <input
                             type="text"
                             value={selectedTransferUser ? selectedTransferUser.pseudo : transferQuery}
                             onChange={(e) => handleTransferSearch(e.target.value)}
                             placeholder={t('investigationDetail.settings.transferPlaceholder')}
-                            className="w-full pl-8 pr-3 py-1.5 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
+                            className="w-full pl-8 pr-3 py-1.5 bg-input-bg border border-border rounded-lg text-text-default text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
                         />
                         {transferResults.length > 0 && !selectedTransferUser && (
                             <div
-                                className="absolute top-full left-0 right-0 mt-1 z-20 bg-[#1a1a2e] border border-primary/20 rounded-lg py-1 shadow-lg max-h-40 overflow-y-auto">
+                                className="absolute top-full left-0 right-0 mt-1 z-20 bg-card border border-border rounded-lg py-1 shadow-lg max-h-40 overflow-y-auto">
                                 {transferResults.map((u) => (
                                     <button
                                         key={u.id_user}
@@ -685,7 +679,7 @@ const SettingsTab = ({
                                             setTransferResults([]);
                                             setTransferQuery(u.pseudo);
                                         }}
-                                        className="w-full px-3 py-1.5 text-left text-sm text-accent hover:bg-primary/10 transition-colors flex items-center gap-2"
+                                        className="w-full px-3 py-1.5 text-left text-sm text-text-default hover:bg-primary/10 transition-colors flex items-center gap-2"
                                     >
                                         <span
                                             className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-semibold text-primary">{u.pseudo.charAt(0).toUpperCase()}</span>
@@ -696,7 +690,7 @@ const SettingsTab = ({
                         )}
                         {transferSearching && (
                             <div
-                                className="absolute top-full left-0 right-0 mt-1 z-20 bg-[#1a1a2e] border border-primary/20 rounded-lg py-2 shadow-lg text-center text-xs text-secondary">
+                                className="absolute top-full left-0 right-0 mt-1 z-20 bg-card border border-border rounded-lg py-2 shadow-lg text-center text-xs text-text-muted">
                                 {t('investigationDetail.settings.transferSearching')}
                             </div>
                         )}
@@ -710,10 +704,10 @@ const SettingsTab = ({
                     </button>
                 </div>
                 {showTransferConfirm && selectedTransferUser && (
-                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-                        <div className="bg-[#1a1a2e] border border-primary/20 rounded-xl p-5 max-w-sm w-full mx-4">
-                            <h4 className="text-accent font-semibold text-sm mb-2">{t('investigationDetail.settings.confirmTransfer')}</h4>
-                            <p className="text-secondary text-xs mb-4">
+                    <div className="fixed inset-0 bg-overlay flex items-center justify-center z-50">
+                        <div className="bg-card border border-border rounded-xl p-5 max-w-sm w-full mx-4">
+                            <h4 className="text-text-default font-semibold text-sm mb-2">{t('investigationDetail.settings.confirmTransfer')}</h4>
+                            <p className="text-text-muted text-xs mb-4">
                                 {t('investigationDetail.settings.confirmTransferDesc', {
                                     title: investigation.title,
                                     pseudo: selectedTransferUser.pseudo,
@@ -721,7 +715,7 @@ const SettingsTab = ({
                             </p>
                             <div className="flex justify-end gap-2">
                                 <button onClick={() => setShowTransferConfirm(false)}
-                                        className="px-3 py-1.5 text-xs text-secondary hover:text-accent transition-colors">
+                                        className="px-3 py-1.5 text-xs text-text-muted hover:text-text-default transition-colors">
                                     {t('investigationDetail.settings.cancel')}
                                 </button>
                                 <button onClick={handleTransfer} disabled={transferring}
@@ -734,14 +728,13 @@ const SettingsTab = ({
                 )}
             </div>
 
-            {/* Delete */}
             <div className="py-3">
                 <div className="flex items-center gap-4">
                     <div className="w-24 shrink-0">
                         <span className="text-sm text-red-400">{t('investigationDetail.settings.deleteLabel')}</span>
                     </div>
                     <div className="flex-1 flex items-center justify-between">
-                        <span className="text-xs text-secondary">{t('investigationDetail.settings.deleteDesc')}</span>
+                        <span className="text-xs text-text-muted">{t('investigationDetail.settings.deleteDesc')}</span>
                         {!showDeleteConfirm && (
                             <button
                                 onClick={() => setShowDeleteConfirm(true)}
@@ -754,7 +747,7 @@ const SettingsTab = ({
                 </div>
                 {showDeleteConfirm && (
                     <div className="mt-3 ml-28 space-y-2">
-                        <p className="text-xs text-secondary">
+                        <p className="text-xs text-text-muted">
                             {t('investigationDetail.settings.deleteConfirmPrompt', {title: investigation.title})}
                         </p>
                         <div className="flex gap-2 items-center">
@@ -763,12 +756,12 @@ const SettingsTab = ({
                                 value={deleteConfirmText}
                                 onChange={(e) => setDeleteConfirmText(e.target.value)}
                                 placeholder={investigation.title}
-                                className="flex-1 px-3 py-1.5 bg-dark/50 border border-red-500/30 rounded-lg text-accent placeholder-secondary/30 text-sm focus:outline-none focus:ring-1 focus:ring-red-500/20 transition-all"
+                                className="flex-1 px-3 py-1.5 bg-input-bg border border-border-error rounded-lg text-text-default placeholder-text-dim text-sm focus:outline-none focus:ring-1 focus:ring-red-500/20 transition-all"
                             />
                             <button onClick={() => {
                                 setShowDeleteConfirm(false);
                                 setDeleteConfirmText('');
-                            }} className="px-3 py-1.5 text-xs text-secondary hover:text-accent transition-colors">
+                            }} className="px-3 py-1.5 text-xs text-text-muted hover:text-text-default transition-colors">
                                 {t('investigationDetail.settings.cancel')}
                             </button>
                             <button
@@ -870,34 +863,32 @@ export const InvestigationDetail = () => {
     return (
         <Layout>
             <div className="p-8">
-                {/* Breadcrumbs */}
                 <nav className="flex items-center gap-1.5 text-sm mb-6">
-                    <Link to="/investigations" className="text-secondary hover:text-accent transition-colors">
+                    <Link to="/investigations" className="text-text-muted hover:text-text-default transition-colors">
                         {t('sidebar.investigations')}
                     </Link>
-                    <ChevronRight size={14} className="text-secondary"/>
-                    <span className="text-accent font-medium truncate max-w-xs">
+                    <ChevronRight size={14} className="text-text-muted"/>
+                    <span className="text-text-default font-medium truncate max-w-xs">
                         {loading ? '...' : investigation?.title ?? 'Not found'}
                     </span>
                 </nav>
 
                 {loading ? (
-                    <div className="text-center text-secondary py-12">{t('investigationDetail.loading')}</div>
+                    <div className="text-center text-text-muted py-12">{t('investigationDetail.loading')}</div>
                 ) : error ? (
-                    <div className="bg-dark/50 border border-red-500/20 rounded-xl p-12 text-center">
+                    <div className="bg-card border border-border-error rounded-xl p-12 text-center">
                         <p className="text-red-400 text-lg font-medium mb-2">{error}</p>
                         <Link
                             to="/investigations"
-                            className="text-secondary hover:text-accent transition-colors text-sm"
+                            className="text-text-muted hover:text-text-default transition-colors text-sm"
                         >
                             {t('investigationDetail.backToInvestigations')}
                         </Link>
                     </div>
                 ) : investigation ? (
                     <div>
-                        {/* Title + status */}
                         <div className="flex items-start justify-between gap-4 mb-2">
-                            <h1 className="text-2xl font-bold text-accent">{investigation.title}</h1>
+                            <h1 className="text-2xl font-bold text-text-default">{investigation.title}</h1>
                             <div className="relative">
                                 {canChangeStatus ? (
                                     <button
@@ -923,36 +914,34 @@ export const InvestigationDetail = () => {
                         </div>
 
                         {investigation.description && (
-                            <p className="text-secondary text-sm mb-4">{investigation.description}</p>
+                            <p className="text-text-muted text-sm mb-4">{investigation.description}</p>
                         )}
 
-                        {/* Categories */}
                         <div className="mb-5">
                             <CategoriesSection investigation={investigation} onRefresh={refreshInvestigation}/>
                         </div>
 
-                        {/* Metadata */}
-                        <div className="flex items-center gap-5 text-sm text-secondary mb-8">
+                        <div className="flex items-center gap-5 text-sm text-text-muted mb-8">
                             <span className="flex items-center gap-2">
                                 <User size={14} className="text-primary"/>
                                 {investigation.owner.pseudo}
                             </span>
-                            <span className="w-px h-4 bg-primary/20"/>
+                            <span className="w-px h-4 bg-border"/>
                             <span className="flex items-center gap-2">
                                 <Calendar size={14} className="text-primary"/>
                                 {formatDate(investigation.created_at)}
                             </span>
                             {investigation.updated_at && investigation.updated_at !== investigation.created_at && (
                                 <>
-                                    <span className="w-px h-4 bg-primary/20"/>
+                                    <span className="w-px h-4 bg-border"/>
                                     <span className="flex items-center gap-2">
                                         <LayersPlus size={14} className="text-primary"/>
                                         {t('investigationDetail.updated')} {formatRelativeDate(investigation.updated_at)}
                                     </span>
                                 </>
                             )}
-                            <span className="w-px h-4 bg-primary/20"/>
-                            <span className="font-mono text-secondary/60">#{investigation.id_investigation}</span>
+                            <span className="w-px h-4 bg-border"/>
+                            <span className="font-mono text-text-dim">#{investigation.id_investigation}</span>
                         </div>
 
                         <Tabs
@@ -962,11 +951,11 @@ export const InvestigationDetail = () => {
                                     label: t('investigationDetail.tabs.details'),
                                     icon: FileText,
                                     content: (
-                                        <div className="border-t border-primary/10 pt-6">
+                                        <div className="border-t border-border-subtle pt-6">
                                             {investigation.description ? (
-                                                <p className="text-secondary">{investigation.description}</p>
+                                                <p className="text-text-muted">{investigation.description}</p>
                                             ) : (
-                                                <p className="text-secondary/50 italic">{t('investigationDetail.noDescription')}</p>
+                                                <p className="text-text-dim italic">{t('investigationDetail.noDescription')}</p>
                                             )}
                                         </div>
                                     ),

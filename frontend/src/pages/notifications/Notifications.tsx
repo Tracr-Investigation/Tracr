@@ -103,8 +103,8 @@ export const Notifications = () => {
             <div className="p-8">
                 <div className="flex items-center justify-between mb-8">
                     <div>
-                        <h1 className="text-3xl font-bold text-accent mb-2">{t('notifications.title')}</h1>
-                        <p className="text-secondary">
+                        <h1 className="text-3xl font-bold text-text-default mb-2">{t('notifications.title')}</h1>
+                        <p className="text-text-muted">
                             {unreadCount > 0
                                 ? t('notifications.unread', {count: unreadCount})
                                 : t('notifications.allRead')}
@@ -113,7 +113,7 @@ export const Notifications = () => {
                     {unreadCount > 0 && (
                         <button
                             onClick={markAllAsRead}
-                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-accent border border-primary/30 hover:bg-primary/30 transition-all"
+                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-text-default border border-primary/30 hover:bg-primary/30 transition-all"
                         >
                             <CheckCheck size={16}/>
                             {t('notifications.markAllAsRead')}
@@ -124,7 +124,7 @@ export const Notifications = () => {
                 {/* Pending invitations */}
                 {!loadingInvitations && invitations.length > 0 && (
                     <div className="mb-8">
-                        <h2 className="text-lg font-semibold text-accent mb-4 flex items-center gap-2">
+                        <h2 className="text-lg font-semibold text-text-default mb-4 flex items-center gap-2">
                             <UserPlus size={18} className="text-primary"/>
                             {t('notifications.pendingInvitations')}
                         </h2>
@@ -132,32 +132,28 @@ export const Notifications = () => {
                             {invitations.map((inv) => (
                                 <div
                                     key={inv.id_collaborator}
-                                    className="bg-dark/50 border border-primary/30 rounded-xl p-5"
+                                    className="bg-card border border-primary/30 rounded-xl p-5"
                                 >
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-start gap-4">
-                                            <div
-                                                className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                                            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
                                                 <Mail size={20} className="text-primary"/>
                                             </div>
                                             <div>
-                                                <p className="text-accent font-medium">
+                                                <p className="text-text-default font-medium">
                                                     {inv.invited_by_pseudo
-                                                        ? <><span
-                                                            className="text-primary">{inv.invited_by_pseudo}</span>{' '}{t('notifications.invitedBy')}</>
+                                                        ? <><span className="text-primary">{inv.invited_by_pseudo}</span>{' '}{t('notifications.invitedBy')}</>
                                                         : t('notifications.invitationTo')
                                                     }
                                                     {' '}
-                                                    <span
-                                                        className="font-semibold">{inv.investigation_title}</span>
+                                                    <span className="font-semibold">{inv.investigation_title}</span>
                                                 </p>
                                                 <div className="flex items-center gap-3 mt-1">
-                                                    <span
-                                                        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary">
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary">
                                                         {t(`notifications.permissions.${inv.permission_level}`) || inv.permission_level}
                                                     </span>
                                                     {inv.invited_at && (
-                                                        <span className="text-xs text-secondary">
+                                                        <span className="text-xs text-text-muted">
                                                             {formatRelativeDate(inv.invited_at)}
                                                         </span>
                                                     )}
@@ -190,14 +186,12 @@ export const Notifications = () => {
                 )}
 
                 {loading ? (
-                    <div className="text-center text-secondary py-12">{t('notifications.loading')}</div>
+                    <div className="text-center text-text-muted py-12">{t('notifications.loading')}</div>
                 ) : notifications.length === 0 && invitations.length === 0 ? (
-                    <div className="bg-dark/50 border border-primary/20 rounded-xl p-12 text-center">
-                        <Bell size={48} className="mx-auto text-secondary mb-4"/>
-                        <p className="text-accent text-lg font-medium mb-2">{t('notifications.empty')}</p>
-                        <p className="text-secondary">
-                            {t('notifications.emptyDesc')}
-                        </p>
+                    <div className="bg-card border border-border rounded-xl p-12 text-center">
+                        <Bell size={48} className="mx-auto text-text-muted mb-4"/>
+                        <p className="text-text-default text-lg font-medium mb-2">{t('notifications.empty')}</p>
+                        <p className="text-text-muted">{t('notifications.emptyDesc')}</p>
                     </div>
                 ) : (
                     <div className="grid gap-3">
@@ -208,19 +202,18 @@ export const Notifications = () => {
                                     key={notification.id_notification}
                                     onClick={() => handleClick(notification)}
                                     className={`
-                                        w-full text-left bg-dark/50 border rounded-xl p-5 transition-all cursor-pointer
+                                        w-full text-left bg-card border rounded-xl p-5 transition-all cursor-pointer
                                         ${notification.is_read
-                                        ? 'border-primary/10 opacity-70 hover:opacity-100'
+                                        ? 'border-border-subtle opacity-70 hover:opacity-100'
                                         : 'border-primary/30 hover:border-primary/50'
                                     }
                                     `}
                                 >
                                     <div className="flex items-start gap-4">
-                                        <div
-                                            className={`
+                                        <div className={`
                                                 w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0
                                                 ${notification.is_read
-                                                ? 'bg-primary/5 text-secondary'
+                                                ? 'bg-primary/5 text-text-muted'
                                                 : 'bg-primary/20 text-primary'
                                             }
                                             `}
@@ -229,24 +222,19 @@ export const Notifications = () => {
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-1">
-                                                <h3
-                                                    className={`font-semibold truncate ${
-                                                        notification.is_read ? 'text-secondary' : 'text-accent'
-                                                    }`}
-                                                >
+                                                <h3 className={`font-semibold truncate ${notification.is_read ? 'text-text-muted' : 'text-text-default'}`}>
                                                     {notification.title}
                                                 </h3>
                                                 {!notification.is_read && (
-                                                    <span
-                                                        className="w-2 h-2 bg-primary rounded-full flex-shrink-0"/>
+                                                    <span className="w-2 h-2 bg-primary rounded-full flex-shrink-0"/>
                                                 )}
                                             </div>
                                             {notification.message && (
-                                                <p className="text-secondary text-sm mb-2 line-clamp-2">
+                                                <p className="text-text-muted text-sm mb-2 line-clamp-2">
                                                     {notification.message}
                                                 </p>
                                             )}
-                                            <p className="text-xs text-secondary">
+                                            <p className="text-xs text-text-muted">
                                                 {formatRelativeDate(notification.created_at)}
                                             </p>
                                         </div>

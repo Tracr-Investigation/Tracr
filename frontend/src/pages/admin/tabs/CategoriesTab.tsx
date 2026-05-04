@@ -64,11 +64,8 @@ const CategoryFormModal = ({category, onClose, onSave}: ModalProps) => {
         setLoading(true);
         setError('');
         try {
-            if (category) {
-                await api.updateCategory(category.id_category, name, color, icon);
-            } else {
-                await api.createCategory(name, color, icon);
-            }
+            if (category) { await api.updateCategory(category.id_category, name, color, icon); }
+            else { await api.createCategory(name, color, icon); }
             onSave();
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');
@@ -78,66 +75,48 @@ const CategoryFormModal = ({category, onClose, onSave}: ModalProps) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={onClose}>
-            <div className="bg-[#1a1a2e] border border-primary/20 rounded-xl p-6 w-full max-w-md"
-                 onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-overlay flex items-center justify-center z-50" onClick={onClose}>
+            <div className="bg-card border border-border rounded-xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-semibold text-accent">
+                    <h3 className="text-lg font-semibold text-text-default">
                         {category ? t('admin.categories.editTitle') : t('admin.categories.newTitle')}
                     </h3>
-                    <button onClick={onClose} className="text-secondary hover:text-accent transition-colors">
-                        <X size={20}/>
-                    </button>
+                    <button onClick={onClose} className="text-text-muted hover:text-text-default transition-colors"><X size={20}/></button>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm text-secondary mb-1.5">{t('admin.categories.nameLabel')}</label>
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            required
-                            maxLength={50}
-                            className="w-full px-4 py-3 bg-dark/50 border border-primary/30 rounded-xl text-accent placeholder-secondary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
+                        <label className="block text-sm text-text-muted mb-1.5">{t('admin.categories.nameLabel')}</label>
+                        <input type="text" value={name} onChange={(e) => setName(e.target.value)} required maxLength={50}
+                            className="w-full px-4 py-3 bg-input-bg border border-border rounded-xl text-text-default placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-border-focus transition-all"
                             placeholder={t('admin.categories.namePlaceholder')}
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm text-secondary mb-1.5">{t('admin.categories.colorLabel')}</label>
+                        <label className="block text-sm text-text-muted mb-1.5">{t('admin.categories.colorLabel')}</label>
                         <div className="flex items-center gap-3">
-                            <input
-                                type="color"
-                                value={color}
-                                onChange={(e) => setColor(e.target.value)}
-                                className="w-12 h-12 rounded-lg border border-primary/30 cursor-pointer bg-transparent"
+                            <input type="color" value={color} onChange={(e) => setColor(e.target.value)}
+                                className="w-12 h-12 rounded-lg border border-border cursor-pointer bg-transparent"
                             />
-                            <input
-                                type="text"
-                                value={color}
-                                onChange={(e) => setColor(e.target.value)}
-                                maxLength={7}
-                                className="flex-1 px-4 py-3 bg-dark/50 border border-primary/30 rounded-xl text-accent font-mono placeholder-secondary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
+                            <input type="text" value={color} onChange={(e) => setColor(e.target.value)} maxLength={7}
+                                className="flex-1 px-4 py-3 bg-input-bg border border-border rounded-xl text-text-default font-mono placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-border-focus transition-all"
                                 placeholder="#8b5cf6"
                             />
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-sm text-secondary mb-1.5">{t('admin.categories.iconLabel')}</label>
-                        <div className="grid grid-cols-8 gap-1.5 max-h-40 overflow-y-auto p-2 bg-dark/30 rounded-xl border border-primary/20">
+                        <label className="block text-sm text-text-muted mb-1.5">{t('admin.categories.iconLabel')}</label>
+                        <div className="grid grid-cols-8 gap-1.5 max-h-40 overflow-y-auto p-2 bg-surface rounded-xl border border-border">
                             {ICON_OPTIONS.map((iconName) => {
                                 const IconComp = getIconComponent(iconName);
                                 return (
-                                    <button
-                                        key={iconName}
-                                        type="button"
-                                        onClick={() => setIcon(iconName)}
+                                    <button key={iconName} type="button" onClick={() => setIcon(iconName)}
                                         className={`p-2 rounded-lg transition-all flex items-center justify-center ${
                                             icon === iconName
-                                                ? 'bg-primary/30 text-accent border border-primary/50'
-                                                : 'text-secondary hover:bg-primary/10 hover:text-accent border border-transparent'
+                                                ? 'bg-primary/30 text-text-default border border-primary/50'
+                                                : 'text-text-muted hover:bg-primary/10 hover:text-text-default border border-transparent'
                                         }`}
                                         title={iconName}
                                     >
@@ -149,8 +128,8 @@ const CategoryFormModal = ({category, onClose, onSave}: ModalProps) => {
                     </div>
 
                     <div>
-                        <label className="block text-sm text-secondary mb-1.5">{t('admin.categories.previewLabel')}</label>
-                        <div className="p-3 bg-dark/30 rounded-xl">
+                        <label className="block text-sm text-text-muted mb-1.5">{t('admin.categories.previewLabel')}</label>
+                        <div className="p-3 bg-surface rounded-xl">
                             <CategoryBadge name={name || t('admin.categories.previewDefault')} color={color} icon={icon}/>
                         </div>
                     </div>
@@ -158,18 +137,10 @@ const CategoryFormModal = ({category, onClose, onSave}: ModalProps) => {
                     {error && <p className="text-red-400 text-sm">{error}</p>}
 
                     <div className="flex justify-end gap-3 pt-2">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="px-4 py-2.5 rounded-xl text-sm font-medium bg-dark/50 border border-primary/20 text-secondary hover:bg-primary/10 hover:text-accent transition-all"
-                        >
+                        <button type="button" onClick={onClose} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-card border border-border text-text-muted hover:bg-primary/10 hover:text-text-default transition-all">
                             {t('admin.categories.cancel')}
                         </button>
-                        <button
-                            type="submit"
-                            disabled={loading || !name.trim()}
-                            className="px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-accent border border-primary/30 hover:bg-primary/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                        >
+                        <button type="submit" disabled={loading || !name.trim()} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-text-default border border-primary/30 hover:bg-primary/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
                             {loading ? t('admin.categories.saving') : category ? t('admin.categories.update') : t('admin.categories.create')}
                         </button>
                     </div>
@@ -197,29 +168,18 @@ const DeleteModal = ({category, onClose, onSave}: ModalProps) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={onClose}>
-            <div className="bg-[#1a1a2e] border border-primary/20 rounded-xl p-6 w-full max-w-md"
-                 onClick={(e) => e.stopPropagation()}>
-                <h3 className="text-lg font-semibold text-accent mb-3">{t('admin.categories.deleteTitle')}</h3>
-                <p className="text-secondary mb-2">
-                    {t('admin.categories.deleteConfirm')}
-                </p>
+        <div className="fixed inset-0 bg-overlay flex items-center justify-center z-50" onClick={onClose}>
+            <div className="bg-card border border-border rounded-xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+                <h3 className="text-lg font-semibold text-text-default mb-3">{t('admin.categories.deleteTitle')}</h3>
+                <p className="text-text-muted mb-2">{t('admin.categories.deleteConfirm')}</p>
                 <div className="mb-6">
-                    <CategoryBadge name={category?.name || ''} color={category?.color || null}
-                                   icon={category?.icon || null}/>
+                    <CategoryBadge name={category?.name || ''} color={category?.color || null} icon={category?.icon || null}/>
                 </div>
                 <div className="flex justify-end gap-3">
-                    <button
-                        onClick={onClose}
-                        className="px-4 py-2.5 rounded-xl text-sm font-medium bg-dark/50 border border-primary/20 text-secondary hover:bg-primary/10 hover:text-accent transition-all"
-                    >
+                    <button onClick={onClose} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-card border border-border text-text-muted hover:bg-primary/10 hover:text-text-default transition-all">
                         {t('admin.categories.cancel')}
                     </button>
-                    <button
-                        onClick={handleDelete}
-                        disabled={loading}
-                        className="px-4 py-2.5 rounded-xl text-sm font-medium bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                    >
+                    <button onClick={handleDelete} disabled={loading} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
                         {loading ? t('admin.categories.deleting') : t('admin.categories.delete')}
                     </button>
                 </div>
@@ -250,9 +210,7 @@ export const CategoriesTab = () => {
         }
     }, []);
 
-    useEffect(() => {
-        fetchCategories();
-    }, [fetchCategories]);
+    useEffect(() => { fetchCategories(); }, [fetchCategories]);
 
     const handleSave = () => {
         setShowCreate(false);
@@ -262,7 +220,7 @@ export const CategoriesTab = () => {
     };
 
     const formatDate = (dateStr: string | null) => {
-        if (!dateStr) return '\u2014';
+        if (!dateStr) return '—';
         return new Date(dateStr).toLocaleDateString('en-US', {
             day: '2-digit', month: '2-digit', year: 'numeric',
             hour: '2-digit', minute: '2-digit',
@@ -282,77 +240,56 @@ export const CategoriesTab = () => {
                     </div>
                 </div>
 
-                <button
-                    onClick={() => setShowCreate(true)}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-accent border border-primary/30 hover:bg-primary/30 transition-all"
-                >
+                <button onClick={() => setShowCreate(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-text-default border border-primary/30 hover:bg-primary/30 transition-all">
                     <Plus size={16}/>
                     {t('admin.categories.newCategory')}
                 </button>
             </div>
 
-            <div className="bg-dark/50 border border-primary/20 rounded-xl overflow-hidden">
+            <div className="bg-card border border-border rounded-xl overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
-                        <tr className="border-b border-primary/20">
-                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.categories.colId')}</th>
-                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.categories.colCategory')}</th>
-                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.categories.colColor')}</th>
-                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.categories.colIcon')}</th>
-                            <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.categories.colCreated')}</th>
-                            <th className="text-right px-6 py-4 text-sm font-medium text-secondary">{t('admin.categories.colActions')}</th>
+                        <tr className="border-b border-border">
+                            <th className="text-left px-6 py-4 text-sm font-medium text-text-muted">{t('admin.categories.colId')}</th>
+                            <th className="text-left px-6 py-4 text-sm font-medium text-text-muted">{t('admin.categories.colCategory')}</th>
+                            <th className="text-left px-6 py-4 text-sm font-medium text-text-muted">{t('admin.categories.colColor')}</th>
+                            <th className="text-left px-6 py-4 text-sm font-medium text-text-muted">{t('admin.categories.colIcon')}</th>
+                            <th className="text-left px-6 py-4 text-sm font-medium text-text-muted">{t('admin.categories.colCreated')}</th>
+                            <th className="text-right px-6 py-4 text-sm font-medium text-text-muted">{t('admin.categories.colActions')}</th>
                         </tr>
                         </thead>
                         <tbody>
                         {loading ? (
-                            <tr>
-                                <td colSpan={6} className="px-6 py-12 text-center text-secondary">{t('admin.categories.loading')}</td>
-                            </tr>
+                            <tr><td colSpan={6} className="px-6 py-12 text-center text-text-muted">{t('admin.categories.loading')}</td></tr>
                         ) : categories.length === 0 ? (
-                            <tr>
-                                <td colSpan={6} className="px-6 py-12 text-center text-secondary">{t('admin.categories.empty')}</td>
-                            </tr>
+                            <tr><td colSpan={6} className="px-6 py-12 text-center text-text-muted">{t('admin.categories.empty')}</td></tr>
                         ) : (
                             categories.map((c) => {
                                 const IconComp = getIconComponent(c.icon);
                                 return (
-                                    <tr key={c.id_category}
-                                        className="border-b border-primary/10 hover:bg-primary/5 transition-colors">
-                                        <td className="px-6 py-4 text-secondary text-sm font-mono">#{c.id_category}</td>
-                                        <td className="px-6 py-4">
-                                            <CategoryBadge name={c.name} color={c.color} icon={c.icon}/>
-                                        </td>
+                                    <tr key={c.id_category} className="border-b border-border-subtle hover:bg-primary/5 transition-colors">
+                                        <td className="px-6 py-4 text-text-muted text-sm font-mono">#{c.id_category}</td>
+                                        <td className="px-6 py-4"><CategoryBadge name={c.name} color={c.color} icon={c.icon}/></td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
-                                                <span
-                                                    className="w-4 h-4 rounded-full border border-primary/20"
-                                                    style={{backgroundColor: c.color || '#6b7280'}}
-                                                />
-                                                <span className="text-secondary text-sm font-mono">{c.color || '\u2014'}</span>
+                                                <span className="w-4 h-4 rounded-full border border-border" style={{backgroundColor: c.color || '#6b7280'}}/>
+                                                <span className="text-text-muted text-sm font-mono">{c.color || '—'}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2 text-secondary text-sm">
+                                            <div className="flex items-center gap-2 text-text-muted text-sm">
                                                 <IconComp size={14}/>
-                                                {c.icon || '\u2014'}
+                                                {c.icon || '—'}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-secondary text-sm">{formatDate(c.created_at)}</td>
+                                        <td className="px-6 py-4 text-text-muted text-sm">{formatDate(c.created_at)}</td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center justify-end gap-2">
-                                                <button
-                                                    onClick={() => setEditCategory(c)}
-                                                    className="p-2 rounded-lg bg-dark/50 border border-primary/20 text-secondary hover:bg-primary/20 hover:text-accent transition-all"
-                                                    title={t('admin.categories.editTooltip')}
-                                                >
+                                                <button onClick={() => setEditCategory(c)} className="p-2 rounded-lg bg-card border border-border text-text-muted hover:bg-primary/20 hover:text-text-default transition-all" title={t('admin.categories.editTooltip')}>
                                                     <Pencil size={14}/>
                                                 </button>
-                                                <button
-                                                    onClick={() => setDeleteCategory(c)}
-                                                    className="p-2 rounded-lg bg-dark/50 border border-red-500/20 text-secondary hover:bg-red-500/20 hover:text-red-400 transition-all"
-                                                    title={t('admin.categories.deleteTooltip')}
-                                                >
+                                                <button onClick={() => setDeleteCategory(c)} className="p-2 rounded-lg bg-card border border-red-500/20 text-text-muted hover:bg-red-500/20 hover:text-red-400 transition-all" title={t('admin.categories.deleteTooltip')}>
                                                     <Trash2 size={14}/>
                                                 </button>
                                             </div>
@@ -366,15 +303,9 @@ export const CategoriesTab = () => {
                 </div>
             </div>
 
-            {showCreate && (
-                <CategoryFormModal onClose={() => setShowCreate(false)} onSave={handleSave}/>
-            )}
-            {editCategory && (
-                <CategoryFormModal category={editCategory} onClose={() => setEditCategory(undefined)} onSave={handleSave}/>
-            )}
-            {deleteCategory && (
-                <DeleteModal category={deleteCategory} onClose={() => setDeleteCategory(undefined)} onSave={handleSave}/>
-            )}
+            {showCreate && <CategoryFormModal onClose={() => setShowCreate(false)} onSave={handleSave}/>}
+            {editCategory && <CategoryFormModal category={editCategory} onClose={() => setEditCategory(undefined)} onSave={handleSave}/>}
+            {deleteCategory && <DeleteModal category={deleteCategory} onClose={() => setDeleteCategory(undefined)} onSave={handleSave}/>}
         </div>
     );
 };

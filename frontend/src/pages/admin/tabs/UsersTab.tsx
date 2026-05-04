@@ -55,11 +55,8 @@ export const UsersTab = () => {
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return '—';
     return new Date(dateStr).toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit',
     });
   };
 
@@ -69,9 +66,7 @@ export const UsersTab = () => {
     let start = Math.max(1, page - Math.floor(maxVisible / 2));
     const end = Math.min(totalPages, start + maxVisible - 1);
     start = Math.max(1, end - maxVisible + 1);
-    for (let i = start; i <= end; i++) {
-      pages.push(i);
-    }
+    for (let i = start; i <= end; i++) { pages.push(i); }
     return pages;
   };
 
@@ -85,35 +80,31 @@ export const UsersTab = () => {
         totalLabel="user"
       />
 
-      <div className="bg-dark/50 border border-primary/20 rounded-xl overflow-hidden">
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-primary/20">
-                <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.users.colUsername')}</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.users.colRole')}</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.users.colCreated')}</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.users.colStatus')}</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-secondary">{t('admin.users.colLastLogin')}</th>
+              <tr className="border-b border-border">
+                <th className="text-left px-6 py-4 text-sm font-medium text-text-muted">{t('admin.users.colUsername')}</th>
+                <th className="text-left px-6 py-4 text-sm font-medium text-text-muted">{t('admin.users.colRole')}</th>
+                <th className="text-left px-6 py-4 text-sm font-medium text-text-muted">{t('admin.users.colCreated')}</th>
+                <th className="text-left px-6 py-4 text-sm font-medium text-text-muted">{t('admin.users.colStatus')}</th>
+                <th className="text-left px-6 py-4 text-sm font-medium text-text-muted">{t('admin.users.colLastLogin')}</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-secondary">
-                    {t('admin.users.loading')}
-                  </td>
+                  <td colSpan={5} className="px-6 py-12 text-center text-text-muted">{t('admin.users.loading')}</td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-secondary">
-                    {t('admin.users.empty')}
-                  </td>
+                  <td colSpan={5} className="px-6 py-12 text-center text-text-muted">{t('admin.users.empty')}</td>
                 </tr>
               ) : (
                 users.map((u) => (
-                  <tr key={u.id_user} className="border-b border-primary/10 hover:bg-primary/5 transition-colors">
-                    <td className="px-6 py-4 text-accent font-medium">{u.pseudo}</td>
+                  <tr key={u.id_user} className="border-b border-border-subtle hover:bg-primary/5 transition-colors">
+                    <td className="px-6 py-4 text-text-default font-medium">{u.pseudo}</td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
                         u.role === 'super-admin'
@@ -125,18 +116,14 @@ export const UsersTab = () => {
                         {u.role}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-secondary text-sm">{formatDate(u.created_at)}</td>
+                    <td className="px-6 py-4 text-text-muted text-sm">{formatDate(u.created_at)}</td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-1.5 text-sm ${
-                        u.is_active ? 'text-green-400' : 'text-red-400'
-                      }`}>
-                        <span className={`w-2 h-2 rounded-full ${
-                          u.is_active ? 'bg-green-400' : 'bg-red-400'
-                        }`} />
+                      <span className={`inline-flex items-center gap-1.5 text-sm ${u.is_active ? 'text-green-400' : 'text-red-400'}`}>
+                        <span className={`w-2 h-2 rounded-full ${u.is_active ? 'bg-green-400' : 'bg-red-400'}`} />
                         {u.is_active ? t('admin.users.active') : t('admin.users.inactive')}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-secondary text-sm">{formatDate(u.last_login_at)}</td>
+                    <td className="px-6 py-4 text-text-muted text-sm">{formatDate(u.last_login_at)}</td>
                   </tr>
                 ))
               )}
@@ -145,15 +132,15 @@ export const UsersTab = () => {
         </div>
 
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-primary/20">
-            <p className="text-sm text-secondary">
+          <div className="flex items-center justify-between px-6 py-4 border-t border-border">
+            <p className="text-sm text-text-muted">
               {t('admin.users.pagination', { page, total: totalPages, count: filtered })}
             </p>
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setPage(Math.max(1, page - 1))}
                 disabled={page === 1}
-                className="p-2 rounded-lg bg-dark/50 border border-primary/20 text-secondary hover:bg-primary/20 hover:text-accent disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                className="p-2 rounded-lg bg-card border border-border text-text-muted hover:bg-primary/20 hover:text-text-default disabled:opacity-30 disabled:cursor-not-allowed transition-all"
               >
                 <ChevronLeft size={16} />
               </button>
@@ -163,8 +150,8 @@ export const UsersTab = () => {
                   onClick={() => setPage(p)}
                   className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${
                     p === page
-                      ? 'bg-primary/20 text-accent border border-primary/30'
-                      : 'bg-dark/50 text-secondary hover:bg-primary/10 hover:text-accent'
+                      ? 'bg-primary/20 text-text-default border border-primary/30'
+                      : 'bg-card text-text-muted hover:bg-primary/10 hover:text-text-default'
                   }`}
                 >
                   {p}
@@ -173,7 +160,7 @@ export const UsersTab = () => {
               <button
                 onClick={() => setPage(Math.min(totalPages, page + 1))}
                 disabled={page === totalPages}
-                className="p-2 rounded-lg bg-dark/50 border border-primary/20 text-secondary hover:bg-primary/20 hover:text-accent disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                className="p-2 rounded-lg bg-card border border-border text-text-muted hover:bg-primary/20 hover:text-text-default disabled:opacity-30 disabled:cursor-not-allowed transition-all"
               >
                 <ChevronRight size={16} />
               </button>

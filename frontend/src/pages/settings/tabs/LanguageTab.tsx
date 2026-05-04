@@ -37,11 +37,11 @@ export const LanguageTab = () => {
     return (
         <div className="space-y-6 max-w-2xl">
             <div>
-                <h2 className="text-lg font-semibold text-accent flex items-center gap-2 mb-1">
+                <h2 className="text-lg font-semibold text-text-default flex items-center gap-2 mb-1">
                     <Globe size={18} className="text-primary" />
                     {t('settings.language.title')}
                 </h2>
-                <p className="text-sm text-secondary">{t('settings.language.subtitle')}</p>
+                <p className="text-sm text-text-muted">{t('settings.language.subtitle')}</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -52,8 +52,8 @@ export const LanguageTab = () => {
                         className={`
                             flex items-center gap-4 px-5 py-4 rounded-xl border transition-all text-left
                             ${selected === lang.code
-                                ? 'border-primary bg-primary/10 text-accent'
-                                : 'border-primary/20 hover:border-primary/40 text-secondary hover:text-accent'
+                                ? 'border-primary bg-primary/10 text-text-default'
+                                : 'border-border hover:border-primary/40 text-text-muted hover:text-text-default'
                             }
                         `}
                     >

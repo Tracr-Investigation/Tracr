@@ -48,7 +48,7 @@ export const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-dark flex items-center justify-center p-4">
+    <div className="min-h-screen bg-surface flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
@@ -59,12 +59,12 @@ export const Register = () => {
               </svg>
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-accent mb-2">Sign up</h1>
-          <p className="text-secondary">Create your account</p>
+          <h1 className="text-3xl font-bold text-text-default mb-2">Sign up</h1>
+          <p className="text-text-muted">Create your account</p>
         </div>
 
         {/* Card */}
-        <div className="bg-dark/50 backdrop-blur-sm border border-primary/20 rounded-2xl p-8 shadow-2xl">
+        <div className="bg-card backdrop-blur-sm border border-border rounded-2xl p-8 shadow-2xl">
           {success ? (
             <div className="text-center py-8">
               <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -72,65 +72,54 @@ export const Register = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-accent mb-2">Account created!</h3>
-              <p className="text-secondary">Redirecting to login...</p>
+              <h3 className="text-xl font-semibold text-text-default mb-2">Account created!</h3>
+              <p className="text-text-muted">Redirecting to login...</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Pseudo */}
               <div>
-                <label className="block text-sm font-medium text-accent mb-2">
-                  Username
-                </label>
+                <label className="block text-sm font-medium text-text-default mb-2">Username</label>
                 <input
                   type="text"
                   value={pseudo}
                   onChange={(e) => setPseudo(e.target.value)}
-                  className="w-full px-4 py-3 bg-dark/50 border border-primary/30 rounded-xl text-accent placeholder-secondary/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                  className="w-full px-4 py-3 bg-input-bg border border-border rounded-xl text-text-default placeholder-text-dim focus:outline-none focus:border-border-focus focus:ring-2 focus:ring-primary/20 transition-all"
                   placeholder="Choose a username"
                   required
                 />
               </div>
 
-              {/* Password */}
               <div>
-                <label className="block text-sm font-medium text-accent mb-2">
-                  Password
-                </label>
+                <label className="block text-sm font-medium text-text-default mb-2">Password</label>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-dark/50 border border-primary/30 rounded-xl text-accent placeholder-secondary/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                  className="w-full px-4 py-3 bg-input-bg border border-border rounded-xl text-text-default placeholder-text-dim focus:outline-none focus:border-border-focus focus:ring-2 focus:ring-primary/20 transition-all"
                   placeholder="••••••••"
                   required
                 />
                 <PasswordStrength password={password} />
               </div>
 
-              {/* Confirm Password */}
               <div>
-                <label className="block text-sm font-medium text-accent mb-2">
-                  Confirm password
-                </label>
+                <label className="block text-sm font-medium text-text-default mb-2">Confirm password</label>
                 <input
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-dark/50 border border-primary/30 rounded-xl text-accent placeholder-secondary/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                  className="w-full px-4 py-3 bg-input-bg border border-border rounded-xl text-text-default placeholder-text-dim focus:outline-none focus:border-border-focus focus:ring-2 focus:ring-primary/20 transition-all"
                   placeholder="••••••••"
                   required
                 />
               </div>
 
-              {/* Error */}
               {error && (
-                <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
+                <div className="p-4 bg-red-500/10 border border-border-error rounded-xl">
                   <p className="text-red-400 text-sm">{error}</p>
                 </div>
               )}
 
-              {/* Submit */}
               <button
                 type="submit"
                 disabled={loading}
@@ -143,7 +132,7 @@ export const Register = () => {
 
           {!success && (
             <div className="mt-6 text-center">
-              <p className="text-secondary text-sm">
+              <p className="text-text-muted text-sm">
                 Already have an account?{' '}
                 <button
                   onClick={() => navigate('/login')}

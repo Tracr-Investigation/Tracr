@@ -114,7 +114,6 @@ const TaskStatusBadge = ({status}: { status: string }) => {
     );
 };
 
-// Task creation / edit form
 const TaskForm = ({
                       members,
                       task,
@@ -155,9 +154,8 @@ const TaskForm = ({
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Title */}
             <div>
-                <label className="block text-xs text-secondary mb-1">{t('tasks.titleLabel')}</label>
+                <label className="block text-xs text-text-muted mb-1">{t('tasks.titleLabel')}</label>
                 <input
                     type="text"
                     value={title}
@@ -165,31 +163,29 @@ const TaskForm = ({
                     placeholder={t('tasks.titlePlaceholder')}
                     maxLength={255}
                     required
-                    className="w-full px-3 py-2 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm placeholder-secondary focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
+                    className="w-full px-3 py-2 bg-input-bg border border-border rounded-lg text-text-default text-sm placeholder-text-muted focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
                 />
             </div>
 
-            {/* Description */}
             <div>
-                <label className="block text-xs text-secondary mb-1">{t('tasks.descLabel')}</label>
+                <label className="block text-xs text-text-muted mb-1">{t('tasks.descLabel')}</label>
                 <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder={t('tasks.descPlaceholder')}
                     rows={3}
                     maxLength={2000}
-                    className="w-full px-3 py-2 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm placeholder-secondary focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all resize-none"
+                    className="w-full px-3 py-2 bg-input-bg border border-border rounded-lg text-text-default text-sm placeholder-text-muted focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all resize-none"
                 />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-                {/* Priority */}
                 <div>
-                    <label className="block text-xs text-secondary mb-1">{t('tasks.priorityLabel')}</label>
+                    <label className="block text-xs text-text-muted mb-1">{t('tasks.priorityLabel')}</label>
                     <select
                         value={priority}
                         onChange={(e) => setPriority(e.target.value as TaskData['priority'])}
-                        className="w-full px-3 py-2 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
+                        className="w-full px-3 py-2 bg-input-bg border border-border rounded-lg text-text-default text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
                     >
                         {PRIORITY_KEYS.map((val) => (
                             <option key={val} value={val}>{t(`tasks.priority.${val}`)}</option>
@@ -197,13 +193,12 @@ const TaskForm = ({
                     </select>
                 </div>
 
-                {/* Status */}
                 <div>
-                    <label className="block text-xs text-secondary mb-1">{t('tasks.statusLabel')}</label>
+                    <label className="block text-xs text-text-muted mb-1">{t('tasks.statusLabel')}</label>
                     <select
                         value={status}
                         onChange={(e) => setStatus(e.target.value as 'todo' | 'en_cours' | 'termine')}
-                        className="w-full px-3 py-2 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
+                        className="w-full px-3 py-2 bg-input-bg border border-border rounded-lg text-text-default text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
                     >
                         {STATUS_KEYS.map((val) => (
                             <option key={val} value={val}>{t(`tasks.status.${val}`)}</option>
@@ -213,13 +208,12 @@ const TaskForm = ({
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-                {/* Assigned to */}
                 <div>
-                    <label className="block text-xs text-secondary mb-1">{t('tasks.assignedLabel')}</label>
+                    <label className="block text-xs text-text-muted mb-1">{t('tasks.assignedLabel')}</label>
                     <select
                         value={assignedTo ?? ''}
                         onChange={(e) => setAssignedTo(e.target.value ? Number(e.target.value) : null)}
-                        className="w-full px-3 py-2 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
+                        className="w-full px-3 py-2 bg-input-bg border border-border rounded-lg text-text-default text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
                     >
                         <option value="">{t('tasks.assignedNobody')}</option>
                         {members.map((m) => (
@@ -228,19 +222,17 @@ const TaskForm = ({
                     </select>
                 </div>
 
-                {/* Due date */}
                 <div>
-                    <label className="block text-xs text-secondary mb-1">{t('tasks.dueDateLabel')}</label>
+                    <label className="block text-xs text-text-muted mb-1">{t('tasks.dueDateLabel')}</label>
                     <input
                         type="date"
                         value={dueDate}
                         onChange={(e) => setDueDate(e.target.value)}
-                        className="w-full px-3 py-2 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
+                        className="w-full px-3 py-2 bg-input-bg border border-border rounded-lg text-text-default text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
                     />
                 </div>
             </div>
 
-            {/* Visibility */}
             <div className="flex items-center gap-3">
                 <button
                     type="button"
@@ -251,9 +243,9 @@ const TaskForm = ({
                         className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${isPrivate ? 'translate-x-5' : ''}`}
                     />
                 </button>
-                <span className="text-sm text-accent flex items-center gap-1.5">
+                <span className="text-sm text-text-default flex items-center gap-1.5">
                     {isPrivate ? <Lock size={14} className="text-primary"/> :
-                        <Globe size={14} className="text-secondary"/>}
+                        <Globe size={14} className="text-text-muted"/>}
                     {isPrivate ? t('tasks.privateLabel') : t('tasks.sharedLabel')}
                 </span>
             </div>
@@ -262,7 +254,7 @@ const TaskForm = ({
                 <button
                     type="button"
                     onClick={onCancel}
-                    className="px-4 py-2 text-sm text-secondary hover:text-accent transition-colors"
+                    className="px-4 py-2 text-sm text-text-muted hover:text-text-default transition-colors"
                 >
                     {t('tasks.cancel')}
                 </button>
@@ -278,7 +270,6 @@ const TaskForm = ({
     );
 };
 
-// Task detail modal with comments
 const TaskDetailModal = ({
                              task,
                              investigationId,
@@ -388,19 +379,18 @@ const TaskDetailModal = ({
     };
 
     return (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-overlay flex items-center justify-center z-50 p-4">
             <div
-                className="bg-[#1a1a2e] border border-primary/20 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-                {/* Header */}
-                <div className="flex items-start justify-between p-5 border-b border-primary/10">
+                className="bg-card border border-border rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+                <div className="flex items-start justify-between p-5 border-b border-border-subtle">
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                             {task.is_private ? (
                                 <Lock size={14} className="text-primary shrink-0"/>
                             ) : (
-                                <Globe size={14} className="text-secondary shrink-0"/>
+                                <Globe size={14} className="text-text-muted shrink-0"/>
                             )}
-                            <h3 className="text-accent font-semibold truncate">{task.title}</h3>
+                            <h3 className="text-text-default font-semibold truncate">{task.title}</h3>
                         </div>
                         <div className="flex items-center gap-2 flex-wrap">
                             <PriorityBadge priority={task.priority}/>
@@ -411,7 +401,7 @@ const TaskDetailModal = ({
                         {canEdit && !editing && (
                             <button
                                 onClick={() => setEditing(true)}
-                                className="p-2 text-secondary hover:text-accent hover:bg-primary/10 rounded-lg transition-all"
+                                className="p-2 text-text-muted hover:text-text-default hover:bg-primary/10 rounded-lg transition-all"
                             >
                                 <Edit2 size={14}/>
                             </button>
@@ -420,14 +410,14 @@ const TaskDetailModal = ({
                             <button
                                 onClick={handleDelete}
                                 disabled={deleting}
-                                className="p-2 text-secondary hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all disabled:opacity-40"
+                                className="p-2 text-text-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all disabled:opacity-40"
                             >
                                 <Trash2 size={14}/>
                             </button>
                         )}
                         <button
                             onClick={onClose}
-                            className="p-2 text-secondary hover:text-accent hover:bg-primary/10 rounded-lg transition-all"
+                            className="p-2 text-text-muted hover:text-text-default hover:bg-primary/10 rounded-lg transition-all"
                         >
                             <X size={14}/>
                         </button>
@@ -445,58 +435,55 @@ const TaskDetailModal = ({
                         />
                     ) : (
                         <>
-                            {/* Metadata */}
                             <div className="grid grid-cols-2 gap-3 text-sm">
                                 {task.assigned_to_pseudo && (
-                                    <div className="flex items-center gap-2 text-secondary">
+                                    <div className="flex items-center gap-2 text-text-muted">
                                         <User size={13} className="text-primary shrink-0"/>
                                         <span>{t('tasks.assignedLabel')} <span
-                                            className="text-accent">{task.assigned_to_pseudo}</span></span>
+                                            className="text-text-default">{task.assigned_to_pseudo}</span></span>
                                     </div>
                                 )}
                                 {task.created_by_pseudo && (
-                                    <div className="flex items-center gap-2 text-secondary">
-                                        <User size={13} className="text-secondary shrink-0"/>
+                                    <div className="flex items-center gap-2 text-text-muted">
+                                        <User size={13} className="text-text-muted shrink-0"/>
                                         <span>Created by <span
-                                            className="text-accent">{task.created_by_pseudo}</span></span>
+                                            className="text-text-default">{task.created_by_pseudo}</span></span>
                                     </div>
                                 )}
                                 {task.due_date && (
-                                    <div className="flex items-center gap-2 text-secondary">
+                                    <div className="flex items-center gap-2 text-text-muted">
                                         <Calendar size={13} className="text-primary shrink-0"/>
                                         <span>{t('tasks.dueDateLabel')}: <span
-                                            className="text-accent">{formatDate(task.due_date)}</span></span>
+                                            className="text-text-default">{formatDate(task.due_date)}</span></span>
                                     </div>
                                 )}
                                 {task.created_at && (
-                                    <div className="flex items-center gap-2 text-secondary">
-                                        <Clock size={13} className="text-secondary shrink-0"/>
+                                    <div className="flex items-center gap-2 text-text-muted">
+                                        <Clock size={13} className="text-text-muted shrink-0"/>
                                         <span>{formatRelativeDate(task.created_at)}</span>
                                     </div>
                                 )}
                             </div>
 
-                            {/* Description */}
                             {task.description && (
-                                <div className="bg-dark/40 rounded-lg p-3">
-                                    <p className="text-secondary text-sm whitespace-pre-wrap">{task.description}</p>
+                                <div className="bg-surface rounded-lg p-3">
+                                    <p className="text-text-muted text-sm whitespace-pre-wrap">{task.description}</p>
                                 </div>
                             )}
                         </>
                     )}
 
-                    {/* Comments */}
                     {!editing && (
                         <div>
-                            <h4 className="text-accent text-sm font-medium mb-3 flex items-center gap-2">
+                            <h4 className="text-text-default text-sm font-medium mb-3 flex items-center gap-2">
                                 <MessageSquare size={14} className="text-primary"/>
                                 {t('tasks.comments', {count: responses.length})}
                             </h4>
 
                             {loadingResponses ? (
-                                <p className="text-secondary text-sm">{t('tasks.loading')}</p>
+                                <p className="text-text-muted text-sm">{t('tasks.loading')}</p>
                             ) : responses.length === 0 ? (
-                                <p className="text-secondary/60 text-sm italic">{t('tasks.noComments')}</p>
+                                <p className="text-text-dim text-sm italic">{t('tasks.noComments')}</p>
                             ) : (
                                 <div className="space-y-3">
                                     {responses.map((resp) => (
@@ -505,32 +492,31 @@ const TaskDetailModal = ({
                                                 className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary shrink-0 mt-0.5">
                                                 {resp.pseudo ? resp.pseudo.charAt(0).toUpperCase() : '?'}
                                             </span>
-                                            <div className="flex-1 bg-dark/40 rounded-lg p-2.5">
+                                            <div className="flex-1 bg-surface rounded-lg p-2.5">
                                                 <div className="flex items-center justify-between gap-2 mb-1">
                                                     <span
-                                                        className="text-accent text-xs font-medium">{resp.pseudo || 'Deleted user'}</span>
+                                                        className="text-text-default text-xs font-medium">{resp.pseudo || 'Deleted user'}</span>
                                                     <div className="flex items-center gap-1">
-                                                        <span className="text-secondary/60 text-xs">
+                                                        <span className="text-text-dim text-xs">
                                                             {resp.created_at ? formatRelativeDate(resp.created_at) : ''}
                                                         </span>
                                                         {(resp.id_user === currentUserId || isOwner) && (
                                                             <button
                                                                 onClick={() => handleDeleteComment(resp.id_response)}
-                                                                className="opacity-0 group-hover:opacity-100 p-0.5 text-secondary hover:text-red-400 transition-all"
+                                                                className="opacity-0 group-hover:opacity-100 p-0.5 text-text-muted hover:text-red-400 transition-all"
                                                             >
                                                                 <X size={12}/>
                                                             </button>
                                                         )}
                                                     </div>
                                                 </div>
-                                                <p className="text-secondary text-xs whitespace-pre-wrap">{resp.content}</p>
+                                                <p className="text-text-muted text-xs whitespace-pre-wrap">{resp.content}</p>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             )}
 
-                            {/* Comment input */}
                             <form onSubmit={handleSubmitComment} className="mt-3 flex gap-2">
                                 <input
                                     type="text"
@@ -538,7 +524,7 @@ const TaskDetailModal = ({
                                     onChange={(e) => setNewComment(e.target.value)}
                                     placeholder={t('tasks.addCommentPlaceholder')}
                                     maxLength={2000}
-                                    className="flex-1 px-3 py-2 bg-dark/50 border border-primary/30 rounded-lg text-accent text-sm placeholder-secondary focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
+                                    className="flex-1 px-3 py-2 bg-input-bg border border-border rounded-lg text-text-default text-sm placeholder-text-muted focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
                                 />
                                 <button
                                     type="submit"
@@ -656,16 +642,14 @@ export const TasksTab = ({
     };
 
     if (loading) {
-        return <div className="text-center text-secondary py-12">{t('tasks.loading')}</div>;
+        return <div className="text-center text-text-muted py-12">{t('tasks.loading')}</div>;
     }
 
     return (
         <div className="space-y-5">
-            {/* Header */}
             <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div className="flex items-center gap-2 flex-wrap">
-                    {/* Visibility filter */}
-                    <div className="flex bg-dark/50 border border-primary/20 rounded-lg p-0.5">
+                    <div className="flex bg-card border border-border rounded-lg p-0.5">
                         {(['all', 'shared', 'private'] as const).map((v) => (
                             <button
                                 key={v}
@@ -673,7 +657,7 @@ export const TasksTab = ({
                                 className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
                                     filterVisibility === v
                                         ? 'bg-primary text-white'
-                                        : 'text-secondary hover:text-accent'
+                                        : 'text-text-muted hover:text-text-default'
                                 }`}
                             >
                                 {v === 'all' ? t('tasks.filterAll') : v === 'shared' ? t('tasks.filterShared') : t('tasks.filterPrivate')}
@@ -681,11 +665,10 @@ export const TasksTab = ({
                         ))}
                     </div>
 
-                    {/* Status filter */}
                     <div className="relative" ref={statusDropdownRef}>
                         <button
                             onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-dark/50 border border-primary/20 rounded-lg text-xs text-secondary hover:text-accent transition-all"
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border rounded-lg text-xs text-text-muted hover:text-text-default transition-all"
                         >
                             <span>
                                 {filterStatus === 'all' ? t('tasks.allStatuses') : t(`tasks.status.${filterStatus}`)}
@@ -694,13 +677,13 @@ export const TasksTab = ({
                         </button>
                         {statusDropdownOpen && (
                             <div
-                                className="absolute top-full left-0 mt-1 z-20 bg-[#1a1a2e] border border-primary/20 rounded-xl py-1 shadow-lg min-w-[160px]">
+                                className="absolute top-full left-0 mt-1 z-20 bg-card border border-border rounded-xl py-1 shadow-lg min-w-[160px]">
                                 <button
                                     onClick={() => {
                                         setFilterStatus('all');
                                         setStatusDropdownOpen(false);
                                     }}
-                                    className={`w-full px-3 py-2 text-left text-xs hover:bg-primary/10 transition-colors ${filterStatus === 'all' ? 'text-primary' : 'text-secondary'}`}
+                                    className={`w-full px-3 py-2 text-left text-xs hover:bg-primary/10 transition-colors ${filterStatus === 'all' ? 'text-primary' : 'text-text-muted'}`}
                                 >
                                     {t('tasks.allStatuses')}
                                 </button>
@@ -711,7 +694,7 @@ export const TasksTab = ({
                                             setFilterStatus(val);
                                             setStatusDropdownOpen(false);
                                         }}
-                                        className={`w-full px-3 py-2 text-left text-xs hover:bg-primary/10 transition-colors ${filterStatus === val ? 'text-primary' : 'text-secondary'}`}
+                                        className={`w-full px-3 py-2 text-left text-xs hover:bg-primary/10 transition-colors ${filterStatus === val ? 'text-primary' : 'text-text-muted'}`}
                                     >
                                         {t(`tasks.status.${val}`)}
                                     </button>
@@ -728,7 +711,7 @@ export const TasksTab = ({
                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
                                 showCompleted
                                     ? 'bg-green-500/20 border-green-500/40 text-green-400'
-                                    : 'border-primary/20 text-secondary hover:text-accent'
+                                    : 'border-border text-text-muted hover:text-text-default'
                             }`}
                         >
                             <CheckSquare size={13}/>
@@ -747,12 +730,11 @@ export const TasksTab = ({
                 </div>
             </div>
 
-            {/* Task list */}
             {filteredTasks.length === 0 ? (
-                <div className="bg-dark/50 border border-primary/20 rounded-xl p-10 text-center">
-                    <CheckSquare size={32} className="mx-auto text-secondary mb-3"/>
-                    <p className="text-accent font-medium mb-1">{t('tasks.empty')}</p>
-                    <p className="text-secondary text-sm">
+                <div className="bg-card border border-border rounded-xl p-10 text-center">
+                    <CheckSquare size={32} className="mx-auto text-text-muted mb-3"/>
+                    <p className="text-text-default font-medium mb-1">{t('tasks.empty')}</p>
+                    <p className="text-text-muted text-sm">
                         {canCreate ? t('tasks.emptyDesc') : t('tasks.emptyReadonly')}
                     </p>
                 </div>
@@ -769,7 +751,7 @@ export const TasksTab = ({
                         <button
                             key={task.id_task}
                             onClick={() => setSelectedTask(task)}
-                            className="w-full bg-dark/50 border border-primary/20 rounded-xl p-4 text-left hover:border-primary/40 transition-all group"
+                            className="w-full bg-card border border-border rounded-xl p-4 text-left hover:border-primary/40 transition-all group"
                         >
                             <div className="flex items-start justify-between gap-3">
                                 <div className="flex items-start gap-2.5 flex-1 min-w-0">
@@ -780,8 +762,8 @@ export const TasksTab = ({
                                             title={task.status === 'termine' ? t('tasks.reopen') : t('tasks.markDone')}
                                             className={`mt-0.5 shrink-0 transition-colors disabled:opacity-40 ${
                                                 task.status === 'termine'
-                                                    ? 'text-green-500 hover:text-secondary'
-                                                    : 'text-secondary/40 hover:text-green-500'
+                                                    ? 'text-green-500 hover:text-text-muted'
+                                                    : 'text-text-dim hover:text-green-500'
                                             }`}
                                         >
                                             {task.status === 'termine'
@@ -795,9 +777,9 @@ export const TasksTab = ({
                                             {task.is_private ? (
                                                 <Lock size={12} className="text-primary shrink-0"/>
                                             ) : (
-                                                <Globe size={12} className="text-secondary/60 shrink-0"/>
+                                                <Globe size={12} className="text-text-dim shrink-0"/>
                                             )}
-                                            <span className={`text-sm font-medium truncate group-hover:text-primary transition-colors ${task.status === 'termine' ? 'line-through text-secondary/50' : 'text-accent'}`}>
+                                            <span className={`text-sm font-medium truncate group-hover:text-primary transition-colors ${task.status === 'termine' ? 'line-through text-text-dim' : 'text-text-default'}`}>
                                                 {task.title}
                                             </span>
                                         </div>
@@ -805,13 +787,13 @@ export const TasksTab = ({
                                             <PriorityBadge priority={task.priority}/>
                                             <TaskStatusBadge status={task.status}/>
                                             {task.assigned_to_pseudo && (
-                                                <span className="inline-flex items-center gap-1 text-xs text-secondary">
+                                                <span className="inline-flex items-center gap-1 text-xs text-text-muted">
                                                     <User size={11}/>
                                                     {task.assigned_to_pseudo}
                                                 </span>
                                             )}
                                             {task.due_date && (
-                                                <span className={`inline-flex items-center gap-1 text-xs ${isOverdue(task.due_date) && task.status !== 'termine' ? 'text-red-400' : 'text-secondary'}`}>
+                                                <span className={`inline-flex items-center gap-1 text-xs ${isOverdue(task.due_date) && task.status !== 'termine' ? 'text-red-400' : 'text-text-muted'}`}>
                                                     <Calendar size={11}/>
                                                     {new Date(task.due_date).toLocaleDateString('en-US')}
                                                     {isOverdue(task.due_date) && task.status !== 'termine' && (
@@ -823,7 +805,7 @@ export const TasksTab = ({
                                     </div>
                                 </div>
                                 {task.response_count > 0 && (
-                                    <span className="inline-flex items-center gap-1 text-xs text-secondary shrink-0">
+                                    <span className="inline-flex items-center gap-1 text-xs text-text-muted shrink-0">
                                         <MessageSquare size={12}/>
                                         {task.response_count}
                                     </span>
@@ -835,18 +817,17 @@ export const TasksTab = ({
                 </div>
             )}
 
-            {/* Create modal */}
             {showCreateModal && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-                    <div className="bg-[#1a1a2e] border border-primary/20 rounded-xl w-full max-w-lg">
-                        <div className="flex items-center justify-between p-5 border-b border-primary/10">
-                            <h3 className="text-accent font-semibold flex items-center gap-2">
+                <div className="fixed inset-0 bg-overlay flex items-center justify-center z-50 p-4">
+                    <div className="bg-card border border-border rounded-xl w-full max-w-lg">
+                        <div className="flex items-center justify-between p-5 border-b border-border-subtle">
+                            <h3 className="text-text-default font-semibold flex items-center gap-2">
                                 <Plus size={16} className="text-primary"/>
                                 {t('tasks.newTask')}
                             </h3>
                             <button
                                 onClick={() => setShowCreateModal(false)}
-                                className="p-1.5 text-secondary hover:text-accent hover:bg-primary/10 rounded-lg transition-all"
+                                className="p-1.5 text-text-muted hover:text-text-default hover:bg-primary/10 rounded-lg transition-all"
                             >
                                 <X size={16}/>
                             </button>
@@ -863,7 +844,6 @@ export const TasksTab = ({
                 </div>
             )}
 
-            {/* Detail modal */}
             {selectedTask && (
                 <TaskDetailModal
                     task={selectedTask}

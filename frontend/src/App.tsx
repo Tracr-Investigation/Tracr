@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
@@ -16,8 +17,23 @@ import { Admin } from './pages/admin/Admin';
 import { Notifications } from './pages/notifications/Notifications';
 import { Calendar } from './pages/calendar/Calendar';
 import { NotFound } from './pages/not-found/NotFound';
+import { useThemeStore } from './stores/themeStore';
+
+const ACCENT_CLASSES: string[] = ['accent-emerald', 'accent-blue', 'accent-rose', 'accent-amber', 'accent-cyan'];
 
 function App() {
+  const { mode, accent } = useThemeStore();
+
+  useEffect(() => {
+    const html = document.documentElement;
+
+    if (mode === 'light') html.classList.add('light');
+    else html.classList.remove('light');
+
+    ACCENT_CLASSES.forEach((cls) => html.classList.remove(cls));
+    if (accent !== 'violet') html.classList.add(`accent-${accent}`);
+  }, [mode, accent]);
+
   return (
     <BrowserRouter>
       <AuthProvider>
