@@ -326,9 +326,10 @@
     "comingSoon": "Coming soon",
     "tabs": {
       "security": "Security",
+      "language": "Language",
+      "appearance": "Appearance",
       "profile": "Profile",
-      "notifications": "Notifications",
-      "language": "Language"
+      "notifications": "Notifications"
     },
     "profile": {
       "title": "Profile",
@@ -345,6 +346,32 @@
       "french": "Français",
       "saved": "Language updated",
       "error": "Error updating language"
+    },
+    "appearance": {
+      "displayMode": "Display mode",
+      "displayModeDesc": "Choose between dark and light interface.",
+      "dark": "Dark",
+      "darkDesc": "Dark interface",
+      "light": "Light",
+      "lightDesc": "Light interface",
+      "accentColor": "Accent color",
+      "accentColorDesc": "Customize the main interface color.",
+      "apply": "Apply",
+      "preview": "Preview",
+      "previewDesc": "Preview the selected color before applying it.",
+      "previewCurrent": "Preview of the selected theme",
+      "active": "Active",
+      "primary": "Primary",
+      "secondary": "Secondary",
+      "neutral": "Neutral",
+      "colors": {
+        "violet": "Violet",
+        "emerald": "Emerald",
+        "blue": "Blue",
+        "rose": "Rose",
+        "amber": "Amber",
+        "cyan": "Cyan"
+      }
     }
   },
   "common": {
