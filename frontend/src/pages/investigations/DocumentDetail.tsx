@@ -1,10 +1,11 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import debounce from 'lodash.debounce';
-import { ArrowLeft, Save, Loader2, Check, FileDown } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Check, FileDown, History } from 'lucide-react';
 
 import { Layout } from '../../components/Layout';
-import { DocumentEditor, type RemoteUser } from '../../components/editor/DocumentEditor';
+import { DocumentEditor, type RemoteUser, type DocumentEditorHandle } from '../../components/editor/DocumentEditor';
+import { BackupPanel } from '../../components/editor/BackupPanel';
 import { api } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
@@ -206,6 +207,9 @@ export const DocumentDetail = () => {
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const [remoteUsers, setRemoteUsers] = useState<RemoteUser[]>([]);
   const [exporting, setExporting] = useState(false);
+  const [showBackupPanel, setShowBackupPanel] = useState(false);
+  const [currentHtml, setCurrentHtml] = useState('');
+  const editorRef = useRef<DocumentEditorHandle>(null);
 
   useEffect(() => {
     if (!documentId || !investigationId) {
@@ -267,8 +271,16 @@ export const DocumentDetail = () => {
   }, [saveContent]);
 
   const handleContentChange = useCallback((html: string) => {
+    setCurrentHtml(html);
     saveContent(html);
   }, [saveContent]);
+
+  const handleRestored = useCallback((newTitle: string, newHtml: string) => {
+    setDocument((prev) => prev ? { ...prev, title: newTitle, content_html: newHtml } : prev);
+    setTitle(newTitle);
+    setCurrentHtml(newHtml);
+    editorRef.current?.setContent(newHtml);
+  }, []);
 
   const handleExportPdf = async () => {
     if (!documentId) {
@@ -382,18 +394,43 @@ export const DocumentDetail = () => {
           </div>
 
           <ExportPdfButton exporting={exporting} onClick={handleExportPdf} />
+
+          {canEdit && (
+            <button
+              onClick={() => setShowBackupPanel((v) => !v)}
+              title="Historique des backups"
+              className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${showBackupPanel ? 'text-primary bg-primary/20' : 'text-secondary hover:text-accent hover:bg-primary/10'}`}
+            >
+              <History size={13} />
+              Historique
+            </button>
+          )}
         </div>
 
-        <DocumentEditor
-          documentId={safeDocument.id_document}
-          initialContent={safeDocument.content_html}
-          readOnly={!canEdit}
-          isOwner={isOwner}
-          currentUserId={currentUserId}
-          currentUserPseudo={currentUserPseudo}
-          onContentChange={handleContentChange}
-          onRemoteUsersChange={setRemoteUsers}
-        />
+        <div className="flex flex-row flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden">
+            <DocumentEditor
+              ref={editorRef}
+              documentId={safeDocument.id_document}
+              initialContent={safeDocument.content_html}
+              readOnly={!canEdit}
+              isOwner={isOwner}
+              currentUserId={currentUserId}
+              currentUserPseudo={currentUserPseudo}
+              onContentChange={handleContentChange}
+              onRemoteUsersChange={setRemoteUsers}
+            />
+          </div>
+
+          {showBackupPanel && canEdit && (
+            <BackupPanel
+              documentId={safeDocument.id_document}
+              currentHtml={currentHtml || safeDocument.content_html}
+              onClose={() => setShowBackupPanel(false)}
+              onRestored={handleRestored}
+            />
+          )}
+        </div>
       </div>
     </Layout>
   );

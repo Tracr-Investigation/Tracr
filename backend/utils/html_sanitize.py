@@ -22,6 +22,7 @@ _ALLOWED_ATTRS: dict[str, set[str]] = {
     "ul": {"data-type"},
     "li": {"data-checked"},
     "span": {"data-comment-id", "data-resolved"},
+    "div": {"data-type", "data-lat", "data-lng", "data-address"},
 }
 
 # Seuls ces schémas d'URL sont autorisés dans href/src.

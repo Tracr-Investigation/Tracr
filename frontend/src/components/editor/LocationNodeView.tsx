@@ -3,7 +3,7 @@ import L from 'leaflet';
 import { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import { NodeViewWrapper } from '@tiptap/react';
-import { Trash2 } from 'lucide-react';
+import { Trash2, GripVertical } from 'lucide-react';
 
 // Fix default marker icons broken by Vite/webpack bundling
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
@@ -58,7 +58,14 @@ export const LocationNodeView = ({
   };
 
   return (
-    <NodeViewWrapper>
+    <NodeViewWrapper className="group relative">
+      <div
+        data-drag-handle
+        contentEditable={false}
+        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full pr-1 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing text-secondary"
+      >
+        <GripVertical size={14} />
+      </div>
       <div
         className="my-3 rounded-lg border border-primary/20"
         contentEditable={false}

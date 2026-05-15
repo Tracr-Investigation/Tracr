@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { useEditor, EditorContent, type Editor } from '@tiptap/react';
 import Collaboration from '@tiptap/extension-collaboration';
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor';
@@ -101,8 +101,12 @@ const getErrorMessage = (err: unknown, fallback: string): string => {
   return fallback;
 };
 
+export interface DocumentEditorHandle {
+  setContent: (html: string) => void;
+}
+
 // éditeur document collaboratif
-export const DocumentEditor = ({
+export const DocumentEditor = forwardRef<DocumentEditorHandle, Props>(({
   documentId,
   initialContent,
   readOnly,
@@ -111,7 +115,7 @@ export const DocumentEditor = ({
   currentUserPseudo,
   onContentChange,
   onRemoteUsersChange,
-}: Props) => {
+}, ref) => {
   const [hasSelection, setHasSelection] = useState(false);
   const [commentCount, setCommentCount] = useState(0);
   const [panelOpen, setPanelOpen] = useState(false);
@@ -119,6 +123,12 @@ export const DocumentEditor = ({
   const sidebarRef = useRef<CommentSidebarHandle>(null);
   const editorRef = useRef<Editor | null>(null);
   const { toast } = useToast();
+
+  useImperativeHandle(ref, () => ({
+    setContent: (html: string) => {
+      editorRef.current?.commands.setContent(html, false);
+    },
+  }));
 
   const handleInitialSync = useCallback(() => {
     injectInitialContent(editorRef, initialContent);
@@ -251,4 +261,4 @@ export const DocumentEditor = ({
       )}
     </div>
   );
-};
+});

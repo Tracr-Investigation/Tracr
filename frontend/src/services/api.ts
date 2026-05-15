@@ -985,6 +985,48 @@ export const api = {
         return data;
     },
 
+    createBackup: async (documentId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/documents/${documentId}/backups`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Backup error'));
+        return data as { id_backup: number; created_at: string };
+    },
+
+    listBackups: async (documentId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/documents/${documentId}/backups`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching backups'));
+        return data as { backups: { id_backup: number; title: string; author_pseudo: string | null; created_at: string }[] };
+    },
+
+    getBackup: async (documentId: number, backupId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/documents/${documentId}/backups/${backupId}`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching backup'));
+        return data as { id_backup: number; title: string; content_html: string; created_at: string };
+    },
+
+    restoreBackup: async (documentId: number, backupId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/documents/${documentId}/backups/${backupId}/restore`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Restore error'));
+        return data;
+    },
+
     geocode: async (address: string): Promise<{ lat: number; lng: number; display_name: string }> => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/geocode`, {
