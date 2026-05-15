@@ -52,7 +52,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: tracr_backend
-    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    command: ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
     env_file: .env
     environment:
       POSTGRES_HOST: postgres
@@ -60,7 +60,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       REDIS_URL: redis://redis:6379
     volumes:
-      - ./backend:/app:ro
+      - ./backend:/app
     tmpfs:
       - /tmp:size=64M,mode=1777
     depends_on:
@@ -105,6 +105,7 @@ services:
     environment:
       VITE_API_URL: http://localhost:8000
       VITE_WS_URL: ws://localhost:1234
+      NPM_CONFIG_CACHE: /tmp/.npm
     command: ["sh", "-c", "npm ci && npm run dev -- --host 0.0.0.0 --port 5173"]
     volumes:
       - ./frontend:/app
