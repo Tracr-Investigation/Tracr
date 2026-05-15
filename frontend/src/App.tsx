@@ -7,6 +7,7 @@ import { ProtectedRoute } from './routes/ProtectedRoute';
 import { AdminRoute } from './routes/AdminRoute';
 import { Login } from './pages/login/Login';
 import { Register } from './pages/register/Register';
+import { SetupRecovery } from './pages/register/SetupRecovery';
 import { Home } from './pages/home/Home';
 import { Investigations } from './pages/investigations/Investigations';
 import { InvestigationDetail } from './pages/investigations/InvestigationDetail';
@@ -42,6 +43,14 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route
+            path="/setup-recovery"
+            element={
+              <ProtectedRoute>
+                <SetupRecovery />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/"
             element={
