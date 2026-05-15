@@ -13,3 +13,5 @@ redis
 alembic
 weasyprint
 nh3
+geopy
+staticmap

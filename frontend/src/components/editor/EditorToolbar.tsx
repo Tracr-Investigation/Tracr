@@ -22,7 +22,9 @@ import {
   Link as LinkIcon,
   Unlink,
   Palette,
+  MapPin,
 } from 'lucide-react';
+import { LocationModal } from './LocationModal';
 
 const ICON_SIZE = 14;
 const SWATCH_SIZE_PX = 20;
@@ -587,6 +589,7 @@ export const EditorToolbar = ({
 }: Props) => {
   const [showLinkDialog, setShowLinkDialog] = useState(false);
   const [linkInitialUrl, setLinkInitialUrl] = useState('');
+  const [showLocationModal, setShowLocationModal] = useState(false);
 
   const handleOpenLinkDialog = () => {
     const currentHref = (editor.getAttributes('link').href as string | undefined) ?? '';
@@ -631,6 +634,14 @@ export const EditorToolbar = ({
         <Divider />
 
         <LinkButtons editor={editor} onOpenLinkDialog={handleOpenLinkDialog} />
+        <Divider />
+
+        <Btn
+          onClick={() => { setShowLinkDialog(false); setShowLocationModal(true); }}
+          title="Insérer une localisation"
+        >
+          <MapPin size={ICON_SIZE} />
+        </Btn>
 
         {showInsertTemplate && (
           <>
@@ -656,6 +667,13 @@ export const EditorToolbar = ({
           initialUrl={linkInitialUrl}
           onApply={handleApplyLink}
           onClose={handleCloseLinkDialog}
+        />
+      )}
+
+      {showLocationModal && (
+        <LocationModal
+          editor={editor}
+          onClose={() => setShowLocationModal(false)}
         />
       )}
     </>

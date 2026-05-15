@@ -984,4 +984,21 @@ export const api = {
 
         return data;
     },
+
+    geocode: async (address: string): Promise<{ lat: number; lng: number; display_name: string }> => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/geocode`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ address }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Geocoding error'));
+        }
+        return data;
+    },
 };
