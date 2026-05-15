@@ -117,6 +117,21 @@ class UpdateLanguageRequest(BaseModel):
     language: str = Field(pattern="^(en|fr)$")
 
 
+class GenerateRecoveryRequest(BaseModel):
+    current_password: Optional[str] = Field(default=None, max_length=128)
+
+
+class RecoverPasswordRequest(BaseModel):
+    pseudo: str = Field(min_length=3, max_length=50)
+    recovery_phrase: str = Field(min_length=1, max_length=500)
+    new_password: str = Field(max_length=128)
+
+    @field_validator("new_password")
+    @classmethod
+    def password_strength(cls, v: str) -> str:
+        return validate_password_strength(v)
+
+
 class DocumentCreateRequest(BaseModel):
     title: str = Field(min_length=1, max_length=255)
     content_html: str | None = Field(default="")

@@ -966,6 +966,43 @@ export const api = {
         return data;
     },
 
+    generateRecovery: async (currentPassword?: string) => {
+        const token = localStorage.getItem('token');
+        const body = currentPassword ? { current_password: currentPassword } : {};
+        const response = await fetch(`${API_URL}/generate-recovery`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error generating recovery code'));
+        return data as { words: string[] };
+    },
+
+    recoverPassword: async (pseudo: string, recoveryPhrase: string, newPassword: string) => {
+        const response = await fetch(`${API_URL}/recover-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pseudo, recovery_phrase: recoveryPhrase, new_password: newPassword }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error recovering password'));
+        return data;
+    },
+
+    getRecoveryStatus: async () => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/me/recovery-status`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching recovery status'));
+        return data as { has_recovery: boolean; recovery_created_at: string | null };
+    },
+
     getLogs: async (page: number = 1, limit: number = 10, category: string = '', search: string = '', excludeReads: boolean = false) => {
         const token = localStorage.getItem('token');
         const params = new URLSearchParams({page: String(page), limit: String(limit), category, search});
