@@ -23,9 +23,13 @@ import {
     X,
     Settings,
     CheckSquare,
+    History,
+    Network,
 } from 'lucide-react';
 import {TasksTab} from './tabs/TasksTab';
 import {DocumentsTab} from './tabs/DocumentsTab';
+import {TimelineTab} from './tabs/TimelineTab';
+import {GraphTab} from './tabs/GraphTab';
 import * as LucideIcons from 'lucide-react';
 import {formatRelativeDate} from '../../utils/date';
 import {extractIdFromSlug, toInvestigationSlug} from '../../utils/slug';
@@ -992,6 +996,25 @@ export const InvestigationDetail = () => {
                                             investigation={investigation}
                                             onRefresh={refreshInvestigation}
                                         />
+                                    ),
+                                },
+                                {
+                                    id: 'graph',
+                                    label: t('investigationDetail.tabs.graph'),
+                                    icon: Network,
+                                    content: (
+                                        <GraphTab
+                                            investigationId={investigation.id_investigation}
+                                            userPermission={investigation.user_permission}
+                                        />
+                                    ),
+                                },
+                                {
+                                    id: 'timeline',
+                                    label: t('investigationDetail.tabs.timeline'),
+                                    icon: History,
+                                    content: (
+                                        <TimelineTab investigationId={investigation.id_investigation}/>
                                     ),
                                 },
                                 ...(investigation.user_permission === 'owner' ? [{

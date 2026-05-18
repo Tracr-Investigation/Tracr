@@ -100,6 +100,7 @@ async def create_task(
     log_service.create_log(
         db, category="task", action="create",
         id_user=user.id_user,
+        id_investigation=investigation_id,
         detail=f"Tâche #{task['id_task']} - {body.title} (Investigation #{investigation_id})",
         ip_address=ip,
     )
@@ -167,6 +168,7 @@ async def update_task(
     log_service.create_log(
         db, category="task", action="update",
         id_user=user.id_user,
+        id_investigation=investigation_id,
         detail=f"Tâche #{task_id} modifiée (Investigation #{investigation_id})",
         ip_address=ip,
     )
@@ -200,6 +202,7 @@ async def delete_task(
     log_service.create_log(
         db, category="task", action="delete",
         id_user=user.id_user,
+        id_investigation=investigation_id,
         detail=f"Tâche #{task_id} - {title} supprimée (Investigation #{investigation_id})",
         ip_address=ip,
     )

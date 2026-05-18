@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from app.dependencies import limiter
 from app.routes import auth, admin, investigations, tasks
-from app.routes import notifications, documents, templates, geocode
+from app.routes import notifications, documents, templates, geocode, entities
 from socketio import ASGIApp as SocketASGIApp
 from app.socketio_server import sio
 
@@ -60,5 +60,6 @@ fastapi_app.include_router(documents.router)
 fastapi_app.include_router(documents.docs_router)
 fastapi_app.include_router(templates.router)
 fastapi_app.include_router(geocode.router)
+fastapi_app.include_router(entities.router)
 
 app = SocketASGIApp(sio, other_asgi_app=fastapi_app, socketio_path="socket.io")

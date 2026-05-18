@@ -106,6 +106,7 @@ async def create_document(
     log_service.create_log(
         db, category="document", action="create",
         id_user=user.id_user,
+        id_investigation=investigation_id,
         detail=f"Document #{document.id_document} - {document.title} (Investigation #{investigation_id})",
         ip_address=ip,
     )
@@ -149,7 +150,9 @@ async def update_document(
     ip = request.client.host if request.client else None
     log_service.create_log(
         db, category="document", action="update",
-        id_user=user.id_user, detail=f"Document #{document_id} updated",
+        id_user=user.id_user,
+        id_investigation=document.id_investigation,
+        detail=f"Document #{document_id} updated",
         ip_address=ip,
     )
     return document_service.get_document_detail(db, updated)
@@ -171,7 +174,9 @@ async def delete_document(
     ip = request.client.host if request.client else None
     log_service.create_log(
         db, category="document", action="delete",
-        id_user=user.id_user, detail=f"Document #{document_id} - {title} deleted",
+        id_user=user.id_user,
+        id_investigation=document.id_investigation,
+        detail=f"Document #{document_id} - {title} deleted",
         ip_address=ip,
     )
     return {"detail": "Document deleted"}
