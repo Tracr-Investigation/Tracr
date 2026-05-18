@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import type { Editor } from '@tiptap/react';
-import { MapPin, Search, Loader2 } from 'lucide-react';
+import { MapPin, Search, Loader2, X } from 'lucide-react';
 import { api } from '../../services/api';
 
 type Tab = 'address' | 'coords';
@@ -33,7 +33,7 @@ export const LocationModal = ({ editor, onClose }: Props) => {
       const data = await api.geocode(address.trim());
       setResult(data);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Address not found');
+      setError(e instanceof Error ? e.message : 'Adresse introuvable');
     } finally {
       setLoading(false);
     }
@@ -50,7 +50,7 @@ export const LocationModal = ({ editor, onClose }: Props) => {
       const parsedLat = parseFloat(lat);
       const parsedLng = parseFloat(lng);
       if (isNaN(parsedLat) || isNaN(parsedLng)) {
-        setError('Invalid coordinates');
+        setError('Coordonnées invalides');
         return;
       }
       finalLat = parsedLat;
@@ -69,36 +69,47 @@ export const LocationModal = ({ editor, onClose }: Props) => {
     (tab === 'coords' && lat.trim() !== '' && lng.trim() !== '');
 
   const tabCls = (t: Tab) =>
-    `px-4 py-2 text-sm transition-colors rounded-t ${
+    `flex-1 py-2 text-sm font-medium transition-colors border-b-2 ${
       tab === t
-        ? 'bg-primary/20 text-primary border-b-2 border-primary'
-        : 'text-secondary hover:text-accent'
+        ? 'border-primary text-primary'
+        : 'border-transparent text-secondary hover:text-accent'
     }`;
 
   return (
-    <div className="absolute top-full left-0 right-0 z-50 mt-1 mx-2">
-      <div className="bg-[#12122a] border border-primary/30 rounded-lg shadow-xl overflow-hidden">
-        <div className="flex items-center gap-2 px-3 pt-3 pb-0 border-b border-primary/20">
-          <MapPin size={14} className="text-primary" />
-          <span className="text-sm text-accent font-medium flex-1">Insérer une localisation</span>
+    <div
+      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-[#12122a] border border-primary/30 rounded-xl shadow-2xl overflow-hidden w-full max-w-md"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-primary/20 bg-primary/10">
+          <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/20">
+            <MapPin size={14} className="text-primary" />
+          </div>
+          <span className="text-sm text-accent font-semibold flex-1">Insérer une localisation</span>
           <button
             onClick={onClose}
-            className="text-secondary hover:text-accent text-lg leading-none pb-1"
+            className="text-secondary hover:text-accent transition-colors p-1 rounded-lg hover:bg-white/5"
           >
-            ×
+            <X size={15} />
           </button>
         </div>
 
-        <div className="flex gap-1 px-3 pt-2">
+        {/* Tabs */}
+        <div className="flex border-b border-primary/20 px-4">
           <button className={tabCls('address')} onClick={() => { setTab('address'); setError(''); }}>
-            Adresse
+            Par adresse
           </button>
           <button className={tabCls('coords')} onClick={() => { setTab('coords'); setError(''); }}>
-            Coordonnées
+            Par coordonnées
           </button>
         </div>
 
-        <div className="p-3 space-y-2">
+        {/* Content */}
+        <div className="p-4 space-y-3">
           {tab === 'address' ? (
             <>
               <div className="flex gap-2">
@@ -109,12 +120,12 @@ export const LocationModal = ({ editor, onClose }: Props) => {
                   onChange={(e) => setAddress(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleGeocode()}
                   placeholder="ex: 12 rue de la Paix, Paris"
-                  className="flex-1 bg-dark border border-primary/20 rounded px-3 py-1.5 text-sm text-accent placeholder-secondary focus:outline-none focus:border-primary/60"
+                  className="flex-1 bg-[#0f0f1e] border border-primary/20 rounded-lg px-3 py-2 text-sm text-accent placeholder-secondary/50 focus:outline-none focus:border-primary/60 transition-colors"
                 />
                 <button
                   onClick={handleGeocode}
                   disabled={loading || !address.trim()}
-                  className="px-3 py-1.5 rounded bg-primary/20 text-primary hover:bg-primary/30 transition-colors text-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
+                  className="px-3 py-2 rounded-lg bg-primary/20 text-primary hover:bg-primary/30 transition-colors text-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 shrink-0 font-medium"
                 >
                   {loading ? <Loader2 size={13} className="animate-spin" /> : <Search size={13} />}
                   Rechercher
@@ -122,48 +133,63 @@ export const LocationModal = ({ editor, onClose }: Props) => {
               </div>
 
               {result && (
-                <div className="rounded bg-primary/10 border border-primary/20 px-3 py-2 text-sm">
-                  <p className="text-accent">📍 {result.display_name}</p>
-                  <p className="text-secondary text-xs mt-0.5">
-                    {result.lat.toFixed(5)}° N, {result.lng.toFixed(5)}° E
-                  </p>
+                <div className="rounded-lg bg-primary/10 border border-primary/25 px-3 py-2.5 flex items-start gap-2">
+                  <MapPin size={14} className="text-primary shrink-0 mt-0.5" />
+                  <div className="min-w-0">
+                    <p className="text-accent text-sm font-medium leading-snug">{result.display_name}</p>
+                    <p className="text-secondary text-xs mt-1 font-mono">
+                      {result.lat.toFixed(5)}°N &nbsp;{result.lng.toFixed(5)}°E
+                    </p>
+                  </div>
                 </div>
               )}
             </>
           ) : (
-            <div className="flex gap-2">
-              <input
-                ref={inputRef}
-                type="number"
-                value={lat}
-                onChange={(e) => setLat(e.target.value)}
-                placeholder="Latitude (ex: 48.8566)"
-                className="flex-1 bg-dark border border-primary/20 rounded px-3 py-1.5 text-sm text-accent placeholder-secondary focus:outline-none focus:border-primary/60"
-              />
-              <input
-                type="number"
-                value={lng}
-                onChange={(e) => setLng(e.target.value)}
-                placeholder="Longitude (ex: 2.3522)"
-                className="flex-1 bg-dark border border-primary/20 rounded px-3 py-1.5 text-sm text-accent placeholder-secondary focus:outline-none focus:border-primary/60"
-              />
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-xs text-secondary mb-1">Latitude</label>
+                <input
+                  ref={inputRef}
+                  type="number"
+                  value={lat}
+                  onChange={(e) => setLat(e.target.value)}
+                  placeholder="48.8566"
+                  className="w-full bg-[#0f0f1e] border border-primary/20 rounded-lg px-3 py-2 text-sm text-accent placeholder-secondary/50 focus:outline-none focus:border-primary/60 transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-secondary mb-1">Longitude</label>
+                <input
+                  type="number"
+                  value={lng}
+                  onChange={(e) => setLng(e.target.value)}
+                  placeholder="2.3522"
+                  className="w-full bg-[#0f0f1e] border border-primary/20 rounded-lg px-3 py-2 text-sm text-accent placeholder-secondary/50 focus:outline-none focus:border-primary/60 transition-colors"
+                />
+              </div>
             </div>
           )}
 
-          {error && <p className="text-red-400 text-xs">{error}</p>}
+          {error && (
+            <p className="text-red-400 text-xs flex items-center gap-1.5">
+              <span className="w-1 h-1 rounded-full bg-red-400 shrink-0" />
+              {error}
+            </p>
+          )}
 
           <div className="flex justify-end gap-2 pt-1">
             <button
               onClick={onClose}
-              className="px-3 py-1.5 rounded-lg bg-dark border border-primary/20 text-secondary hover:text-accent transition-colors text-sm"
+              className="px-4 py-2 rounded-lg bg-transparent border border-primary/20 text-secondary hover:text-accent hover:border-primary/40 transition-colors text-sm"
             >
               Annuler
             </button>
             <button
               onClick={handleInsert}
               disabled={!canInsert}
-              className="px-3 py-1.5 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
             >
+              <MapPin size={13} />
               Insérer
             </button>
           </div>
