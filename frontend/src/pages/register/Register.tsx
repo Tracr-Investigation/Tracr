@@ -5,6 +5,7 @@ import { PasswordStrength } from '../../components/PasswordStrength';
 import { isPasswordValid } from '../../utils/passwordValidation';
 import { useAuth } from '../../contexts/AuthContext';
 import { Eye, EyeOff } from 'lucide-react';
+import { FeatureShowcase } from '../../components/FeatureShowcase';
 
 const TracrLogo = () => (
     <svg width="48" height="48" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -93,7 +94,7 @@ export const Register = () => {
     };
 
     return (
-        <div className="min-h-screen bg-surface flex flex-col items-center justify-center p-4"
+        <div className="min-h-screen bg-surface flex flex-col lg:flex-row"
             style={{ position: 'relative', overflow: 'hidden' }}>
 
             {/* Background glow */}
@@ -110,6 +111,14 @@ export const Register = () => {
                 maskImage: 'radial-gradient(ellipse 70% 60% at 50% 50%, black, transparent)',
                 WebkitMaskImage: 'radial-gradient(ellipse 70% 60% at 50% 50%, black, transparent)',
             }} />
+
+            {/* Left: feature showcase */}
+            <div className="hidden lg:flex flex-1 flex-col justify-center relative z-10" style={{ borderRight: '1px solid var(--border-subtle)' }}>
+                <FeatureShowcase />
+            </div>
+
+            {/* Right: form */}
+            <div className="flex-1 lg:flex-none lg:w-[460px] flex flex-col items-center justify-center p-4 lg:p-8 relative z-10">
 
             {/* Card */}
             <div style={{
@@ -272,6 +281,8 @@ export const Register = () => {
             <div style={{ marginTop: '20px', fontSize: '12px', color: 'var(--text-dim)', textAlign: 'center' }}>
                 A recovery phrase will be generated after registration
             </div>
+
+            </div> {/* end right column */}
         </div>
     );
 };

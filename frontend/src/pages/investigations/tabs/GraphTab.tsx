@@ -35,6 +35,7 @@ import {
     HelpCircle,
     Download,
     ChevronDown,
+    RotateCcw,
 } from 'lucide-react';
 import {api} from '../../../services/api';
 import type {EntityData, RelationData} from '../../../services/api';
@@ -517,7 +518,7 @@ export const GraphTab = ({
                     onNodeDragStop={onNodeDragStop}
                     nodeTypes={nodeTypes}
                     fitView
-                    fitViewOptions={{padding: 0.3}}
+                    fitViewOptions={{padding: 0.3, maxZoom: 0.55}}
                     nodesDraggable={canEdit}
                     nodesConnectable={canEdit}
                     elementsSelectable
@@ -545,6 +546,25 @@ export const GraphTab = ({
                                 >
                                     <Plus size={13}/>
                                     {t('investigationDetail.graph.addEntity')}
+                                </button>
+                            )}
+
+                            {canEdit && (
+                                <button
+                                    onClick={async () => {
+                                        if (!confirm(t('investigationDetail.graph.resetPositionsConfirm'))) return;
+                                        try {
+                                            await api.resetEntityPositions(investigationId);
+                                            await refreshGraph();
+                                            toast('success', t('investigationDetail.graph.positionsReset'));
+                                        } catch (err) {
+                                            toast('error', err instanceof Error ? err.message : 'Error');
+                                        }
+                                    }}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1c1c1c] hover:bg-[#2a2a2a] border border-[#333] text-[#e5e5e5] rounded-lg text-xs font-medium shadow transition-all"
+                                    title={t('investigationDetail.graph.resetPositions')}
+                                >
+                                    <RotateCcw size={13}/>
                                 </button>
                             )}
 

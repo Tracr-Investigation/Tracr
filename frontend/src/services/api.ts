@@ -1173,6 +1173,17 @@ export const api = {
         return data as EntityData;
     },
 
+    resetEntityPositions: async (investigationId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/entities/reset-positions`, {
+            method: 'POST',
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error resetting positions'));
+        return data;
+    },
+
     deleteEntity: async (investigationId: number, entityId: number) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/entities/${entityId}`, {

@@ -176,6 +176,27 @@ async def update_entity(
     return entity_service._entity_to_dict(updated)
 
 
+@router.post("/{investigation_id}/entities/reset-positions")
+async def reset_entity_positions(
+    investigation_id: int,
+    request: Request,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    _, permission = _check_access(db, investigation_id, user.id_user)
+    _require_write(permission)
+    count = entity_service.reset_positions(db, investigation_id)
+    ip = request.client.host if request.client else None
+    log_service.create_log(
+        db, category="entity", action="update",
+        id_user=user.id_user,
+        id_investigation=investigation_id,
+        detail=f"Positions reset for {count} entities",
+        ip_address=ip,
+    )
+    return {"detail": f"Positions reset for {count} entities"}
+
+
 @router.delete("/{investigation_id}/entities/{entity_id}")
 async def delete_entity(
     investigation_id: int,

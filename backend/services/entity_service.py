@@ -126,6 +126,15 @@ def delete_entity(db: Session, entity: Entity) -> None:
     db.commit()
 
 
+def reset_positions(db: Session, investigation_id: int) -> int:
+    entities = db.query(Entity).filter(Entity.id_investigation == investigation_id).all()
+    for entity in entities:
+        entity.pos_x = None
+        entity.pos_y = None
+    db.commit()
+    return len(entities)
+
+
 def get_relations(db: Session, investigation_id: int) -> list[dict]:
     rows = (
         db.query(EntityRelation, User.pseudo)
