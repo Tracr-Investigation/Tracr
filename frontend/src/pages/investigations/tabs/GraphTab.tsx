@@ -111,16 +111,18 @@ const EntityNode = ({data}: {data: {entity: EntityData; onEdit: (e: EntityData) 
 
 const nodeTypes: NodeTypes = {entity: EntityNode};
 
-// ─── Entity modal ─────────────────────────────────────────────────────────────
+// ─── Entity panel (slide-in) ──────────────────────────────────────────────────
 
-const EntityModal = ({
+const EntityPanel = ({
     investigationId,
     entity,
+    open,
     onClose,
     onSaved,
 }: {
     investigationId: number;
     entity: EntityData | null;
+    open: boolean;
     onClose: () => void;
     onSaved: (e: EntityData) => void;
 }) => {
@@ -131,6 +133,15 @@ const EntityModal = ({
     const [value, setValue] = useState(entity?.value ?? '');
     const [notes, setNotes] = useState(entity?.notes ?? '');
     const [saving, setSaving] = useState(false);
+
+    useEffect(() => {
+        if (open) {
+            setType(entity?.type  ?? 'person');
+            setLabel(entity?.label ?? '');
+            setValue(entity?.value ?? '');
+            setNotes(entity?.notes ?? '');
+        }
+    }, [open, entity]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -164,87 +175,121 @@ const EntityModal = ({
     };
 
     return (
-        <div className="fixed inset-0 bg-overlay flex items-center justify-center z-50 p-4">
-            <div className="bg-card/30 border border-border-subtle rounded-xl p-5 w-full max-w-md shadow-2xl">
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-text-default font-semibold text-sm">
-                        {entity ? t('investigationDetail.graph.entityModal.editTitle') : t('investigationDetail.graph.entityModal.newTitle')}
-                    </h3>
-                    <button onClick={onClose} className="p-1 text-text-muted hover:text-text-default transition-colors">
-                        <X size={16}/>
+        <>
+            {open && (
+                <div className="fixed inset-0 bg-black/40 z-[45] lg:hidden" onClick={onClose} />
+            )}
+            <div
+                className={`fixed top-0 right-0 h-screen w-full max-w-[440px] z-50 flex flex-col
+                    transition-transform duration-300 ease-in-out
+                    ${open ? 'translate-x-0' : 'translate-x-full'}`}
+                style={{background: 'var(--color-card)', borderLeft: '1px solid var(--color-border-subtle)'}}
+            >
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-border-subtle shrink-0">
+                    <div>
+                        <h2 className="text-base font-bold text-text-default">
+                            {entity
+                                ? t('investigationDetail.graph.entityModal.editTitle')
+                                : t('investigationDetail.graph.entityModal.newTitle')}
+                        </h2>
+                        {entity && <p className="text-xs text-text-dim mt-0.5">{entity.label}</p>}
+                    </div>
+                    <button onClick={onClose} className="text-text-dim hover:text-text-default transition-colors p-1">
+                        <X size={18}/>
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-3">
-                    {!entity && (
-                        <div>
-                            <label className="block text-xs text-text-muted mb-1.5">{t('investigationDetail.graph.entityModal.typeLabel')}</label>
-                            <div className="grid grid-cols-5 gap-1">
-                                {ENTITY_TYPES.map(etype => {
-                                    const TIcon = etype.icon;
-                                    return (
-                                        <button
-                                            key={etype.value}
-                                            type="button"
-                                            onClick={() => setType(etype.value)}
-                                            title={etype.label}
-                                            className={`flex flex-col items-center gap-1 p-2 rounded-lg border text-[10px] transition-all ${
-                                                type === etype.value
-                                                    ? 'border-primary/60 bg-primary/10 text-white'
-                                                    : 'border-border text-text-muted hover:border-border-focus'
-                                            }`}
-                                        >
-                                            <TIcon size={14} style={{color: etype.color}}/>
-                                            <span className="truncate w-full text-center">{etype.label.split(' ')[0]}</span>
-                                        </button>
-                                    );
-                                })}
+                <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto flex flex-col min-h-0">
+                    <div className="px-6 py-5 space-y-5 flex-1">
+                        {/* Type selector — new entity only */}
+                        {!entity && (
+                            <div>
+                                <label className="block text-xs font-semibold text-text-default/50 uppercase tracking-wider mb-2">
+                                    {t('investigationDetail.graph.entityModal.typeLabel')}
+                                </label>
+                                <div className="grid grid-cols-5 gap-1.5">
+                                    {ENTITY_TYPES.map(etype => {
+                                        const TIcon = etype.icon;
+                                        return (
+                                            <button
+                                                key={etype.value}
+                                                type="button"
+                                                onClick={() => setType(etype.value)}
+                                                title={etype.label}
+                                                className={`flex flex-col items-center gap-1 p-2 rounded-lg border text-[10px] transition-all ${
+                                                    type === etype.value
+                                                        ? 'border-primary/60 bg-primary/10 text-white'
+                                                        : 'border-border text-text-muted hover:border-border-focus'
+                                                }`}
+                                            >
+                                                <TIcon size={14} style={{color: etype.color}}/>
+                                                <span className="truncate w-full text-center">{etype.label.split(' ')[0]}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
+                        )}
+
+                        {/* Label */}
+                        <div>
+                            <label className="block text-xs font-semibold text-text-default/50 uppercase tracking-wider mb-2">
+                                {t('investigationDetail.graph.entityModal.labelLabel')}
+                            </label>
+                            <input
+                                autoFocus={open}
+                                type="text"
+                                value={label}
+                                onChange={e => setLabel(e.target.value)}
+                                placeholder={t('investigationDetail.graph.entityModal.labelPlaceholder')}
+                                required
+                                className="w-full px-4 py-2.5 bg-input-bg border border-border-subtle rounded-xl text-text-default text-sm focus:outline-none focus:border-[var(--theme-primary)] transition-colors"
+                            />
                         </div>
-                    )}
 
-                    <div>
-                        <label className="block text-xs text-text-muted mb-1.5">{t('investigationDetail.graph.entityModal.labelLabel')}</label>
-                        <input
-                            autoFocus
-                            type="text"
-                            value={label}
-                            onChange={e => setLabel(e.target.value)}
-                            placeholder={t('investigationDetail.graph.entityModal.labelPlaceholder')}
-                            required
-                            className="w-full px-3 py-2 bg-input-bg border border-border rounded-lg text-text-default text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-border-focus transition-all"
-                        />
+                        {/* Value */}
+                        <div>
+                            <label className="block text-xs font-semibold text-text-default/50 uppercase tracking-wider mb-2">
+                                {t('investigationDetail.graph.entityModal.valueLabel')}
+                            </label>
+                            <input
+                                type="text"
+                                value={value}
+                                onChange={e => setValue(e.target.value)}
+                                placeholder={t('investigationDetail.graph.entityModal.valuePlaceholder')}
+                                className="w-full px-4 py-2.5 bg-input-bg border border-border-subtle rounded-xl text-text-default text-sm focus:outline-none focus:border-[var(--theme-primary)] transition-colors font-mono"
+                            />
+                        </div>
+
+                        {/* Notes */}
+                        <div>
+                            <label className="block text-xs font-semibold text-text-default/50 uppercase tracking-wider mb-2">
+                                {t('investigationDetail.graph.entityModal.notesLabel')}
+                            </label>
+                            <textarea
+                                value={notes}
+                                onChange={e => setNotes(e.target.value)}
+                                rows={3}
+                                className="w-full px-4 py-2.5 bg-input-bg border border-border-subtle rounded-xl text-text-default text-sm focus:outline-none focus:border-[var(--theme-primary)] transition-colors resize-none"
+                            />
+                        </div>
                     </div>
 
-                    <div>
-                        <label className="block text-xs text-text-muted mb-1.5">{t('investigationDetail.graph.entityModal.valueLabel')}</label>
-                        <input
-                            type="text"
-                            value={value}
-                            onChange={e => setValue(e.target.value)}
-                            placeholder={t('investigationDetail.graph.entityModal.valuePlaceholder')}
-                            className="w-full px-3 py-2 bg-input-bg border border-border rounded-lg text-text-default text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-border-focus transition-all font-mono"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-xs text-text-muted mb-1.5">{t('investigationDetail.graph.entityModal.notesLabel')}</label>
-                        <textarea
-                            value={notes}
-                            onChange={e => setNotes(e.target.value)}
-                            rows={2}
-                            className="w-full px-3 py-2 bg-input-bg border border-border rounded-lg text-text-default text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-border-focus transition-all resize-none"
-                        />
-                    </div>
-
-                    <div className="flex justify-end gap-2 pt-1">
-                        <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-text-muted hover:text-text-default transition-colors">
+                    {/* Footer */}
+                    <div className="flex gap-2 justify-end px-6 py-4 border-t border-border-subtle shrink-0">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="px-4 py-2 rounded-xl bg-input-bg border border-border-subtle text-text-muted hover:text-text-default transition-colors text-sm"
+                        >
                             {t('investigationDetail.graph.entityModal.cancel')}
                         </button>
                         <button
                             type="submit"
                             disabled={saving || !label.trim()}
-                            className="px-4 py-2 bg-primary hover:bg-primary/80 text-white rounded-lg text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                            className="px-4 py-2 rounded-xl text-white text-sm font-semibold disabled:opacity-40 transition-all"
+                            style={{background: 'var(--theme-primary)'}}
                         >
                             {saving
                                 ? t('investigationDetail.graph.entityModal.saving')
@@ -255,42 +300,83 @@ const EntityModal = ({
                     </div>
                 </form>
             </div>
-        </div>
+        </>
     );
 };
 
-// ─── Edge label modal ────────────────────────────────────────────────────────
+// ─── Edge label panel (slide-in) ─────────────────────────────────────────────
 
-const EdgeLabelModal = ({onConfirm, onCancel}: {onConfirm: (label: string) => void; onCancel: () => void}) => {
+const EdgeLabelPanel = ({
+    open,
+    onConfirm,
+    onCancel,
+}: {
+    open: boolean;
+    onConfirm: (label: string) => void;
+    onCancel: () => void;
+}) => {
     const {t} = useTranslation();
     const [label, setLabel] = useState('');
 
+    useEffect(() => {
+        if (open) setLabel('');
+    }, [open]);
+
     return (
-        <div className="fixed inset-0 bg-overlay flex items-center justify-center z-50 p-4">
-            <div className="bg-card/30 border border-border-subtle rounded-xl p-5 w-full max-w-xs shadow-2xl">
-                <h3 className="text-text-default font-semibold text-sm mb-3">{t('investigationDetail.graph.edgeLabelModal.title')}</h3>
-                <input
-                    autoFocus
-                    type="text"
-                    value={label}
-                    onChange={e => setLabel(e.target.value)}
-                    onKeyDown={e => {
-                        if (e.key === 'Enter') onConfirm(label);
-                        if (e.key === 'Escape') onCancel();
-                    }}
-                    placeholder={t('investigationDetail.graph.edgeLabelModal.placeholder')}
-                    className="w-full px-3 py-2 bg-input-bg border border-border rounded-lg text-text-default text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-border-focus transition-all mb-3"
-                />
-                <div className="flex justify-end gap-2">
-                    <button onClick={onCancel} className="px-3 py-1.5 text-sm text-text-muted hover:text-text-default transition-colors">
+        <>
+            {open && (
+                <div className="fixed inset-0 bg-black/40 z-[45] lg:hidden" onClick={onCancel} />
+            )}
+            <div
+                className={`fixed top-0 right-0 h-screen w-full max-w-[380px] z-50 flex flex-col
+                    transition-transform duration-300 ease-in-out
+                    ${open ? 'translate-x-0' : 'translate-x-full'}`}
+                style={{background: 'var(--color-card)', borderLeft: '1px solid var(--color-border-subtle)'}}
+            >
+                <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-border-subtle shrink-0">
+                    <h2 className="text-base font-bold text-text-default">
+                        {t('investigationDetail.graph.edgeLabelModal.title')}
+                    </h2>
+                    <button onClick={onCancel} className="text-text-dim hover:text-text-default transition-colors p-1">
+                        <X size={18}/>
+                    </button>
+                </div>
+
+                <div className="px-6 py-5 flex-1">
+                    <label className="block text-xs font-semibold text-text-default/50 uppercase tracking-wider mb-2">
+                        Libellé
+                    </label>
+                    <input
+                        autoFocus={open}
+                        type="text"
+                        value={label}
+                        onChange={e => setLabel(e.target.value)}
+                        onKeyDown={e => {
+                            if (e.key === 'Enter') onConfirm(label);
+                            if (e.key === 'Escape') onCancel();
+                        }}
+                        placeholder={t('investigationDetail.graph.edgeLabelModal.placeholder')}
+                        className="w-full px-4 py-2.5 bg-input-bg border border-border-subtle rounded-xl text-text-default text-sm focus:outline-none focus:border-[var(--theme-primary)] transition-colors"
+                    />
+                </div>
+
+                <div className="flex gap-2 justify-end px-6 py-4 border-t border-border-subtle shrink-0">
+                    <button
+                        onClick={onCancel}
+                        className="px-4 py-2 rounded-xl bg-input-bg border border-border-subtle text-text-muted hover:text-text-default transition-colors text-sm"
+                    >
                         {t('investigationDetail.graph.edgeLabelModal.cancel')}
                     </button>
-                    <button onClick={() => onConfirm(label)} className="px-4 py-1.5 bg-primary hover:bg-primary/80 text-white rounded-lg text-sm font-medium transition-all">
+                    <button
+                        onClick={() => onConfirm(label)}
+                        className="px-4 py-2 rounded-xl text-white text-sm font-semibold transition-all"
+                        style={{background: 'var(--theme-primary)'}}
+                    >
                         {t('investigationDetail.graph.edgeLabelModal.confirm')}
                     </button>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 
@@ -619,26 +705,24 @@ export const GraphTab = ({
                 {canEdit ? t('investigationDetail.graph.hint') : t('investigationDetail.graph.hintReadonly')}
             </p>
 
-            {showEntityModal && (
-                <EntityModal
-                    investigationId={investigationId}
-                    entity={editingEntity}
-                    onClose={() => { setShowEntityModal(false); setEditingEntity(null); }}
-                    onSaved={async () => {
-                        await refreshGraph();
-                        toast('success', editingEntity
-                            ? t('investigationDetail.graph.entityUpdated')
-                            : t('investigationDetail.graph.entitySaved'));
-                    }}
-                />
-            )}
+            <EntityPanel
+                investigationId={investigationId}
+                entity={editingEntity}
+                open={showEntityModal}
+                onClose={() => { setShowEntityModal(false); setEditingEntity(null); }}
+                onSaved={async () => {
+                    await refreshGraph();
+                    toast('success', editingEntity
+                        ? t('investigationDetail.graph.entityUpdated')
+                        : t('investigationDetail.graph.entitySaved'));
+                }}
+            />
 
-            {pendingConnection && (
-                <EdgeLabelModal
-                    onConfirm={handleEdgeLabelConfirm}
-                    onCancel={() => setPendingConnection(null)}
-                />
-            )}
+            <EdgeLabelPanel
+                open={Boolean(pendingConnection)}
+                onConfirm={handleEdgeLabelConfirm}
+                onCancel={() => setPendingConnection(null)}
+            />
         </div>
     );
 };

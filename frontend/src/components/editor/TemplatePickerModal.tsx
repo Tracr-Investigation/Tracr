@@ -22,12 +22,8 @@ interface TemplateCache {
 let templateCache: TemplateCache | null = null;
 
 const getCachedTemplates = (): Template[] | null => {
-  if (!templateCache) {
-    return null;
-  }
-  if (Date.now() - templateCache.fetchedAt > CACHE_TTL_MS) {
-    return null;
-  }
+  if (!templateCache) return null;
+  if (Date.now() - templateCache.fetchedAt > CACHE_TTL_MS) return null;
   return templateCache.data;
 };
 
@@ -35,204 +31,93 @@ const setCachedTemplates = (data: Template[]): void => {
   templateCache = { data, fetchedAt: Date.now() };
 };
 
-const getErrorMessage = (err: unknown, fallback: string): string => {
-  if (err instanceof Error) {
-    return err.message;
-  }
-  return fallback;
-};
+const getErrorMessage = (err: unknown, fallback: string): string =>
+  err instanceof Error ? err.message : fallback;
 
 const matchesSearch = (t: Template, query: string): boolean => {
-  if (!query) {
-    return true;
-  }
+  if (!query) return true;
   const lower = query.toLowerCase();
   return t.name.toLowerCase().includes(lower) || t.description.toLowerCase().includes(lower);
 };
 
-const getEmptyMessage = (hasSearch: boolean): string => {
-  if (hasSearch) {
-    return 'Aucun template ne correspond';
-  }
-  return 'Aucun template disponible';
-};
+// ── Sub-components ────────────────────────────────────────────────────────────
 
-interface VisibilityBadgeProps {
-  isPublic: boolean;
-  isOwner: boolean;
-}
-
-const VisibilityBadge = ({ isPublic, isOwner }: VisibilityBadgeProps) => {
-  if (isPublic) {
-    return <Globe size={11} className="text-secondary flex-shrink-0" />;
-  }
-  if (isOwner) {
-    return <Lock size={11} className="text-secondary flex-shrink-0" />;
-  }
+const VisibilityBadge = ({ isPublic, isOwner }: { isPublic: boolean; isOwner: boolean }) => {
+  if (isPublic) return <Globe size={11} className="text-text-dim flex-shrink-0" />;
+  if (isOwner) return <Lock size={11} className="text-text-dim flex-shrink-0" />;
   return null;
 };
 
-interface TemplateItemIconProps {
-  inserting: boolean;
-  isPublic: boolean;
-  isOwner: boolean;
-}
-
-const TemplateItemIcon = ({ inserting, isPublic, isOwner }: TemplateItemIconProps) => {
-  if (inserting) {
-    return <Loader2 size={11} className="text-secondary animate-spin flex-shrink-0" />;
-  }
-  return <VisibilityBadge isPublic={isPublic} isOwner={isOwner} />;
-};
-
-interface TemplateItemDescriptionProps {
-  description: string;
-}
-
-const TemplateItemDescription = ({ description }: TemplateItemDescriptionProps) => {
-  if (!description) {
-    return null;
-  }
-  return <p className="text-xs text-secondary line-clamp-2">{description}</p>;
-};
-
-interface TemplateItemProps {
+const TemplateItem = ({
+  template,
+  inserting,
+  onSelect,
+}: {
   template: Template;
   inserting: boolean;
   onSelect: (id: number) => void;
-}
-
-const TemplateItem = ({ template, inserting, onSelect }: TemplateItemProps) => {
-  const handleClick = () => {
-    onSelect(template.id_template);
-  };
-
-  return (
-    <button
-      onClick={handleClick}
-      disabled={inserting}
-      className="text-left bg-dark border border-primary/20 rounded-lg p-3 hover:border-primary/40 hover:bg-primary/5 transition-colors disabled:opacity-50 disabled:cursor-wait"
-    >
-      <div className="flex items-center gap-1.5 mb-1">
-        <span className="font-semibold text-accent text-sm flex-1 min-w-0 truncate">
-          {template.name}
-        </span>
-        <TemplateItemIcon
-          inserting={inserting}
-          isPublic={template.is_public}
-          isOwner={template.is_owner}
-        />
-      </div>
-      <TemplateItemDescription description={template.description} />
-    </button>
-  );
-};
-
-interface TemplateGridProps {
-  templates: Template[];
-  insertingId: number | null;
-  onSelect: (id: number) => void;
-}
-
-const TemplateGrid = ({ templates, insertingId, onSelect }: TemplateGridProps) => {
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-      {templates.map((t) => (
-        <TemplateItem
-          key={t.id_template}
-          template={t}
-          inserting={insertingId === t.id_template}
-          onSelect={onSelect}
-        />
-      ))}
+}) => (
+  <button
+    onClick={() => onSelect(template.id_template)}
+    disabled={inserting}
+    className="text-left bg-input-bg border border-border-subtle rounded-xl p-3 hover:border-border hover:bg-card/60 transition-all disabled:opacity-50 disabled:cursor-wait"
+  >
+    <div className="flex items-center gap-1.5 mb-1">
+      <span className="font-semibold text-text-default text-sm flex-1 min-w-0 truncate">
+        {template.name}
+      </span>
+      {inserting
+        ? <Loader2 size={11} className="text-text-dim animate-spin flex-shrink-0" />
+        : <VisibilityBadge isPublic={template.is_public} isOwner={template.is_owner} />
+      }
     </div>
-  );
-};
+    {template.description && (
+      <p className="text-xs text-text-muted line-clamp-2">{template.description}</p>
+    )}
+  </button>
+);
 
-interface TemplateListContentProps {
-  loading: boolean;
-  templates: Template[];
-  emptyMessage: string;
-  insertingId: number | null;
-  onSelect: (id: number) => void;
-}
-
-const TemplateListContent = ({
-  loading,
-  templates,
-  emptyMessage,
-  insertingId,
-  onSelect,
-}: TemplateListContentProps) => {
-  if (loading) {
-    return <p className="text-secondary text-sm py-8 text-center">Chargement…</p>;
-  }
-  if (templates.length === 0) {
-    return <p className="text-secondary text-sm py-8 text-center">{emptyMessage}</p>;
-  }
-  return <TemplateGrid templates={templates} insertingId={insertingId} onSelect={onSelect} />;
-};
-
-// Modale principale 
+// ── Main panel ────────────────────────────────────────────────────────────────
 
 interface Props {
+  open: boolean;
   onClose: () => void;
   onSelect: (templateId: number) => Promise<void>;
 }
 
-export const TemplatePickerModal = ({ onClose, onSelect }: Props) => {
+export const TemplatePickerModal = ({ open, onClose, onSelect }: Props) => {
   const { toast } = useToast();
   const [templates, setTemplates] = useState<Template[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [insertingId, setInsertingId] = useState<number | null>(null);
 
   useEffect(() => {
+    if (!open) return;
+    setSearch('');
     const cached = getCachedTemplates();
     if (cached) {
       setTemplates(cached);
       setLoading(false);
       return;
     }
+    setLoading(true);
     api.listTemplates()
-      .then((d) => {
-        setCachedTemplates(d.templates);
-        setTemplates(d.templates);
-      })
+      .then((d) => { setCachedTemplates(d.templates); setTemplates(d.templates); })
       .catch((err) => toast('error', getErrorMessage(err, LOAD_ERROR_FALLBACK)))
       .finally(() => setLoading(false));
-  }, [toast]);
+  }, [open, toast]);
 
-  // Fermeture sur Escape
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [onClose]);
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [open, onClose]);
 
-  const hasSearch = Boolean(search.trim());
   const filtered = templates.filter((t) => matchesSearch(t, search));
-  const emptyMessage = getEmptyMessage(hasSearch);
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
-  };
-
-  const handleBackdropClick = () => {
-    onClose();
-  };
-
-  const handleContainerClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-  };
-
-  const handleTemplateSelect = async (id: number) => {
+  const handleSelect = async (id: number) => {
     setInsertingId(id);
     try {
       await onSelect(id);
@@ -242,49 +127,71 @@ export const TemplatePickerModal = ({ onClose, onSelect }: Props) => {
   };
 
   return (
-    <div
-      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
-      onClick={handleBackdropClick}
-    >
+    <>
+      {open && (
+        <div className="fixed inset-0 bg-black/40 z-[45] lg:hidden" onClick={onClose} />
+      )}
       <div
-        className="bg-[#1a1a2e] border border-primary/20 rounded-xl p-5 w-full max-w-2xl max-h-[80vh] flex flex-col"
-        onClick={handleContainerClick}
+        className={`fixed top-0 right-0 h-screen w-full max-w-[560px] z-50 flex flex-col
+          transition-transform duration-300 ease-in-out
+          ${open ? 'translate-x-0' : 'translate-x-full'}`}
+        style={{ background: 'var(--color-card)', borderLeft: '1px solid var(--color-border-subtle)' }}
       >
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-semibold text-accent inline-flex items-center gap-2">
-            <FileText size={16} /> Insérer un template
-          </h3>
-          <button onClick={onClose} className="text-secondary hover:text-accent transition-colors">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-border-subtle shrink-0">
+          <h2 className="text-base font-bold text-text-default flex items-center gap-2.5">
+            <FileText size={16} className="text-primary" />
+            Insérer un template
+          </h2>
+          <button onClick={onClose} className="text-text-dim hover:text-text-default transition-colors p-1">
             <X size={18} />
           </button>
         </div>
 
-        <div className="relative mb-3">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary" />
-          <input
-            type="text"
-            value={search}
-            onChange={handleSearchChange}
-            placeholder="Rechercher..."
-            autoFocus
-            className="w-full bg-dark border border-primary/20 rounded-lg pl-9 pr-3 py-1.5 text-sm text-accent placeholder-secondary focus:outline-none focus:border-primary"
-          />
+        {/* Search */}
+        <div className="px-6 py-4 shrink-0">
+          <div className="relative">
+            <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-dim" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Rechercher…"
+              autoFocus={open}
+              className="w-full bg-input-bg border border-border-subtle rounded-xl pl-9 pr-4 py-2.5 text-sm text-text-default placeholder-text-dim focus:outline-none focus:border-[var(--theme-primary)] transition-colors"
+            />
+          </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto -mx-1 px-1">
-          <TemplateListContent
-            loading={loading}
-            templates={filtered}
-            emptyMessage={emptyMessage}
-            insertingId={insertingId}
-            onSelect={handleTemplateSelect}
-          />
+        {/* List */}
+        <div className="flex-1 overflow-y-auto px-6 pb-4">
+          {loading ? (
+            <p className="text-text-muted text-sm py-10 text-center">Chargement…</p>
+          ) : filtered.length === 0 ? (
+            <p className="text-text-muted text-sm py-10 text-center">
+              {search.trim() ? 'Aucun template ne correspond' : 'Aucun template disponible'}
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {filtered.map((t) => (
+                <TemplateItem
+                  key={t.id_template}
+                  template={t}
+                  inserting={insertingId === t.id_template}
+                  onSelect={handleSelect}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
-        <p className="text-xs text-secondary mt-3 pt-3 border-t border-primary/10">
-          Le contenu du template sera inséré à la position du curseur.
-        </p>
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-border-subtle shrink-0">
+          <p className="text-xs text-text-dim">
+            Le contenu du template sera inséré à la position du curseur.
+          </p>
+        </div>
       </div>
-    </div>
+    </>
   );
 };

@@ -173,12 +173,12 @@ export const StatusesTab = () => {
     <div>
       <div className="mb-8 flex items-center justify-between">
         <div className="bg-gradient-to-r from-primary to-secondary rounded-xl p-6 inline-flex items-center gap-4">
-          <div className="w-12 h-12 bg-input-bg rounded-lg flex items-center justify-center">
-            <CircleDot size={24} className="text-text-default" />
+          <div className="w-12 h-12 bg-white/15 rounded-lg flex items-center justify-center">
+            <CircleDot size={24} className="text-white" />
           </div>
           <div>
-            <p className="text-text-muted text-sm">{t('admin.statuses.totalLabel')}</p>
-            <p className="text-text-default text-3xl font-bold">{total}</p>
+            <p className="text-white/70 text-sm">{t('admin.statuses.totalLabel')}</p>
+            <p className="text-white text-3xl font-bold">{total}</p>
           </div>
         </div>
 

@@ -670,12 +670,11 @@ export const EditorToolbar = ({
         />
       )}
 
-      {showLocationModal && (
-        <LocationModal
-          editor={editor}
-          onClose={() => setShowLocationModal(false)}
-        />
-      )}
+      <LocationModal
+        editor={editor}
+        open={showLocationModal}
+        onClose={() => setShowLocationModal(false)}
+      />
     </>
   );
 };

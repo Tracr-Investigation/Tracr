@@ -255,12 +255,11 @@ export const DocumentEditor = forwardRef<DocumentEditorHandle, Props>(({
         onPanelClose={handleClosePanel}
       />
 
-      {showTemplatePicker && (
-        <TemplatePickerModal
-          onClose={handleCloseTemplatePicker}
-          onSelect={handleInsertTemplate}
-        />
-      )}
+      <TemplatePickerModal
+        open={showTemplatePicker}
+        onClose={handleCloseTemplatePicker}
+        onSelect={handleInsertTemplate}
+      />
     </div>
   );
 });
