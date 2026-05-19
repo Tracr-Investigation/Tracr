@@ -11,6 +11,7 @@ import Color from '@tiptap/extension-color';
 import Placeholder from '@tiptap/extension-placeholder';
 import type { Extensions } from '@tiptap/core';
 import { LocationNode } from './LocationNode';
+import { EmbedNode } from './EmbedNode';
 
 // Extensions TipTap communes à tous les éditeurs du projet.
 // DocumentEditor y ajoute CommentMark + Collaboration/CollaborationCursor.
@@ -30,5 +31,6 @@ export const createBaseExtensions = (placeholder: string, hasCollaboration = fal
     Color,
     Placeholder.configure({ placeholder }),
     LocationNode,
+    EmbedNode,
   ];
 };

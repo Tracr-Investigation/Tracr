@@ -80,7 +80,7 @@ const buildBtnClassName = (active: boolean): string => {
 const Btn = ({ active = false, disabled = false, onClick, title, children }: BtnProps) => {
   const className = buildBtnClassName(active);
   return (
-    <button onClick={onClick} disabled={disabled} title={title} className={className}>
+    <button type="button" onClick={onClick} disabled={disabled} title={title} className={className}>
       {children}
     </button>
   );
@@ -291,6 +291,7 @@ interface ColorSwatchProps {
 const ColorSwatch = ({ color, onClick }: ColorSwatchProps) => {
   return (
     <button
+      type="button"
       onClick={onClick}
       className="rounded-full border border-black/20 hover:scale-110 transition-transform"
       style={{ backgroundColor: color, width: SWATCH_SIZE_PX, height: SWATCH_SIZE_PX }}
@@ -308,6 +309,7 @@ interface ClearSwatchProps {
 const ClearSwatch = ({ title, onClick }: ClearSwatchProps) => {
   return (
     <button
+      type="button"
       onClick={onClick}
       className="rounded-full border border-primary/30 bg-dark text-secondary text-[10px] flex items-center justify-center hover:scale-110 transition-transform"
       style={{ width: SWATCH_SIZE_PX, height: SWATCH_SIZE_PX }}
@@ -472,7 +474,7 @@ const CommentButton = ({ hasSelection, commentCount, onClick }: CommentButtonPro
   const showBadge = commentCount > 0;
 
   return (
-    <button onClick={onClick} title={title} className={className}>
+    <button type="button" onClick={onClick} title={title} className={className}>
       <MessageSquare size={ICON_SIZE} />
       {showBadge && (
         <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold rounded-full min-w-[14px] h-[14px] flex items-center justify-center px-1">
@@ -549,12 +551,14 @@ const LinkDialog = ({ initialUrl, onApply, onClose }: LinkDialogProps) => {
         <p className="text-xs text-secondary mt-2">Laisser vide pour retirer le lien</p>
         <div className="flex gap-2 justify-end mt-4">
           <button
+            type="button"
             onClick={onClose}
             className="px-3 py-1.5 rounded-lg bg-dark border border-primary/20 text-secondary hover:text-accent transition-colors text-sm"
           >
             Annuler
           </button>
           <button
+            type="button"
             onClick={handleApply}
             className="px-3 py-1.5 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors text-sm"
           >

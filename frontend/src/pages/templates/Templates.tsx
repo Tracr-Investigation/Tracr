@@ -359,6 +359,12 @@ const TemplateCard = ({ template, selected, onClick }: { template: TemplateData;
       {!template.description && template.created_by_pseudo && (
         <p className="text-xs text-text-dim">{template.created_by_pseudo}</p>
       )}
+      {template.created_at && (
+        <span className="inline-flex items-center gap-1 text-[10px] text-text-dim mt-0.5">
+          <Calendar size={9} />
+          {formatRelativeDate(template.created_at)}
+        </span>
+      )}
     </div>
 
     <ChevronRight size={14} className={`shrink-0 transition-colors ${selected ? 'text-[var(--theme-primary)]' : 'text-text-dim group-hover:text-text-default/40'}`} />
