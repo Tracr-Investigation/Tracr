@@ -94,13 +94,13 @@ const EntityNode = ({data}: {data: {entity: EntityData; onEdit: (e: EntityData) 
             <div className="absolute -top-7 right-0 hidden group-hover:flex gap-1 z-10">
                 <button
                     onClick={() => onEdit(entity)}
-                    className="w-6 h-6 rounded-md bg-card border border-border flex items-center justify-center hover:bg-primary/10 hover:border-primary/40 transition-all"
+                    className="w-6 h-6 rounded-md bg-card/30 border border-border-subtle flex items-center justify-center hover:bg-primary/10 hover:border-primary/40 transition-all"
                 >
                     <Edit2 size={10} className="text-text-muted"/>
                 </button>
                 <button
                     onClick={() => onDelete(entity)}
-                    className="w-6 h-6 rounded-md bg-card border border-border flex items-center justify-center hover:bg-red-500/10 hover:border-red-500/40 transition-all"
+                    className="w-6 h-6 rounded-md bg-card/30 border border-border-subtle flex items-center justify-center hover:bg-red-500/10 hover:border-red-500/40 transition-all"
                 >
                     <Trash2 size={10} className="text-red-400"/>
                 </button>
@@ -165,7 +165,7 @@ const EntityModal = ({
 
     return (
         <div className="fixed inset-0 bg-overlay flex items-center justify-center z-50 p-4">
-            <div className="bg-card border border-border rounded-xl p-5 w-full max-w-md shadow-2xl">
+            <div className="bg-card/30 border border-border-subtle rounded-xl p-5 w-full max-w-md shadow-2xl">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-text-default font-semibold text-sm">
                         {entity ? t('investigationDetail.graph.entityModal.editTitle') : t('investigationDetail.graph.entityModal.newTitle')}
@@ -190,7 +190,7 @@ const EntityModal = ({
                                             title={etype.label}
                                             className={`flex flex-col items-center gap-1 p-2 rounded-lg border text-[10px] transition-all ${
                                                 type === etype.value
-                                                    ? 'border-primary/60 bg-primary/10 text-text-default'
+                                                    ? 'border-primary/60 bg-primary/10 text-white'
                                                     : 'border-border text-text-muted hover:border-border-focus'
                                             }`}
                                         >
@@ -267,7 +267,7 @@ const EdgeLabelModal = ({onConfirm, onCancel}: {onConfirm: (label: string) => vo
 
     return (
         <div className="fixed inset-0 bg-overlay flex items-center justify-center z-50 p-4">
-            <div className="bg-card border border-border rounded-xl p-5 w-full max-w-xs shadow-2xl">
+            <div className="bg-card/30 border border-border-subtle rounded-xl p-5 w-full max-w-xs shadow-2xl">
                 <h3 className="text-text-default font-semibold text-sm mb-3">{t('investigationDetail.graph.edgeLabelModal.title')}</h3>
                 <input
                     autoFocus
@@ -561,7 +561,7 @@ export const GraphTab = ({
                                             toast('error', err instanceof Error ? err.message : 'Error');
                                         }
                                     }}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1c1c1c] hover:bg-[#2a2a2a] border border-[#333] text-[#e5e5e5] rounded-lg text-xs font-medium shadow transition-all"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-card hover:bg-input-bg border border-border text-text-default rounded-lg text-xs font-medium shadow transition-all"
                                     title={t('investigationDetail.graph.resetPositions')}
                                 >
                                     <RotateCcw size={13}/>
@@ -573,14 +573,14 @@ export const GraphTab = ({
                                 <button
                                     onClick={() => setShowExportMenu(v => !v)}
                                     disabled={exporting}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1c1c1c] hover:bg-[#2a2a2a] border border-[#333] text-[#e5e5e5] rounded-lg text-xs font-medium shadow transition-all disabled:opacity-40"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-card hover:bg-input-bg border border-border text-text-default rounded-lg text-xs font-medium shadow transition-all disabled:opacity-40"
                                 >
                                     <Download size={13}/>
                                     {t('investigationDetail.graph.export')}
                                     <ChevronDown size={11}/>
                                 </button>
                                 {showExportMenu && (
-                                    <div className="absolute top-full left-0 mt-1 z-20 bg-card border border-border rounded-xl py-1 shadow-lg min-w-[160px]">
+                                    <div className="absolute top-full left-0 mt-1 z-20 bg-card/30 border border-border-subtle rounded-xl py-1 shadow-lg min-w-[160px]">
                                         <button
                                             onClick={exportPng}
                                             className="w-full px-3 py-2 text-left text-xs text-text-default hover:bg-primary/10 transition-colors flex items-center gap-2"

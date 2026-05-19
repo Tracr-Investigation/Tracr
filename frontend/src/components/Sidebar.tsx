@@ -199,7 +199,7 @@ export const Sidebar = () => {
                     >
                         <div
                             className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center flex-shrink-0">
-                            <User size={20} className="text-white"/>
+                            <User size={20} className="text-text-default"/>
                         </div>
                         {!collapsed && (
                             <div className="flex-1 min-w-0">

@@ -110,7 +110,7 @@ const RemoteUsersBar = ({ users }: RemoteUsersBarProps) => {
           <div
             key={user.clientId}
             title={user.pseudo}
-            className="w-6 h-6 rounded-full border-2 border-[#1a1a2e] flex items-center justify-center text-[10px] font-semibold text-white"
+            className="w-6 h-6 rounded-full border-2 border-card flex items-center justify-center text-[10px] font-semibold text-text-default"
             style={{ backgroundColor: avatarBackground }}
           >
             {avatarLabel}
@@ -118,7 +118,7 @@ const RemoteUsersBar = ({ users }: RemoteUsersBarProps) => {
         );
       })}
       {hasOverflow && (
-        <div className="w-6 h-6 rounded-full border-2 border-[#1a1a2e] bg-primary/30 flex items-center justify-center text-[10px] font-semibold text-secondary">
+        <div className="w-6 h-6 rounded-full border-2 border-card bg-primary/30 flex items-center justify-center text-[10px] font-semibold text-secondary">
           +{overflowCount}
         </div>
       )}
@@ -369,7 +369,7 @@ export const DocumentDetail = () => {
   return (
     <Layout>
       <div className="flex flex-col h-screen">
-        <div className="flex items-center gap-3 px-4 py-2.5 border-b border-primary/20 bg-[#1a1a2e]">
+        <div className="flex items-center gap-3 px-4 py-2.5 border-b border-primary/20 bg-card">
           <Link
             to={backLink}
             className="text-secondary hover:text-accent transition-colors inline-flex items-center gap-1 text-sm whitespace-nowrap"

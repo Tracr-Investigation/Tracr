@@ -76,7 +76,7 @@ const CategoryFormModal = ({category, onClose, onSave}: ModalProps) => {
 
     return (
         <div className="fixed inset-0 bg-overlay flex items-center justify-center z-50" onClick={onClose}>
-            <div className="bg-card border border-border rounded-xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-card/30 border border-border-subtle rounded-xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-6">
                     <h3 className="text-lg font-semibold text-text-default">
                         {category ? t('admin.categories.editTitle') : t('admin.categories.newTitle')}
@@ -115,7 +115,7 @@ const CategoryFormModal = ({category, onClose, onSave}: ModalProps) => {
                                     <button key={iconName} type="button" onClick={() => setIcon(iconName)}
                                         className={`p-2 rounded-lg transition-all flex items-center justify-center ${
                                             icon === iconName
-                                                ? 'bg-primary/30 text-text-default border border-primary/50'
+                                                ? 'bg-primary/30 text-white border border-primary/50'
                                                 : 'text-text-muted hover:bg-primary/10 hover:text-text-default border border-transparent'
                                         }`}
                                         title={iconName}
@@ -137,7 +137,7 @@ const CategoryFormModal = ({category, onClose, onSave}: ModalProps) => {
                     {error && <p className="text-red-400 text-sm">{error}</p>}
 
                     <div className="flex justify-end gap-3 pt-2">
-                        <button type="button" onClick={onClose} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-card border border-border text-text-muted hover:bg-primary/10 hover:text-text-default transition-all">
+                        <button type="button" onClick={onClose} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-card/30 border border-border-subtle text-text-muted hover:bg-primary/10 hover:text-text-default transition-all">
                             {t('admin.categories.cancel')}
                         </button>
                         <button type="submit" disabled={loading || !name.trim()} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-text-default border border-primary/30 hover:bg-primary/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
@@ -169,14 +169,14 @@ const DeleteModal = ({category, onClose, onSave}: ModalProps) => {
 
     return (
         <div className="fixed inset-0 bg-overlay flex items-center justify-center z-50" onClick={onClose}>
-            <div className="bg-card border border-border rounded-xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-card/30 border border-border-subtle rounded-xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
                 <h3 className="text-lg font-semibold text-text-default mb-3">{t('admin.categories.deleteTitle')}</h3>
                 <p className="text-text-muted mb-2">{t('admin.categories.deleteConfirm')}</p>
                 <div className="mb-6">
                     <CategoryBadge name={category?.name || ''} color={category?.color || null} icon={category?.icon || null}/>
                 </div>
                 <div className="flex justify-end gap-3">
-                    <button onClick={onClose} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-card border border-border text-text-muted hover:bg-primary/10 hover:text-text-default transition-all">
+                    <button onClick={onClose} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-card/30 border border-border-subtle text-text-muted hover:bg-primary/10 hover:text-text-default transition-all">
                         {t('admin.categories.cancel')}
                     </button>
                     <button onClick={handleDelete} disabled={loading} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
@@ -231,12 +231,12 @@ export const CategoriesTab = () => {
         <div>
             <div className="mb-8 flex items-center justify-between">
                 <div className="bg-gradient-to-r from-primary to-secondary rounded-xl p-6 inline-flex items-center gap-4">
-                    <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-                        <Tag size={24} className="text-white"/>
+                    <div className="w-12 h-12 bg-input-bg rounded-lg flex items-center justify-center">
+                        <Tag size={24} className="text-text-default"/>
                     </div>
                     <div>
-                        <p className="text-white/80 text-sm">{t('admin.categories.totalLabel')}</p>
-                        <p className="text-white text-3xl font-bold">{total}</p>
+                        <p className="text-text-muted text-sm">{t('admin.categories.totalLabel')}</p>
+                        <p className="text-text-default text-3xl font-bold">{total}</p>
                     </div>
                 </div>
 
@@ -246,7 +246,7 @@ export const CategoriesTab = () => {
                 </button>
             </div>
 
-            <div className="bg-card border border-border rounded-xl overflow-hidden">
+            <div className="bg-card/30 border border-border-subtle rounded-xl overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
@@ -268,7 +268,7 @@ export const CategoriesTab = () => {
                             categories.map((c) => {
                                 const IconComp = getIconComponent(c.icon);
                                 return (
-                                    <tr key={c.id_category} className="border-b border-border-subtle hover:bg-primary/5 transition-colors">
+                                    <tr key={c.id_category} className="border-b border-border-subtle hover:bg-card/20 transition-colors">
                                         <td className="px-6 py-4 text-text-muted text-sm font-mono">#{c.id_category}</td>
                                         <td className="px-6 py-4"><CategoryBadge name={c.name} color={c.color} icon={c.icon}/></td>
                                         <td className="px-6 py-4">
@@ -286,7 +286,7 @@ export const CategoriesTab = () => {
                                         <td className="px-6 py-4 text-text-muted text-sm">{formatDate(c.created_at)}</td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center justify-end gap-2">
-                                                <button onClick={() => setEditCategory(c)} className="p-2 rounded-lg bg-card border border-border text-text-muted hover:bg-primary/20 hover:text-text-default transition-all" title={t('admin.categories.editTooltip')}>
+                                                <button onClick={() => setEditCategory(c)} className="p-2 rounded-lg bg-card/30 border border-border-subtle text-text-muted hover:bg-primary/20 hover:text-text-default transition-all" title={t('admin.categories.editTooltip')}>
                                                     <Pencil size={14}/>
                                                 </button>
                                                 <button onClick={() => setDeleteCategory(c)} className="p-2 rounded-lg bg-card border border-red-500/20 text-text-muted hover:bg-red-500/20 hover:text-red-400 transition-all" title={t('admin.categories.deleteTooltip')}>

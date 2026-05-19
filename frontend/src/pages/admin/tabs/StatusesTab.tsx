@@ -41,7 +41,7 @@ const StatusFormModal = ({ status, onClose, onSave }: ModalProps) => {
 
   return (
     <div className="fixed inset-0 bg-overlay flex items-center justify-center z-50" onClick={onClose}>
-      <div className="bg-card border border-border rounded-xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-card/30 border border-border-subtle rounded-xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold text-text-default">
             {status ? t('admin.statuses.editTitle') : t('admin.statuses.newTitle')}
@@ -81,7 +81,7 @@ const StatusFormModal = ({ status, onClose, onSave }: ModalProps) => {
           {error && <p className="text-red-400 text-sm">{error}</p>}
 
           <div className="flex justify-end gap-3 pt-2">
-            <button type="button" onClick={onClose} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-card border border-border text-text-muted hover:bg-primary/10 hover:text-text-default transition-all">
+            <button type="button" onClick={onClose} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-card/30 border border-border-subtle text-text-muted hover:bg-primary/10 hover:text-text-default transition-all">
               {t('admin.statuses.cancel')}
             </button>
             <button type="submit" disabled={loading || !name.trim()} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-text-default border border-primary/30 hover:bg-primary/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
@@ -113,12 +113,12 @@ const DeleteModal = ({ status, onClose, onSave }: ModalProps) => {
 
   return (
     <div className="fixed inset-0 bg-overlay flex items-center justify-center z-50" onClick={onClose}>
-      <div className="bg-card border border-border rounded-xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-card/30 border border-border-subtle rounded-xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
         <h3 className="text-lg font-semibold text-text-default mb-3">{t('admin.statuses.deleteTitle')}</h3>
         <p className="text-text-muted mb-2">{t('admin.statuses.deleteConfirm')}</p>
         <div className="mb-6"><StatusBadge name={status?.name || ''} color={status?.color || null} /></div>
         <div className="flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-card border border-border text-text-muted hover:bg-primary/10 hover:text-text-default transition-all">
+          <button onClick={onClose} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-card/30 border border-border-subtle text-text-muted hover:bg-primary/10 hover:text-text-default transition-all">
             {t('admin.statuses.cancel')}
           </button>
           <button onClick={handleDelete} disabled={loading} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
@@ -173,12 +173,12 @@ export const StatusesTab = () => {
     <div>
       <div className="mb-8 flex items-center justify-between">
         <div className="bg-gradient-to-r from-primary to-secondary rounded-xl p-6 inline-flex items-center gap-4">
-          <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-            <CircleDot size={24} className="text-white" />
+          <div className="w-12 h-12 bg-input-bg rounded-lg flex items-center justify-center">
+            <CircleDot size={24} className="text-text-default" />
           </div>
           <div>
-            <p className="text-white/80 text-sm">{t('admin.statuses.totalLabel')}</p>
-            <p className="text-white text-3xl font-bold">{total}</p>
+            <p className="text-text-muted text-sm">{t('admin.statuses.totalLabel')}</p>
+            <p className="text-text-default text-3xl font-bold">{total}</p>
           </div>
         </div>
 
@@ -188,7 +188,7 @@ export const StatusesTab = () => {
         </button>
       </div>
 
-      <div className="bg-card border border-border rounded-xl overflow-hidden">
+      <div className="bg-card/30 border border-border-subtle rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -207,7 +207,7 @@ export const StatusesTab = () => {
                 <tr><td colSpan={5} className="px-6 py-12 text-center text-text-muted">{t('admin.statuses.empty')}</td></tr>
               ) : (
                 statuses.map((s) => (
-                  <tr key={s.id_status} className="border-b border-border-subtle hover:bg-primary/5 transition-colors">
+                  <tr key={s.id_status} className="border-b border-border-subtle hover:bg-card/20 transition-colors">
                     <td className="px-6 py-4 text-text-muted text-sm font-mono">#{s.id_status}</td>
                     <td className="px-6 py-4"><StatusBadge name={s.name} color={s.color} /></td>
                     <td className="px-6 py-4">
@@ -219,7 +219,7 @@ export const StatusesTab = () => {
                     <td className="px-6 py-4 text-text-muted text-sm">{formatDate(s.created_at)}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => setEditStatus(s)} className="p-2 rounded-lg bg-card border border-border text-text-muted hover:bg-primary/20 hover:text-text-default transition-all" title={t('admin.statuses.editTooltip')}>
+                        <button onClick={() => setEditStatus(s)} className="p-2 rounded-lg bg-card/30 border border-border-subtle text-text-muted hover:bg-primary/20 hover:text-text-default transition-all" title={t('admin.statuses.editTooltip')}>
                           <Pencil size={14} />
                         </button>
                         <button onClick={() => setDeleteStatus(s)} className="p-2 rounded-lg bg-card border border-red-500/20 text-text-muted hover:bg-red-500/20 hover:text-red-400 transition-all" title={t('admin.statuses.deleteTooltip')}>

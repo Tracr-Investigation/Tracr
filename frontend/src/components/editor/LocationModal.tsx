@@ -92,7 +92,7 @@ export const LocationModal = ({ editor, onClose }: Props) => {
           <span className="text-sm text-accent font-semibold flex-1">Insérer une localisation</span>
           <button
             onClick={onClose}
-            className="text-secondary hover:text-accent transition-colors p-1 rounded-lg hover:bg-white/5"
+            className="text-secondary hover:text-accent transition-colors p-1 rounded-lg hover:bg-input-bg"
           >
             <X size={15} />
           </button>
