@@ -32,9 +32,8 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
 
 fastapi_app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
@@ -48,6 +47,11 @@ async def add_security_headers(request: Request, call_next):
         "max-age=31536000; includeSubDomains"
     )
     return response
+
+
+@fastapi_app.get("/health")
+async def health():
+    return {"status": "ok"}
 
 
 fastapi_app.include_router(auth.router)

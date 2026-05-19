@@ -14,7 +14,10 @@ export function connectSocket(): Socket {
     socket = io(API_URL, {
         path: '/socket.io',
         auth: { token },
-        transports: ['polling', 'websocket'],
+        transports: ['websocket', 'polling'],
+        reconnectionAttempts: 10,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
     });
 
     return socket;

@@ -97,12 +97,9 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
         socket.on('new_notification', handleNewNotification);
         socket.on('connect', silentRefresh);
 
-        const pollInterval = setInterval(silentRefresh, 5000);
-
         return () => {
             socket.off('new_notification', handleNewNotification);
             socket.off('connect', silentRefresh);
-            clearInterval(pollInterval);
         };
     }, [isAuthenticated, fetchNotifications, silentRefresh]);
 
