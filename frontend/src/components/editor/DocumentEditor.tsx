@@ -224,17 +224,19 @@ export const DocumentEditor = forwardRef<DocumentEditorHandle, Props>(({
   return (
     <div className="flex-1 flex min-h-0">
       <div className="flex-1 flex flex-col min-w-0">
-        {showToolbar && (
-          <EditorToolbar
-            editor={editor!}
-            hasSelection={hasSelection}
-            commentCount={commentCount}
-            onCommentClick={handleCommentClick}
-            onInsertTemplateClick={handleOpenTemplatePicker}
-          />
-        )}
         <div className="flex-1 overflow-y-auto bg-[#0f0f1e]">
-          <div className="max-w-4xl mx-auto py-8 px-6">
+          {showToolbar && (
+            <div className="sticky top-0 z-10">
+              <EditorToolbar
+                editor={editor!}
+                hasSelection={hasSelection}
+                commentCount={commentCount}
+                onCommentClick={handleCommentClick}
+                onInsertTemplateClick={handleOpenTemplatePicker}
+              />
+            </div>
+          )}
+          <div className="max-w-4xl mx-auto pt-8 pb-40 px-6">
             <EditorContent editor={editor!} className="prose-document" />
           </div>
         </div>

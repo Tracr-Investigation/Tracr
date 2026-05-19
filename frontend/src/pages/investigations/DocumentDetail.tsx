@@ -408,7 +408,7 @@ export const DocumentDetail = () => {
         </div>
 
         <div className="flex flex-row flex-1 overflow-hidden">
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 flex flex-col overflow-hidden">
             <DocumentEditor
               ref={editorRef}
               documentId={safeDocument.id_document}
