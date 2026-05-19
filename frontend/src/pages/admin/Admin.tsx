@@ -4,7 +4,8 @@ import { UsersTab } from './tabs/UsersTab';
 import { LogsTab } from './tabs/LogsTab';
 import { StatusesTab } from './tabs/StatusesTab';
 import { CategoriesTab } from './tabs/CategoriesTab';
-import { Users, ScrollText, CircleDot, Tag } from 'lucide-react';
+import { TemplateCategoriesTab } from './tabs/TemplateCategoriesTab';
+import { Users, ScrollText, CircleDot, Tag, Layers } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export const Admin = () => {
@@ -35,13 +36,19 @@ export const Admin = () => {
       icon: Tag,
       content: <CategoriesTab />,
     },
+    {
+      id: 'templateCategories',
+      label: t('admin.tabs.templateCategories'),
+      icon: Layers,
+      content: <TemplateCategoriesTab />,
+    },
   ];
 
   return (
     <Layout>
-      <div className="p-8">
-        <h1 className="text-3xl font-bold text-accent mb-2">{t('admin.title')}</h1>
-        <p className="text-secondary mb-6">{t('admin.subtitle')}</p>
+      <div className="px-6 pt-6 pb-8">
+        <h1 className="text-2xl font-bold text-text-default mb-1">{t('admin.title')}</h1>
+        <p className="text-text-muted text-sm mb-6">{t('admin.subtitle')}</p>
 
         <Tabs tabs={TABS} defaultTab="users" />
       </div>

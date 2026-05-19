@@ -29,6 +29,27 @@ export interface RelationData {
 
 export {API_URL};
 
+export interface TemplateCategoryData {
+    id_category_template: number;
+    name: string;
+    color: string | null;
+    icon: string | null;
+    created_at: string | null;
+}
+
+export interface TemplateData {
+    id_template: number;
+    name: string;
+    description: string;
+    is_public: boolean;
+    created_by: number | null;
+    created_by_pseudo: string | null;
+    is_owner: boolean;
+    created_at: string | null;
+    updated_at: string | null;
+    category: TemplateCategoryData | null;
+}
+
 function parseApiError(detail: unknown, fallback: string): string {
     if (typeof detail === 'string') return detail;
     if (Array.isArray(detail)) {
@@ -788,6 +809,53 @@ export const api = {
         return data;
     },
 
+    // ── Template categories ─────────────────────────────────────────────────
+    listTemplateCategories: async () => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/templates/categories`, {
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching template categories'));
+        return data as { categories: TemplateCategoryData[] };
+    },
+
+    createTemplateCategory: async (body: { name: string; color?: string; icon?: string }) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/templates/categories`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+            body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error creating template category'));
+        return data as TemplateCategoryData;
+    },
+
+    updateTemplateCategory: async (id: number, body: { name?: string; color?: string; icon?: string }) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/templates/categories/${id}`, {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+            body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error updating template category'));
+        return data as TemplateCategoryData;
+    },
+
+    deleteTemplateCategory: async (id: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/templates/categories/${id}`, {
+            method: 'DELETE',
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error deleting template category'));
+        return data;
+    },
+
+    // ── Templates ────────────────────────────────────────────────────────────
     listTemplates: async () => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/templates`, {
@@ -795,17 +863,7 @@ export const api = {
         });
         const data = await response.json();
         if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching templates'));
-        return data as { templates: Array<{
-            id_template: number;
-            name: string;
-            description: string;
-            is_public: boolean;
-            created_by: number | null;
-            created_by_pseudo: string | null;
-            is_owner: boolean;
-            created_at: string | null;
-            updated_at: string | null;
-        }> };
+        return data as { templates: TemplateData[] };
     },
 
     getTemplate: async (id: number) => {
@@ -815,18 +873,7 @@ export const api = {
         });
         const data = await response.json();
         if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching template'));
-        return data as {
-            id_template: number;
-            name: string;
-            description: string;
-            content_html: string;
-            is_public: boolean;
-            created_by: number | null;
-            created_by_pseudo: string | null;
-            is_owner: boolean;
-            created_at: string | null;
-            updated_at: string | null;
-        };
+        return data as TemplateData & { content_html: string };
     },
 
     createTemplate: async (body: {
@@ -834,6 +881,7 @@ export const api = {
         description?: string;
         content_html?: string;
         is_public?: boolean;
+        id_category_template?: number | null;
     }) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/templates`, {
@@ -843,7 +891,7 @@ export const api = {
         });
         const data = await response.json();
         if (!response.ok) throw new Error(parseApiError(data.detail, 'Error creating template'));
-        return data;
+        return data as TemplateData;
     },
 
     updateTemplate: async (id: number, body: {
@@ -851,6 +899,8 @@ export const api = {
         description?: string;
         content_html?: string;
         is_public?: boolean;
+        id_category_template?: number | null;
+        clear_category?: boolean;
     }) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/templates/${id}`, {
@@ -860,7 +910,7 @@ export const api = {
         });
         const data = await response.json();
         if (!response.ok) throw new Error(parseApiError(data.detail, 'Error updating template'));
-        return data;
+        return data as TemplateData;
     },
 
     deleteTemplate: async (id: number) => {

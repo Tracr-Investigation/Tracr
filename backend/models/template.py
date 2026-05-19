@@ -25,6 +25,15 @@ class Template(SQLModel, table=True):
         default=False,
         sa_column=Column(Boolean, nullable=False, default=False),
     )
+    id_category_template: Optional[int] = Field(
+        default=None,
+        sa_column=Column(
+            Integer,
+            ForeignKey("template_categories.id_category_template", ondelete="SET NULL"),
+            nullable=True,
+            index=True,
+        ),
+    )
     created_by: Optional[int] = Field(
         default=None,
         sa_column=Column(
