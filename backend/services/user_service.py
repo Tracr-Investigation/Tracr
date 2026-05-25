@@ -68,8 +68,42 @@ def deactivate_user(db: Session, user: User) -> None:
     db.commit()
 
 
+def hard_delete_user(db: Session, user: User) -> None:
+    db.delete(user)
+    db.commit()
+
+
+def create_admin_user(db: Session, pseudo: str, password: str) -> User:
+    user = User(
+        pseudo=pseudo,
+        password_hash=hash_password(password),
+        must_change_password=True,
+    )
+    db.add(user)
+    db.flush()
+
+    role = db.query(Role).filter(Role.name == "admin").first()
+    if role is None:
+        db.rollback()
+        raise ValueError("Role 'admin' not found")
+
+    user_role = UserRole(id_user=user.id_user, id_role=role.id_role, assigned_at=datetime.now(ZoneInfo("UTC")))
+    db.add(user_role)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
 def update_password(db: Session, user: User, new_password: str) -> None:
     user.password_hash = hash_password(new_password)
+    user.must_change_password = False
+    db.add(user)
+    db.commit()
+
+
+def admin_reset_password(db: Session, user: User, new_password: str) -> None:
+    user.password_hash = hash_password(new_password)
+    user.must_change_password = True
     db.add(user)
     db.commit()
 

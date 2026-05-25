@@ -43,6 +43,84 @@ export const api = {
         return data;
     },
 
+    forceChangePassword: async (newPassword: string) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/force-change-password`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({new_password: newPassword}),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error changing password'));
+        }
+
+        return data;
+    },
+
+    adminCreateUser: async (pseudo: string, password: string) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/admin/users`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({pseudo, password}),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error creating user'));
+        }
+
+        return data;
+    },
+
+    adminDeleteUser: async (userId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/admin/users/${userId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error deleting user'));
+        }
+
+        return data;
+    },
+
+    adminResetPassword: async (userId: number, newPassword: string) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/admin/users/${userId}/reset-password`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({new_password: newPassword}),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error resetting password'));
+        }
+
+        return data;
+    },
+
     changePassword: async (currentPassword: string, newPassword: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/change-password`, {

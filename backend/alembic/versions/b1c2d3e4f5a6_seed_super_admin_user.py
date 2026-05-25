@@ -20,7 +20,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 SUPER_ADMIN_PSEUDO = "superadmin"
 SUPER_ADMIN_PASSWORD_HASH = "$2y$10$N6XINc9b2MuaqCe8d29E1O78dUiReA565t561Br625q1HCLBPxytu"
-SUPER_ADMIN_ROLE = "admin"
+SUPER_ADMIN_ROLE = "super-admin"
 
 
 def upgrade() -> None:
@@ -39,14 +39,15 @@ def upgrade() -> None:
     # Insère le super admin
     result = conn.execute(
         sa.text(
-            "INSERT INTO users (pseudo, password_hash, is_active, created_at, updated_at) "
-            "VALUES (:pseudo, :password_hash, :is_active, :created_at, :updated_at) "
+            "INSERT INTO users (pseudo, password_hash, is_active, must_change_password, created_at, updated_at) "
+            "VALUES (:pseudo, :password_hash, :is_active, :must_change_password, :created_at, :updated_at) "
             "RETURNING id_user"
         ),
         {
             "pseudo": SUPER_ADMIN_PSEUDO,
             "password_hash": SUPER_ADMIN_PASSWORD_HASH,
             "is_active": True,
+            "must_change_password": True,
             "created_at": now,
             "updated_at": now,
         },
