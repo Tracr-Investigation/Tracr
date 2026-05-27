@@ -65,7 +65,7 @@ export const Notifications = () => {
             toast('success', t('notifications.invitationAccepted'));
             fetchInvitations();
         } catch (err) {
-            toast('error', err instanceof Error ? err.message : 'Error accepting invitation');
+            toast('error', err instanceof Error ? err.message : 'Error');
         } finally {
             setProcessingId(null);
         }
@@ -78,7 +78,7 @@ export const Notifications = () => {
             toast('success', t('notifications.invitationRejected'));
             fetchInvitations();
         } catch (err) {
-            toast('error', err instanceof Error ? err.message : 'Error rejecting invitation');
+            toast('error', err instanceof Error ? err.message : 'Error');
         } finally {
             setProcessingId(null);
         }
@@ -89,10 +89,7 @@ export const Notifications = () => {
             await markAsRead(notification.id_notification);
         }
         if (notification.reference_type && notification.reference_id) {
-            if (notification.reference_type === 'investigation') {
-                navigate(`/investigations/${notification.reference_id}`);
-            }
-            if (notification.reference_type === 'collaboration') {
+            if (notification.reference_type === 'investigation' || notification.reference_type === 'collaboration') {
                 navigate(`/investigations/${notification.reference_id}`);
             }
         }
@@ -100,11 +97,15 @@ export const Notifications = () => {
 
     return (
         <Layout>
-            <div className="p-8">
+            <div className="px-6 pt-6 pb-8">
+                {/* Header */}
                 <div className="flex items-center justify-between mb-8">
                     <div>
-                        <h1 className="text-3xl font-bold text-text-default mb-2">{t('notifications.title')}</h1>
-                        <p className="text-text-muted">
+                        <h1 className="text-2xl font-bold text-text-default mb-1 flex items-center gap-2.5">
+                            <Bell size={20} style={{color: 'var(--theme-primary)'}}/>
+                            {t('notifications.title')}
+                        </h1>
+                        <p className="text-text-muted text-sm">
                             {unreadCount > 0
                                 ? t('notifications.unread', {count: unreadCount})
                                 : t('notifications.allRead')}
@@ -113,9 +114,10 @@ export const Notifications = () => {
                     {unreadCount > 0 && (
                         <button
                             onClick={markAllAsRead}
-                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-text-default border border-primary/30 hover:bg-primary/30 transition-all"
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-text-default text-sm font-semibold transition-all hover:opacity-90 active:scale-95"
+                            style={{background: 'var(--theme-primary)'}}
                         >
-                            <CheckCheck size={16}/>
+                            <CheckCheck size={15}/>
                             {t('notifications.markAllAsRead')}
                         </button>
                     )}
@@ -124,57 +126,60 @@ export const Notifications = () => {
                 {/* Pending invitations */}
                 {!loadingInvitations && invitations.length > 0 && (
                     <div className="mb-8">
-                        <h2 className="text-lg font-semibold text-text-default mb-4 flex items-center gap-2">
-                            <UserPlus size={18} className="text-primary"/>
+                        <h2 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-4 flex items-center gap-2">
+                            <UserPlus size={12} style={{color: 'var(--theme-primary)'}}/>
                             {t('notifications.pendingInvitations')}
                         </h2>
-                        <div className="grid gap-3">
+                        <div className="flex flex-col gap-2">
                             {invitations.map((inv) => (
                                 <div
                                     key={inv.id_collaborator}
-                                    className="bg-card border border-primary/30 rounded-xl p-5"
+                                    className="rounded-xl border p-5"
+                                    style={{background: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)', borderColor: 'color-mix(in srgb, var(--theme-primary) 30%, transparent)'}}
                                 >
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-start gap-4">
-                                            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                                                <Mail size={20} className="text-primary"/>
+                                            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                                                style={{background: 'color-mix(in srgb, var(--theme-primary) 20%, transparent)'}}>
+                                                <Mail size={18} style={{color: 'var(--theme-primary)'}}/>
                                             </div>
                                             <div>
-                                                <p className="text-text-default font-medium">
+                                                <p className="text-text-default text-sm font-medium">
                                                     {inv.invited_by_pseudo
-                                                        ? <><span className="text-primary">{inv.invited_by_pseudo}</span>{' '}{t('notifications.invitedBy')}</>
+                                                        ? <><span style={{color: 'var(--theme-primary)'}}>{inv.invited_by_pseudo}</span>{' '}{t('notifications.invitedBy')}</>
                                                         : t('notifications.invitationTo')
                                                     }
                                                     {' '}
                                                     <span className="font-semibold">{inv.investigation_title}</span>
                                                 </p>
-                                                <div className="flex items-center gap-3 mt-1">
-                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary">
+                                                <div className="flex items-center gap-3 mt-1.5">
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold"
+                                                        style={{background: 'color-mix(in srgb, var(--theme-primary) 15%, transparent)', color: 'var(--theme-primary)'}}>
                                                         {t(`notifications.permissions.${inv.permission_level}`) || inv.permission_level}
                                                     </span>
                                                     {inv.invited_at && (
-                                                        <span className="text-xs text-text-muted">
+                                                        <span className="text-xs text-text-dim">
                                                             {formatRelativeDate(inv.invited_at)}
                                                         </span>
                                                     )}
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-2 flex-shrink-0 ml-4">
+                                        <div className="flex items-center gap-2 shrink-0 ml-4">
                                             <button
                                                 onClick={() => handleAccept(inv.id_collaborator)}
                                                 disabled={processingId === inv.id_collaborator}
-                                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30 disabled:opacity-50 transition-all"
+                                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold bg-green-500/15 text-green-400 border border-green-500/25 hover:bg-green-500/25 disabled:opacity-50 transition-all"
                                             >
-                                                <Check size={14}/>
+                                                <Check size={13}/>
                                                 {t('notifications.accept')}
                                             </button>
                                             <button
                                                 onClick={() => handleReject(inv.id_collaborator)}
                                                 disabled={processingId === inv.id_collaborator}
-                                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 disabled:opacity-50 transition-all"
+                                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold bg-red-500/15 text-red-400 border border-red-500/25 hover:bg-red-500/25 disabled:opacity-50 transition-all"
                                             >
-                                                <X size={14}/>
+                                                <X size={13}/>
                                                 {t('notifications.reject')}
                                             </button>
                                         </div>
@@ -185,56 +190,51 @@ export const Notifications = () => {
                     </div>
                 )}
 
+                {/* Notification list */}
                 {loading ? (
-                    <div className="text-center text-text-muted py-12">{t('notifications.loading')}</div>
+                    <div className="flex items-center justify-center py-16 text-text-dim text-sm">Chargement…</div>
                 ) : notifications.length === 0 && invitations.length === 0 ? (
-                    <div className="bg-card border border-border rounded-xl p-12 text-center">
-                        <Bell size={48} className="mx-auto text-text-muted mb-4"/>
-                        <p className="text-text-default text-lg font-medium mb-2">{t('notifications.empty')}</p>
-                        <p className="text-text-muted">{t('notifications.emptyDesc')}</p>
+                    <div className="flex flex-col items-center justify-center py-20 text-center">
+                        <Bell size={36} className="text-text-dim mb-3"/>
+                        <p className="text-text-muted font-medium mb-1">{t('notifications.empty')}</p>
+                        <p className="text-text-dim text-sm">{t('notifications.emptyDesc')}</p>
                     </div>
                 ) : (
-                    <div className="grid gap-3">
+                    <div className="flex flex-col gap-2">
                         {notifications.map((notification) => {
                             const Icon = typeIcons[notification.type] || Bell;
                             return (
                                 <button
                                     key={notification.id_notification}
                                     onClick={() => handleClick(notification)}
-                                    className={`
-                                        w-full text-left bg-card border rounded-xl p-5 transition-all cursor-pointer
-                                        ${notification.is_read
-                                        ? 'border-border-subtle opacity-70 hover:opacity-100'
-                                        : 'border-primary/30 hover:border-primary/50'
-                                    }
-                                    `}
+                                    className={`w-full text-left rounded-xl border p-4 transition-all ${
+                                        notification.is_read
+                                            ? 'border-border-subtle opacity-60 hover:opacity-100'
+                                            : 'border-border bg-card/20 hover:border-border'
+                                    }`}
                                 >
-                                    <div className="flex items-start gap-4">
-                                        <div className={`
-                                                w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0
-                                                ${notification.is_read
-                                                ? 'bg-primary/5 text-text-muted'
-                                                : 'bg-primary/20 text-primary'
-                                            }
-                                            `}
-                                        >
-                                            <Icon size={20}/>
+                                    <div className="flex items-start gap-3">
+                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                                            notification.is_read ? 'bg-input-bg' : ''
+                                        }`}
+                                            style={!notification.is_read ? {background: 'color-mix(in srgb, var(--theme-primary) 15%, transparent)'} : undefined}>
+                                            <Icon size={16} className={notification.is_read ? 'text-text-dim' : ''} style={!notification.is_read ? {color: 'var(--theme-primary)'} : undefined}/>
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <h3 className={`font-semibold truncate ${notification.is_read ? 'text-text-muted' : 'text-text-default'}`}>
+                                            <div className="flex items-center gap-2 mb-0.5">
+                                                <h3 className={`font-semibold text-sm truncate ${notification.is_read ? 'text-text-muted' : 'text-text-default'}`}>
                                                     {notification.title}
                                                 </h3>
                                                 {!notification.is_read && (
-                                                    <span className="w-2 h-2 bg-primary rounded-full flex-shrink-0"/>
+                                                    <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{backgroundColor: 'var(--theme-primary)'}}/>
                                                 )}
                                             </div>
                                             {notification.message && (
-                                                <p className="text-text-muted text-sm mb-2 line-clamp-2">
+                                                <p className="text-text-muted text-xs mb-1.5 line-clamp-2">
                                                     {notification.message}
                                                 </p>
                                             )}
-                                            <p className="text-xs text-text-muted">
+                                            <p className="text-[11px] text-text-dim">
                                                 {formatRelativeDate(notification.created_at)}
                                             </p>
                                         </div>

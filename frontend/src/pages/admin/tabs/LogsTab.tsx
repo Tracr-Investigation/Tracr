@@ -103,7 +103,7 @@ export const LogsTab = () => {
                 </label>
             </div>
 
-            <div className="bg-card border border-border rounded-xl overflow-hidden">
+            <div className="bg-card/30 border border-border-subtle rounded-xl overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
@@ -124,7 +124,7 @@ export const LogsTab = () => {
                             <tr><td colSpan={7} className="px-6 py-12 text-center text-text-muted">{t('admin.logs.empty')}</td></tr>
                         ) : (
                             logs.map((log) => (
-                                <tr key={log.id_log} className="border-b border-border-subtle hover:bg-primary/5 transition-colors">
+                                <tr key={log.id_log} className="border-b border-border-subtle hover:bg-card/20 transition-colors">
                                     <td className="px-6 py-4 text-text-muted text-sm font-mono">#{log.id_log}</td>
                                     <td className="px-6 py-4 text-text-muted text-sm whitespace-nowrap">{formatDate(log.created_at)}</td>
                                     <td className="px-6 py-4 text-text-default text-sm font-medium">{log.pseudo || '—'}</td>
@@ -145,7 +145,7 @@ export const LogsTab = () => {
                             {t('admin.logs.pagination', {page, total: totalPages, count: filtered})}
                         </p>
                         <div className="flex items-center gap-1">
-                            <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1} className="p-2 rounded-lg bg-card border border-border text-text-muted hover:bg-primary/20 hover:text-text-default disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                            <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1} className="p-2 rounded-lg bg-card/30 border border-border-subtle text-text-muted hover:bg-primary/20 hover:text-text-default disabled:opacity-30 disabled:cursor-not-allowed transition-all">
                                 <ChevronLeft size={16}/>
                             </button>
                             {getPageNumbers().map((p) => (
@@ -153,7 +153,7 @@ export const LogsTab = () => {
                                     {p}
                                 </button>
                             ))}
-                            <button onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page === totalPages} className="p-2 rounded-lg bg-card border border-border text-text-muted hover:bg-primary/20 hover:text-text-default disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                            <button onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page === totalPages} className="p-2 rounded-lg bg-card/30 border border-border-subtle text-text-muted hover:bg-primary/20 hover:text-text-default disabled:opacity-30 disabled:cursor-not-allowed transition-all">
                                 <ChevronRight size={16}/>
                             </button>
                         </div>

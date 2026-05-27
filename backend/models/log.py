@@ -13,6 +13,10 @@ class Log(SQLModel, table=True):
         default=None,
         sa_column=Column(Integer, ForeignKey("users.id_user", ondelete="SET NULL"), nullable=True, index=True),
     )
+    id_investigation: Optional[int] = Field(
+        default=None,
+        sa_column=Column(Integer, ForeignKey("investigations.id_investigation", ondelete="SET NULL"), nullable=True, index=True),
+    )
     category: str = Field(max_length=50, nullable=False, index=True)
     action: str = Field(max_length=100, nullable=False, index=True)
     detail: Optional[str] = Field(default=None, sa_column=Column(Text, nullable=True))

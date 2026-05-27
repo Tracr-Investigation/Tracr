@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 
 from sqlalchemy.orm import Session
 
-from models.document import Document
+from models.document import Document, DocumentBackup
 from models.document_comment import DocumentComment
 from models.user import User
 from utils.html_sanitize import sanitize_editor_html
@@ -97,7 +97,71 @@ def delete_document(db: Session, document: Document) -> None:
     db.commit()
 
 
-#  liste commentaire inline 
+# Backups
+MAX_BACKUPS_PER_DOCUMENT = 50
+
+
+def create_backup(db: Session, document: Document, user_id: int) -> DocumentBackup:
+    backup = DocumentBackup(
+        id_document=document.id_document,
+        id_user=user_id,
+        title=document.title,
+        content_html=document.content_html or "",
+    )
+    db.add(backup)
+    db.flush()
+    # Purge des plus anciennes si dépassement du quota
+    total = db.query(DocumentBackup).filter(DocumentBackup.id_document == document.id_document).count()
+    if total > MAX_BACKUPS_PER_DOCUMENT:
+        oldest = (
+            db.query(DocumentBackup)
+            .filter(DocumentBackup.id_document == document.id_document)
+            .order_by(DocumentBackup.created_at.asc())
+            .limit(total - MAX_BACKUPS_PER_DOCUMENT)
+            .all()
+        )
+        for old in oldest:
+            db.delete(old)
+    db.commit()
+    db.refresh(backup)
+    return backup
+
+
+def list_backups(db: Session, document_id: int) -> list[dict]:
+    rows = (
+        db.query(DocumentBackup, User.pseudo)
+        .outerjoin(User, User.id_user == DocumentBackup.id_user)
+        .filter(DocumentBackup.id_document == document_id)
+        .order_by(DocumentBackup.created_at.desc())
+        .all()
+    )
+    return [
+        {
+            "id_backup": b.id_backup,
+            "id_document": b.id_document,
+            "id_user": b.id_user,
+            "author_pseudo": pseudo,
+            "title": b.title,
+            "created_at": b.created_at.isoformat() if b.created_at else None,
+        }
+        for b, pseudo in rows
+    ]
+
+
+def get_backup(db: Session, backup_id: int) -> Optional[DocumentBackup]:
+    return db.query(DocumentBackup).filter(DocumentBackup.id_backup == backup_id).first()
+
+
+def restore_backup(db: Session, document: Document, backup: DocumentBackup) -> Document:
+    document.title = backup.title
+    document.content_html = backup.content_html
+    document.updated_at = _now()
+    db.commit()
+    db.refresh(document)
+    return document
+
+
+#  liste commentaire inline
 def list_comments(db: Session, id_document: int) -> list[dict]:
     rows = (db.query(DocumentComment, User.pseudo).outerjoin(User, User.id_user == DocumentComment.author_id).filter(DocumentComment.id_document == id_document).order_by(DocumentComment.created_at.asc()).all())
     return [

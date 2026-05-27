@@ -381,7 +381,7 @@ const TaskDetailModal = ({
     return (
         <div className="fixed inset-0 bg-overlay flex items-center justify-center z-50 p-4">
             <div
-                className="bg-card border border-border rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+                className="bg-card/30 border border-border-subtle rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
                 <div className="flex items-start justify-between p-5 border-b border-border-subtle">
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
@@ -649,7 +649,7 @@ export const TasksTab = ({
         <div className="space-y-5">
             <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div className="flex items-center gap-2 flex-wrap">
-                    <div className="flex bg-card border border-border rounded-lg p-0.5">
+                    <div className="flex bg-card/30 border border-border-subtle rounded-lg p-0.5">
                         {(['all', 'shared', 'private'] as const).map((v) => (
                             <button
                                 key={v}
@@ -668,7 +668,7 @@ export const TasksTab = ({
                     <div className="relative" ref={statusDropdownRef}>
                         <button
                             onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border rounded-lg text-xs text-text-muted hover:text-text-default transition-all"
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-card/30 border border-border-subtle rounded-lg text-xs text-text-muted hover:text-text-default transition-all"
                         >
                             <span>
                                 {filterStatus === 'all' ? t('tasks.allStatuses') : t(`tasks.status.${filterStatus}`)}
@@ -677,7 +677,7 @@ export const TasksTab = ({
                         </button>
                         {statusDropdownOpen && (
                             <div
-                                className="absolute top-full left-0 mt-1 z-20 bg-card border border-border rounded-xl py-1 shadow-lg min-w-[160px]">
+                                className="absolute top-full left-0 mt-1 z-20 bg-card/30 border border-border-subtle rounded-xl py-1 shadow-lg min-w-[160px]">
                                 <button
                                     onClick={() => {
                                         setFilterStatus('all');
@@ -731,7 +731,7 @@ export const TasksTab = ({
             </div>
 
             {filteredTasks.length === 0 ? (
-                <div className="bg-card border border-border rounded-xl p-10 text-center">
+                <div className="bg-card/30 border border-border-subtle rounded-xl p-10 text-center">
                     <CheckSquare size={32} className="mx-auto text-text-muted mb-3"/>
                     <p className="text-text-default font-medium mb-1">{t('tasks.empty')}</p>
                     <p className="text-text-muted text-sm">
@@ -751,7 +751,7 @@ export const TasksTab = ({
                         <button
                             key={task.id_task}
                             onClick={() => setSelectedTask(task)}
-                            className="w-full bg-card border border-border rounded-xl p-4 text-left hover:border-primary/40 transition-all group"
+                            className="w-full bg-card/30 border border-border-subtle rounded-xl p-4 text-left hover:border-primary/40 transition-all group"
                         >
                             <div className="flex items-start justify-between gap-3">
                                 <div className="flex items-start gap-2.5 flex-1 min-w-0">
@@ -819,7 +819,7 @@ export const TasksTab = ({
 
             {showCreateModal && (
                 <div className="fixed inset-0 bg-overlay flex items-center justify-center z-50 p-4">
-                    <div className="bg-card border border-border rounded-xl w-full max-w-lg">
+                    <div className="bg-card/30 border border-border-subtle rounded-xl w-full max-w-lg">
                         <div className="flex items-center justify-between p-5 border-b border-border-subtle">
                             <h3 className="text-text-default font-semibold flex items-center gap-2">
                                 <Plus size={16} className="text-primary"/>

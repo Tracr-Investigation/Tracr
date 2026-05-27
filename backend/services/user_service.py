@@ -1,3 +1,4 @@
+import secrets
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -7,6 +8,7 @@ from models.user import User
 from models.role import Role
 from models.user_role import UserRole
 from typing import Optional
+from utils.wordlist import WORDLIST
 
 
 def hash_password(password: str) -> str:
@@ -38,8 +40,8 @@ def get_user_by_id(db: Session, user_id: int) -> Optional[User]:
     return db.query(User).filter(User.id_user == user_id).first()
 
 
-def create_user(db: Session, pseudo: str, password: str) -> User:
-    """Create a new user"""
+def create_user(db: Session, pseudo: str, password: str) -> tuple[User, list[str]]:
+    """Create a new user and immediately generate their recovery code"""
     user = User(
         pseudo=pseudo,
         password_hash=hash_password(password),
@@ -47,7 +49,8 @@ def create_user(db: Session, pseudo: str, password: str) -> User:
     db.add(user)
     db.commit()
     db.refresh(user)
-    return user
+    words = generate_recovery_code(db, user)
+    return user, words
 
 
 def get_user_role(db: Session, user_id: int) -> str:
@@ -147,3 +150,30 @@ def count_users(db: Session, search: str = "") -> int:
     if search:
         query = query.filter(User.pseudo.ilike(f"%{search}%"))
     return query.count()
+
+
+def generate_recovery_code(db: Session, user: User) -> list[str]:
+    words = [secrets.choice(WORDLIST) for _ in range(12)]
+    phrase = " ".join(words)
+    user.recovery_hash = hash_password(phrase)
+    user.recovery_created_at = datetime.now(ZoneInfo("UTC"))
+    db.add(user)
+    db.commit()
+    return words
+
+
+def verify_and_use_recovery(
+    db: Session, pseudo: str, recovery_phrase: str, new_password: str
+) -> Optional[User]:
+    user = get_user_by_pseudo(db, pseudo)
+    if not user or not user.is_active or not user.recovery_hash:
+        return None
+    normalized = " ".join(recovery_phrase.strip().lower().split())
+    if not verify_password(normalized, user.recovery_hash):
+        return None
+    user.password_hash = hash_password(new_password)
+    user.recovery_hash = None
+    user.recovery_created_at = None
+    db.add(user)
+    db.commit()
+    return user

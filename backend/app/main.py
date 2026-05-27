@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from app.dependencies import limiter
 from app.routes import auth, admin, investigations, tasks
-from app.routes import notifications, documents, templates
+from app.routes import notifications, documents, templates, geocode, entities
 from socketio import ASGIApp as SocketASGIApp
 from app.socketio_server import sio
 
@@ -32,10 +32,9 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
 
 fastapi_app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
-    allow_headers=["Authorization", "Content-Type"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -50,6 +49,11 @@ async def add_security_headers(request: Request, call_next):
     return response
 
 
+@fastapi_app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+
 fastapi_app.include_router(auth.router)
 fastapi_app.include_router(admin.router)
 fastapi_app.include_router(investigations.router)
@@ -59,5 +63,7 @@ fastapi_app.include_router(notifications.router)
 fastapi_app.include_router(documents.router)
 fastapi_app.include_router(documents.docs_router)
 fastapi_app.include_router(templates.router)
+fastapi_app.include_router(geocode.router)
+fastapi_app.include_router(entities.router)
 
 app = SocketASGIApp(sio, other_asgi_app=fastapi_app, socketio_path="socket.io")

@@ -1,5 +1,9 @@
 """Export d'un document HTML en PDF (WeasyPrint)."""
+import re
+import base64
 from typing import Tuple
+
+import requests as http_requests
 
 from models.document import Document
 from utils.html_sanitize import sanitize_editor_html
@@ -80,11 +84,54 @@ def _escape(s: str) -> str:
     return (s or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
+def _generate_map_image(lat: float, lng: float) -> str | None:
+    """Génère une image de carte statique via tuiles OSM et retourne un data URI base64."""
+    try:
+        import io
+        from staticmap import StaticMap, CircleMarker
+        m = StaticMap(600, 200, url_template="https://tile.openstreetmap.org/{z}/{x}/{y}.png")
+        m.add_marker(CircleMarker((lng, lat), "#e74c3c", 14))
+        image = m.render(zoom=14)
+        buf = io.BytesIO()
+        image.save(buf, format="PNG")
+        b64 = base64.b64encode(buf.getvalue()).decode()
+        return f"data:image/png;base64,{b64}"
+    except Exception:
+        return None
+
+
+def _embed_external_images(html: str) -> str:
+    """Remplace les src des <img> par des data URI base64.
+
+    - URLs staticmap.openstreetmap.de : génération locale via tuiles OSM.
+    - Autres URLs https : fetch direct.
+    """
+    def _replace(match: re.Match) -> str:
+        src = match.group(1)
+        try:
+            if "staticmap.openstreetmap.de" in src:
+                center = re.search(r"center=([\d.\-]+),([\d.\-]+)", src)
+                if center:
+                    data_uri = _generate_map_image(float(center.group(1)), float(center.group(2)))
+                    if data_uri:
+                        return f'src="{data_uri}"'
+            resp = http_requests.get(src, timeout=10, headers={"User-Agent": "tracr-investigation/1.0"})
+            resp.raise_for_status()
+            mime = resp.headers.get("content-type", "image/png").split(";")[0]
+            b64 = base64.b64encode(resp.content).decode()
+            return f'src="data:{mime};base64,{b64}"'
+        except Exception:
+            return match.group(0)
+
+    return re.sub(r'src="(https?://[^"]+)"', _replace, html)
+
+
 def render_pdf(document: Document) -> Tuple[bytes, str]:
     """Retourne (bytes PDF, filename)."""
     from weasyprint import HTML
 
     html_str = _wrap_html(document.title, document.content_html or "")
+    html_str = _embed_external_images(html_str)
     pdf_bytes = HTML(string=html_str).write_pdf()
     if pdf_bytes is None:
         raise RuntimeError("WeasyPrint returned no bytes")

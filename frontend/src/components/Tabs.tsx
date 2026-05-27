@@ -20,7 +20,7 @@ export const Tabs = ({ tabs, defaultTab }: TabsProps) => {
 
   return (
     <div>
-      <div className="border-b border-border-subtle mb-8">
+      <div className="border-b border-border-subtle mb-6">
         <nav className="flex gap-1 overflow-x-auto -mb-px">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -31,14 +31,14 @@ export const Tabs = ({ tabs, defaultTab }: TabsProps) => {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`
-                  flex items-center gap-2 px-5 py-3 text-sm font-medium whitespace-nowrap transition-all border-b-2
+                  flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-all border-b-2
                   ${active
-                    ? 'border-primary text-text-default'
-                    : 'border-transparent text-text-muted hover:text-text-default hover:border-primary/30'
+                    ? 'border-[var(--theme-primary)] text-text-default'
+                    : 'border-transparent text-text-muted hover:text-text-default hover:border-border'
                   }
                 `}
               >
-                {Icon && <Icon size={16} className={active ? 'text-primary' : ''} />}
+                {Icon && <Icon size={15} style={active ? {color: 'var(--theme-primary)'} : undefined} className={active ? '' : 'text-text-dim'}/>}
                 {tab.label}
               </button>
             );

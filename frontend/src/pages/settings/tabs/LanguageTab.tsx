@@ -37,8 +37,8 @@ export const LanguageTab = () => {
     return (
         <div className="space-y-6 max-w-2xl">
             <div>
-                <h2 className="text-lg font-semibold text-text-default flex items-center gap-2 mb-1">
-                    <Globe size={18} className="text-primary" />
+                <h2 className="text-base font-semibold text-text-default flex items-center gap-2 mb-1">
+                    <Globe size={16} style={{color: 'var(--theme-primary)'}}/>
                     {t('settings.language.title')}
                 </h2>
                 <p className="text-sm text-text-muted">{t('settings.language.subtitle')}</p>
@@ -49,18 +49,17 @@ export const LanguageTab = () => {
                     <button
                         key={lang.code}
                         onClick={() => setSelected(lang.code)}
-                        className={`
-                            flex items-center gap-4 px-5 py-4 rounded-xl border transition-all text-left
-                            ${selected === lang.code
-                                ? 'border-primary bg-primary/10 text-text-default'
-                                : 'border-border hover:border-primary/40 text-text-muted hover:text-text-default'
-                            }
-                        `}
+                        className={`flex items-center gap-4 px-5 py-4 rounded-xl border transition-all text-left ${
+                            selected === lang.code
+                                ? 'border-[var(--theme-primary)] text-text-default'
+                                : 'border-border bg-card/30 text-text-muted hover:text-text-default hover:border-border'
+                        }`}
+                        style={selected === lang.code ? {background: 'color-mix(in srgb, var(--theme-primary) 10%, transparent)'} : undefined}
                     >
                         <span className="text-2xl">{lang.flag}</span>
                         <span className="font-medium text-sm">{lang.label}</span>
                         {selected === lang.code && (
-                            <span className="ml-auto w-2 h-2 rounded-full bg-primary" />
+                            <span className="ml-auto w-2 h-2 rounded-full" style={{background: 'var(--theme-primary)'}}/>
                         )}
                     </button>
                 ))}
@@ -69,7 +68,8 @@ export const LanguageTab = () => {
             <button
                 onClick={handleSave}
                 disabled={saving || selected === user?.language}
-                className="px-5 py-2.5 bg-primary hover:bg-primary/80 text-white rounded-lg text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                className="px-5 py-2.5 rounded-xl text-text-default text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90"
+                style={{background: 'var(--theme-primary)'}}
             >
                 {saving ? t('common.loading') : t('common.save')}
             </button>

@@ -145,6 +145,21 @@ class UpdateLanguageRequest(BaseModel):
     language: str = Field(pattern="^(en|fr)$")
 
 
+class GenerateRecoveryRequest(BaseModel):
+    current_password: Optional[str] = Field(default=None, max_length=128)
+
+
+class RecoverPasswordRequest(BaseModel):
+    pseudo: str = Field(min_length=3, max_length=50)
+    recovery_phrase: str = Field(min_length=1, max_length=500)
+    new_password: str = Field(max_length=128)
+
+    @field_validator("new_password")
+    @classmethod
+    def password_strength(cls, v: str) -> str:
+        return validate_password_strength(v)
+
+
 class DocumentCreateRequest(BaseModel):
     title: str = Field(min_length=1, max_length=255)
     content_html: str | None = Field(default="")
@@ -163,12 +178,15 @@ class TemplateCreateRequest(BaseModel):
     description: str | None = Field(default="", max_length=2000)
     content_html: str | None = Field(default="", max_length=1_000_000)
     is_public: bool = Field(default=False)
+    id_category_template: int | None = Field(default=None)
 
 class TemplateUpdateRequest(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=255)
     description: str | None = Field(default=None, max_length=2000)
     content_html: str | None = Field(default=None, max_length=1_000_000)
     is_public: bool | None = Field(default=None)
+    id_category_template: int | None = Field(default=None)
+    clear_category: bool = Field(default=False)
 
     @field_validator("name")
     @classmethod
@@ -176,4 +194,16 @@ class TemplateUpdateRequest(BaseModel):
         if v is not None and not v.strip():
             raise ValueError("Name cannot be blank")
         return v
+
+
+class TemplateCategoryCreateRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=50)
+    color: str | None = Field(default=None, max_length=7)
+    icon: str | None = Field(default=None, max_length=50)
+
+
+class TemplateCategoryUpdateRequest(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=50)
+    color: str | None = Field(default=None, max_length=7)
+    icon: str | None = Field(default=None, max_length=50)
 

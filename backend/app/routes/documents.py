@@ -106,6 +106,7 @@ async def create_document(
     log_service.create_log(
         db, category="document", action="create",
         id_user=user.id_user,
+        id_investigation=investigation_id,
         detail=f"Document #{document.id_document} - {document.title} (Investigation #{investigation_id})",
         ip_address=ip,
     )
@@ -149,7 +150,9 @@ async def update_document(
     ip = request.client.host if request.client else None
     log_service.create_log(
         db, category="document", action="update",
-        id_user=user.id_user, detail=f"Document #{document_id} updated",
+        id_user=user.id_user,
+        id_investigation=document.id_investigation,
+        detail=f"Document #{document_id} updated",
         ip_address=ip,
     )
     return document_service.get_document_detail(db, updated)
@@ -171,7 +174,9 @@ async def delete_document(
     ip = request.client.host if request.client else None
     log_service.create_log(
         db, category="document", action="delete",
-        id_user=user.id_user, detail=f"Document #{document_id} - {title} deleted",
+        id_user=user.id_user,
+        id_investigation=document.id_investigation,
+        detail=f"Document #{document_id} - {title} deleted",
         ip_address=ip,
     )
     return {"detail": "Document deleted"}
@@ -269,6 +274,77 @@ async def toggle_resolve_comment(
 
     updated = document_service.toggle_resolved(db, comment)
     return {"id_comment": updated.id_comment, "resolved": updated.resolved}
+
+
+@docs_router.post("/{document_id}/backups")
+async def create_backup(
+    document_id: int,
+    request: Request,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    document, permission = _load_document_with_access(db, document_id, user.id_user)
+    if not document_service.can_write(permission):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    backup = document_service.create_backup(db, document, user.id_user)
+    ip = request.client.host if request.client else None
+    log_service.create_log(db, category="document", action="backup_create",
+        id_user=user.id_user, detail=f"Document #{document_id} backup #{backup.id_backup}", ip_address=ip)
+    return {"id_backup": backup.id_backup, "created_at": backup.created_at.isoformat()}
+
+
+@docs_router.get("/{document_id}/backups")
+async def list_backups(
+    document_id: int,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    document, permission = _load_document_with_access(db, document_id, user.id_user)
+    if not document_service.can_write(permission):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    return {"backups": document_service.list_backups(db, document.id_document)}
+
+
+@docs_router.get("/{document_id}/backups/{backup_id}")
+async def get_backup(
+    document_id: int,
+    backup_id: int,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    document, permission = _load_document_with_access(db, document_id, user.id_user)
+    if not document_service.can_write(permission):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    backup = document_service.get_backup(db, backup_id)
+    if not backup or backup.id_document != document.id_document:
+        raise HTTPException(status_code=404, detail="Backup not found")
+    return {
+        "id_backup": backup.id_backup,
+        "title": backup.title,
+        "content_html": backup.content_html,
+        "created_at": backup.created_at.isoformat() if backup.created_at else None,
+    }
+
+
+@docs_router.post("/{document_id}/backups/{backup_id}/restore")
+async def restore_backup(
+    document_id: int,
+    backup_id: int,
+    request: Request,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    document, permission = _load_document_with_access(db, document_id, user.id_user)
+    if not document_service.can_write(permission):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    backup = document_service.get_backup(db, backup_id)
+    if not backup or backup.id_document != document.id_document:
+        raise HTTPException(status_code=404, detail="Backup not found")
+    updated = document_service.restore_backup(db, document, backup)
+    ip = request.client.host if request.client else None
+    log_service.create_log(db, category="document", action="backup_restore",
+        id_user=user.id_user, detail=f"Document #{document_id} restored from backup #{backup_id}", ip_address=ip)
+    return document_service.get_document_detail(db, updated)
 
 
 @docs_router.delete("/{document_id}/comments/{comment_id}")
