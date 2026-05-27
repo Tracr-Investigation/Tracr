@@ -462,9 +462,10 @@
     "comingSoon": "Bientôt disponible",
     "tabs": {
       "security": "Sécurité",
+      "language": "Langue",
+      "appearance": "Apparence",
       "profile": "Profil",
-      "notifications": "Notifications",
-      "language": "Langue"
+      "notifications": "Notifications"
     },
     "profile": {
       "title": "Profil",
@@ -481,6 +482,32 @@
       "french": "Français",
       "saved": "Langue mise à jour",
       "error": "Erreur lors de la mise à jour de la langue"
+    },
+    "appearance": {
+      "displayMode": "Mode d'affichage",
+      "displayModeDesc": "Choisissez entre l'interface sombre et claire.",
+      "dark": "Sombre",
+      "darkDesc": "Interface sombre",
+      "light": "Clair",
+      "lightDesc": "Interface claire",
+      "accentColor": "Couleur d'accentuation",
+      "accentColorDesc": "Personnalisez la couleur principale de l'interface.",
+      "apply": "Appliquer",
+      "preview": "Aperçu",
+      "previewDesc": "Aperçu de la couleur sélectionnée avant application.",
+      "previewCurrent": "Aperçu du thème sélectionné",
+      "active": "Actif",
+      "primary": "Primaire",
+      "secondary": "Secondaire",
+      "neutral": "Neutre",
+      "colors": {
+        "violet": "Violet",
+        "emerald": "Émeraude",
+        "blue": "Bleu",
+        "rose": "Rose",
+        "amber": "Ambre",
+        "cyan": "Cyan"
+      }
     }
   },
   "common": {
