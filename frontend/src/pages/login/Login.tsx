@@ -66,8 +66,12 @@ export const Login = () => {
         setLoginLoading(true);
         try {
             const data = await api.login(pseudo, password);
-            login({ id_user: data.id_user, pseudo: data.pseudo, role: data.role, language: data.language ?? 'en' }, data.token);
-            navigate('/');
+            login({id_user: data.id_user, pseudo: data.pseudo, role: data.role, language: data.language ?? 'en', must_change_password: data.must_change_password ?? false}, data.token);
+            if (data.must_change_password) {
+                navigate('/force-change-password');
+            } else {
+                navigate('/');
+            }
         } catch (err: unknown) {
             setLoginError(err instanceof Error ? err.message : 'Login error');
         } finally {

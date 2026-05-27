@@ -113,6 +113,34 @@ class TaskResponseCreateRequest(BaseModel):
     content: str = Field(min_length=1, max_length=2000)
 
 
+class ForceChangePasswordRequest(BaseModel):
+    new_password: str = Field(max_length=128)
+
+    @field_validator("new_password")
+    @classmethod
+    def password_strength(cls, v: str) -> str:
+        return validate_password_strength(v)
+
+
+class AdminResetPasswordRequest(BaseModel):
+    new_password: str = Field(max_length=128)
+
+    @field_validator("new_password")
+    @classmethod
+    def password_strength(cls, v: str) -> str:
+        return validate_password_strength(v)
+
+
+class AdminCreateUserRequest(BaseModel):
+    pseudo: str = Field(min_length=3, max_length=50)
+    password: str = Field(max_length=128)
+
+    @field_validator("password")
+    @classmethod
+    def password_strength(cls, v: str) -> str:
+        return validate_password_strength(v)
+
+
 class UpdateLanguageRequest(BaseModel):
     language: str = Field(pattern="^(en|fr)$")
 

@@ -7,6 +7,7 @@ interface User {
   pseudo: string;
   role: string;
   language: string;
+  must_change_password?: boolean;
 }
 
 interface AuthContextType {

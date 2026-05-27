@@ -4,7 +4,7 @@ from sqlmodel import Session
 
 from services import user_service, log_service
 from utils.security import verify_token, create_token
-from utils.schemas import LoginRequest, RegisterRequest, ChangePasswordRequest, DeleteAccountRequest, UpdateLanguageRequest, GenerateRecoveryRequest, RecoverPasswordRequest
+from utils.schemas import LoginRequest, RegisterRequest, ChangePasswordRequest, DeleteAccountRequest, UpdateLanguageRequest, ForceChangePasswordRequest, GenerateRecoveryRequest, RecoverPasswordRequest
 from app.dependencies import get_db, limiter
 
 router = APIRouter()
@@ -30,6 +30,7 @@ async def login(request: Request, body: LoginRequest, db: Session = Depends(get_
         "pseudo": user.pseudo,
         "role": role,
         "language": user.language,
+        "must_change_password": user.must_change_password,
     }
 
 
@@ -117,6 +118,27 @@ async def change_password(
 
     user_service.update_password(db, user, body.new_password)
     log_service.create_log(db, "auth", "change_password", id_user=user.id_user, ip_address=ip)
+
+    return {"detail": "Password changed successfully"}
+
+
+@router.post("/force-change-password")
+async def force_change_password(
+    request: Request,
+    body: ForceChangePasswordRequest,
+    payload: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+):
+    ip = request.client.host if request.client else None
+    user = user_service.get_user_by_id(db, payload["user_id"])
+    if not user or not user.is_active:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    if not user.must_change_password:
+        raise HTTPException(status_code=400, detail="Password change not required")
+
+    user_service.update_password(db, user, body.new_password)
+    log_service.create_log(db, "auth", "force_change_password", id_user=user.id_user, ip_address=ip)
 
     return {"detail": "Password changed successfully"}
 

@@ -20,7 +20,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 SUPER_ADMIN_PSEUDO = "superadmin"
 SUPER_ADMIN_PASSWORD_HASH = "$2y$10$N6XINc9b2MuaqCe8d29E1O78dUiReA565t561Br625q1HCLBPxytu"
-SUPER_ADMIN_ROLE = "admin"
+SUPER_ADMIN_ROLE = "super-admin"
 
 
 def upgrade() -> None:
