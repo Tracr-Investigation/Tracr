@@ -28,3 +28,12 @@ class User(SQLModel, table=True):
         default="en",
         sa_column=Column(String(5), nullable=False, server_default="en"),
     )
+    must_change_password: bool = Field(default=False, nullable=False)
+    recovery_hash: Optional[str] = Field(
+        default=None,
+        sa_column=Column(String(256), nullable=True),
+    )
+    recovery_created_at: Optional[datetime] = Field(
+        default=None,
+        sa_column=Column(DateTime(timezone=True), nullable=True),
+    )

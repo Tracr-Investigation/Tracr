@@ -3,7 +3,7 @@ from sqlmodel import Session
 
 from services import user_service, log_service, status_service, category_service
 from utils.security import verify_token
-from utils.schemas import StatusCreateRequest, StatusUpdateRequest, CategoryCreateRequest, CategoryUpdateRequest
+from utils.schemas import StatusCreateRequest, StatusUpdateRequest, CategoryCreateRequest, CategoryUpdateRequest, AdminResetPasswordRequest, AdminCreateUserRequest
 from app.dependencies import get_db
 
 router = APIRouter(prefix="/admin")
@@ -36,6 +36,89 @@ async def get_admin_users(
     filtered = user_service.count_users(db, search)
 
     return {"users": users, "total": total, "filtered": filtered, "page": page, "limit": limit}
+
+
+@router.post("/users")
+async def create_admin_user(
+        body: AdminCreateUserRequest,
+        request: Request,
+        admin=Depends(verify_admin),
+        db: Session = Depends(get_db),
+):
+    existing = user_service.get_user_by_pseudo(db, body.pseudo)
+    if existing:
+        raise HTTPException(status_code=409, detail="This username is already taken")
+
+    try:
+        user = user_service.create_admin_user(db, body.pseudo, body.password)
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    ip = request.client.host if request.client else None
+    log_service.create_log(
+        db, category="auth", action="admin_create_user",
+        id_user=admin.id_user,
+        detail=f"Created admin user #{user.id_user} ({user.pseudo})",
+        ip_address=ip,
+    )
+    return {"id_user": user.id_user, "pseudo": user.pseudo, "role": "admin"}
+
+
+@router.delete("/users/{user_id}")
+async def delete_user(
+        user_id: int,
+        request: Request,
+        admin=Depends(verify_admin),
+        db: Session = Depends(get_db),
+):
+    target = user_service.get_user_by_id(db, user_id)
+    if not target:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    target_role = user_service.get_user_role(db, target.id_user)
+    if target_role == "super-admin":
+        raise HTTPException(status_code=403, detail="Super-admin account cannot be deleted")
+
+    if target.id_user == admin.id_user:
+        raise HTTPException(status_code=400, detail="You cannot delete your own account")
+
+    pseudo = target.pseudo
+    user_service.hard_delete_user(db, target)
+    ip = request.client.host if request.client else None
+    log_service.create_log(
+        db, category="auth", action="admin_delete_user",
+        id_user=admin.id_user,
+        detail=f"Deleted user ({pseudo})",
+        ip_address=ip,
+    )
+    return {"detail": "User deleted"}
+
+
+@router.post("/users/{user_id}/reset-password")
+async def admin_reset_user_password(
+        user_id: int,
+        body: AdminResetPasswordRequest,
+        request: Request,
+        admin=Depends(verify_admin),
+        db: Session = Depends(get_db),
+):
+    target = user_service.get_user_by_id(db, user_id)
+    if not target:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    target_role = user_service.get_user_role(db, target.id_user)
+    if target_role == "super-admin":
+        raise HTTPException(status_code=403, detail="Super-admin password cannot be reset through this endpoint")
+
+    user_service.admin_reset_password(db, target, body.new_password)
+    ip = request.client.host if request.client else None
+    log_service.create_log(
+        db, category="auth", action="admin_reset_password",
+        id_user=admin.id_user,
+        detail=f"Reset password for user #{user_id} ({target.pseudo})",
+        ip_address=ip,
+    )
+    return {"detail": "Password reset successfully"}
 
 
 @router.get("/logs")

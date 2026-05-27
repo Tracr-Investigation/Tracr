@@ -23,8 +23,13 @@ import {
     X,
     Settings,
     CheckSquare,
+    History,
+    Network,
 } from 'lucide-react';
 import {TasksTab} from './tabs/TasksTab';
+import {DocumentsTab} from './tabs/DocumentsTab';
+import {TimelineTab} from './tabs/TimelineTab';
+import {GraphTab} from './tabs/GraphTab';
 import * as LucideIcons from 'lucide-react';
 import {formatRelativeDate} from '../../utils/date';
 import {extractIdFromSlug, toInvestigationSlug} from '../../utils/slug';
@@ -93,12 +98,14 @@ const permissionColors: Record<string, string> = {
     lecteur: '#6b7280',
 };
 
+const dropdownStyle = {background: 'var(--color-card)', border: '1px solid var(--color-border)'};
+
 const StatusDropdown = ({
-                            currentStatusId,
-                            statuses,
-                            onSelect,
-                            onClose,
-                        }: {
+    currentStatusId,
+    statuses,
+    onSelect,
+    onClose,
+}: {
     currentStatusId: number;
     statuses: StatusData[];
     onSelect: (id: number) => void;
@@ -115,16 +122,13 @@ const StatusDropdown = ({
     }, [onClose]);
 
     return (
-        <div
-            ref={ref}
-            className="absolute top-full left-0 mt-1 z-20 bg-card border border-border rounded-xl py-1 shadow-lg min-w-[160px]"
-        >
+        <div ref={ref} className="absolute top-full left-0 mt-1 z-20 rounded-xl py-1 shadow-xl min-w-[160px]" style={dropdownStyle}>
             {statuses.map((s) => (
                 <button
                     key={s.id_status}
                     onClick={() => onSelect(s.id_status)}
                     disabled={s.id_status === currentStatusId}
-                    className="w-full px-3 py-2 flex items-center gap-2 hover:bg-primary/10 transition-colors disabled:opacity-40 disabled:cursor-default"
+                    className="w-full px-3 py-2 flex items-center gap-2 hover:bg-input-bg transition-colors disabled:opacity-40 disabled:cursor-default"
                 >
                     <StatusBadge name={s.name} color={s.color}/>
                 </button>
@@ -134,9 +138,9 @@ const StatusDropdown = ({
 };
 
 const CollaboratorsTab = ({
-                              investigation,
-                              onRefresh,
-                          }: {
+    investigation,
+    onRefresh,
+}: {
     investigation: InvestigationDetailData;
     onRefresh: () => void;
 }) => {
@@ -163,12 +167,8 @@ const CollaboratorsTab = ({
 
     useEffect(() => {
         const handleClick = (e: MouseEvent) => {
-            if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
-                setSearchResults([]);
-            }
-            if (permRef.current && !permRef.current.contains(e.target as Node)) {
-                setPermDropdown(null);
-            }
+            if (searchRef.current && !searchRef.current.contains(e.target as Node)) setSearchResults([]);
+            if (permRef.current && !permRef.current.contains(e.target as Node)) setPermDropdown(null);
         };
         document.addEventListener('mousedown', handleClick);
         return () => document.removeEventListener('mousedown', handleClick);
@@ -177,10 +177,7 @@ const CollaboratorsTab = ({
     const handleSearch = (value: string) => {
         setSearchQuery(value);
         if (searchTimeout.current) clearTimeout(searchTimeout.current);
-        if (value.length < 2) {
-            setSearchResults([]);
-            return;
-        }
+        if (value.length < 2) { setSearchResults([]); return; }
         searchTimeout.current = setTimeout(async () => {
             setSearching(true);
             try {
@@ -203,7 +200,7 @@ const CollaboratorsTab = ({
             setSearchResults([]);
             onRefresh();
         } catch (err) {
-            toast('error', err instanceof Error ? err.message : 'Error inviting collaborator');
+            toast('error', err instanceof Error ? err.message : 'Erreur');
         } finally {
             setInviting(false);
         }
@@ -216,7 +213,7 @@ const CollaboratorsTab = ({
             toast('success', t('investigationDetail.collaborators.permissionUpdated'));
             onRefresh();
         } catch (err) {
-            toast('error', err instanceof Error ? err.message : 'Error updating permission');
+            toast('error', err instanceof Error ? err.message : 'Erreur');
         }
     };
 
@@ -226,7 +223,7 @@ const CollaboratorsTab = ({
             toast('success', t('investigationDetail.collaborators.removed', {pseudo}));
             onRefresh();
         } catch (err) {
-            toast('error', err instanceof Error ? err.message : 'Error removing collaborator');
+            toast('error', err instanceof Error ? err.message : 'Erreur');
         }
     };
 
@@ -235,39 +232,37 @@ const CollaboratorsTab = ({
         : ['manager', 'editeur', 'lecteur'];
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-5">
             {canInvite && (
-                <div className="bg-card border border-border rounded-xl p-5">
-                    <h3 className="text-text-default font-semibold mb-4 flex items-center gap-2">
-                        <UserPlus size={16} className="text-primary"/>
+                <div className="rounded-xl border border-border-subtle bg-card/30 p-5">
+                    <h3 className="text-text-default font-semibold mb-4 flex items-center gap-2 text-sm">
+                        <UserPlus size={14} style={{color: 'var(--theme-primary)'}}/>
                         {t('investigationDetail.collaborators.inviteTitle')}
                     </h3>
                     <div className="flex gap-3">
                         <div className="flex-1 relative" ref={searchRef}>
                             <div className="relative">
-                                <Search size={16}
-                                        className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"/>
+                                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-dim"/>
                                 <input
                                     type="text"
                                     value={searchQuery}
                                     onChange={(e) => handleSearch(e.target.value)}
                                     placeholder={t('investigationDetail.collaborators.searchPlaceholder')}
                                     disabled={inviting}
-                                    className="w-full pl-10 pr-4 py-2.5 bg-input-bg border border-border rounded-xl text-text-default placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-border-focus transition-all text-sm"
+                                    className="w-full pl-9 pr-4 py-2.5 bg-input-bg border border-border rounded-xl text-text-default placeholder-text-muted focus:outline-none focus:border-[var(--theme-primary)] transition-colors text-sm"
                                 />
                             </div>
                             {searchResults.length > 0 && (
-                                <div
-                                    className="absolute top-full left-0 right-0 mt-1 z-20 bg-card border border-border rounded-xl py-1 shadow-lg max-h-48 overflow-y-auto">
+                                <div className="absolute top-full left-0 right-0 mt-1 z-20 rounded-xl py-1 shadow-xl max-h-48 overflow-y-auto" style={dropdownStyle}>
                                     {searchResults.map((u) => (
                                         <button
                                             key={u.id_user}
                                             onClick={() => handleInvite(u.pseudo)}
                                             disabled={inviting}
-                                            className="w-full px-4 py-2.5 text-left text-sm text-text-default hover:bg-primary/10 transition-colors flex items-center gap-2"
+                                            className="w-full px-4 py-2.5 text-left text-sm text-text-default hover:bg-input-bg transition-colors flex items-center gap-2"
                                         >
-                                            <span
-                                                className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
+                                            <span className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold text-text-default shrink-0"
+                                                style={{background: 'color-mix(in srgb, var(--theme-primary) 25%, transparent)', color: 'var(--theme-primary)'}}>
                                                 {u.pseudo.charAt(0).toUpperCase()}
                                             </span>
                                             {u.pseudo}
@@ -276,8 +271,7 @@ const CollaboratorsTab = ({
                                 </div>
                             )}
                             {searching && (
-                                <div
-                                    className="absolute top-full left-0 right-0 mt-1 z-20 bg-card border border-border rounded-xl py-3 shadow-lg text-center text-sm text-text-muted">
+                                <div className="absolute top-full left-0 right-0 mt-1 z-20 rounded-xl py-3 shadow-xl text-center text-sm text-text-muted" style={dropdownStyle}>
                                     {t('investigationDetail.collaborators.searching')}
                                 </div>
                             )}
@@ -285,7 +279,7 @@ const CollaboratorsTab = ({
                         <select
                             value={selectedPermission}
                             onChange={(e) => setSelectedPermission(e.target.value)}
-                            className="px-4 py-2.5 bg-input-bg border border-border rounded-xl text-text-default text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-border-focus transition-all"
+                            className="px-4 py-2.5 bg-input-bg border border-border rounded-xl text-text-default text-sm focus:outline-none focus:border-[var(--theme-primary)] transition-colors"
                         >
                             {permissionOptions.map((p) => (
                                 <option key={p} value={p}>{permissionLabels[p]}</option>
@@ -297,10 +291,10 @@ const CollaboratorsTab = ({
 
             <div className="space-y-2">
                 {investigation.collaborators.length === 0 ? (
-                    <div className="bg-card border border-border rounded-xl p-8 text-center">
-                        <Users size={32} className="mx-auto text-text-muted mb-3"/>
-                        <p className="text-text-default font-medium mb-1">{t('investigationDetail.collaborators.empty')}</p>
-                        <p className="text-text-muted text-sm">
+                    <div className="flex flex-col items-center justify-center py-12 text-center rounded-xl border border-border-subtle">
+                        <Users size={28} className="text-text-dim mb-2"/>
+                        <p className="text-text-muted font-medium text-sm mb-1">{t('investigationDetail.collaborators.empty')}</p>
+                        <p className="text-text-dim text-xs">
                             {canInvite
                                 ? t('investigationDetail.collaborators.emptyDesc')
                                 : t('investigationDetail.collaborators.emptyDescReadonly')}
@@ -310,11 +304,11 @@ const CollaboratorsTab = ({
                     investigation.collaborators.map((collab) => (
                         <div
                             key={collab.id_collaborator}
-                            className="bg-card border border-border rounded-xl p-4 flex items-center justify-between"
+                            className="rounded-xl border border-border-subtle bg-card/30 p-4 flex items-center justify-between"
                         >
                             <div className="flex items-center gap-3">
-                                <span
-                                    className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-sm font-semibold text-primary">
+                                <span className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold shrink-0"
+                                    style={{background: 'color-mix(in srgb, var(--theme-primary) 20%, transparent)', color: 'var(--theme-primary)'}}>
                                     {collab.pseudo.charAt(0).toUpperCase()}
                                 </span>
                                 <div>
@@ -330,38 +324,35 @@ const CollaboratorsTab = ({
                                             {permissionLabels[collab.permission_level]}
                                         </span>
                                         {!collab.accepted_at && (
-                                            <span
-                                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400">
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-500/15 text-yellow-400">
                                                 <Clock size={10}/>
                                                 {t('investigationDetail.collaborators.pending')}
                                             </span>
                                         )}
                                     </div>
-                                    <p className="text-text-muted text-xs mt-0.5">
+                                    <p className="text-text-dim text-xs mt-0.5">
                                         {t('investigationDetail.collaborators.invited')} {collab.invited_at ? formatRelativeDate(collab.invited_at) : ''}
                                     </p>
                                 </div>
                             </div>
 
                             {isOwner && (
-                                <div className="flex items-center gap-2">
-                                    <div className="relative"
-                                         ref={permDropdown === collab.id_collaborator ? permRef : null}>
+                                <div className="flex items-center gap-1">
+                                    <div className="relative" ref={permDropdown === collab.id_collaborator ? permRef : null}>
                                         <button
                                             onClick={() => setPermDropdown(permDropdown === collab.id_collaborator ? null : collab.id_collaborator)}
-                                            className="p-2 text-text-muted hover:text-text-default hover:bg-primary/10 rounded-lg transition-all"
+                                            className="p-2 text-text-dim hover:text-text-default hover:bg-input-bg rounded-lg transition-all"
                                         >
                                             <ChevronDown size={14}/>
                                         </button>
                                         {permDropdown === collab.id_collaborator && (
-                                            <div
-                                                className="absolute top-full right-0 mt-1 z-20 bg-card border border-border rounded-xl py-1 shadow-lg min-w-[140px]">
+                                            <div className="absolute top-full right-0 mt-1 z-20 rounded-xl py-1 shadow-xl min-w-[140px]" style={dropdownStyle}>
                                                 {['manager', 'editeur', 'lecteur'].map((p) => (
                                                     <button
                                                         key={p}
                                                         onClick={() => handleUpdatePermission(collab.id_collaborator, p)}
                                                         disabled={p === collab.permission_level}
-                                                        className="w-full px-3 py-2 text-left text-sm hover:bg-primary/10 transition-colors disabled:opacity-40 disabled:cursor-default"
+                                                        className="w-full px-3 py-2 text-left text-sm hover:bg-input-bg transition-colors disabled:opacity-40 disabled:cursor-default"
                                                     >
                                                         <span style={{color: permissionColors[p]}}>
                                                             {permissionLabels[p]}
@@ -373,7 +364,7 @@ const CollaboratorsTab = ({
                                     </div>
                                     <button
                                         onClick={() => handleRemove(collab.id_collaborator, collab.pseudo)}
-                                        className="p-2 text-text-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                                        className="p-2 text-text-dim hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
                                     >
                                         <Trash2 size={14}/>
                                     </button>
@@ -388,9 +379,9 @@ const CollaboratorsTab = ({
 };
 
 const CategoriesSection = ({
-                               investigation,
-                               onRefresh,
-                           }: {
+    investigation,
+    onRefresh,
+}: {
     investigation: InvestigationDetailData;
     onRefresh: () => void;
 }) => {
@@ -408,9 +399,7 @@ const CategoriesSection = ({
         try {
             const data = await api.getInvestigationCategories();
             setAllCategories(data.categories);
-        } catch {
-            /* ignore */
-        }
+        } catch { /* ignore */ }
     }, []);
 
     useEffect(() => {
@@ -434,7 +423,7 @@ const CategoriesSection = ({
             toast('success', t('investigationDetail.categories.added'));
             onRefresh();
         } catch (err) {
-            toast('error', err instanceof Error ? err.message : 'Error adding category');
+            toast('error', err instanceof Error ? err.message : 'Erreur');
         }
     };
 
@@ -444,7 +433,7 @@ const CategoriesSection = ({
             toast('success', t('investigationDetail.categories.removed'));
             onRefresh();
         } catch (err) {
-            toast('error', err instanceof Error ? err.message : 'Error removing category');
+            toast('error', err instanceof Error ? err.message : 'Erreur');
         }
     };
 
@@ -479,14 +468,13 @@ const CategoriesSection = ({
                 <div className="relative" ref={pickerRef}>
                     <button
                         onClick={() => setShowPicker(!showPicker)}
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium text-text-muted border border-dashed border-border hover:border-primary/50 hover:text-text-default transition-all"
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium text-text-dim border border-dashed border-border hover:border-primary/50 hover:text-text-muted transition-all"
                     >
                         <Plus size={12}/>
                         {t('investigationDetail.categories.add')}
                     </button>
                     {showPicker && (
-                        <div
-                            className="absolute top-full left-0 mt-1 z-20 bg-card border border-border rounded-xl py-1 shadow-lg min-w-[180px] max-h-48 overflow-y-auto">
+                        <div className="absolute top-full left-0 mt-1 z-20 rounded-xl py-1 shadow-xl min-w-[180px] max-h-48 overflow-y-auto" style={dropdownStyle}>
                             {unassigned.length === 0 ? (
                                 <p className="px-3 py-2 text-text-muted text-sm">{t('investigationDetail.categories.noMore')}</p>
                             ) : (
@@ -495,11 +483,8 @@ const CategoriesSection = ({
                                     return (
                                         <button
                                             key={cat.id_category}
-                                            onClick={() => {
-                                                handleAdd(cat.id_category);
-                                                setShowPicker(false);
-                                            }}
-                                            className="w-full px-3 py-2 flex items-center gap-2 hover:bg-primary/10 transition-colors text-sm"
+                                            onClick={() => { handleAdd(cat.id_category); setShowPicker(false); }}
+                                            className="w-full px-3 py-2 flex items-center gap-2 hover:bg-input-bg transition-colors text-sm"
                                         >
                                             <CatIcon size={14} className="shrink-0" style={{color: cat.color || '#8b5cf6'} as React.CSSProperties}/>
                                             <span className="text-text-default">{cat.name}</span>
@@ -516,11 +501,11 @@ const CategoriesSection = ({
 };
 
 const SettingsTab = ({
-                         investigation,
-                         onRefresh,
-                         onNavigateAway,
-                         onSlugUpdate,
-                     }: {
+    investigation,
+    onRefresh,
+    onNavigateAway,
+    onSlugUpdate,
+}: {
     investigation: InvestigationDetailData;
     onRefresh: () => void;
     onNavigateAway: () => void;
@@ -563,7 +548,7 @@ const SettingsTab = ({
             if (newTitle) onSlugUpdate(newTitle);
             onRefresh();
         } catch (err) {
-            toast('error', err instanceof Error ? err.message : 'Error updating investigation');
+            toast('error', err instanceof Error ? err.message : 'Erreur');
         } finally {
             setSaving(false);
         }
@@ -573,10 +558,7 @@ const SettingsTab = ({
         setTransferQuery(value);
         setSelectedTransferUser(null);
         if (transferTimeout.current) clearTimeout(transferTimeout.current);
-        if (value.length < 2) {
-            setTransferResults([]);
-            return;
-        }
+        if (value.length < 2) { setTransferResults([]); return; }
         transferTimeout.current = setTimeout(async () => {
             setTransferSearching(true);
             try {
@@ -598,7 +580,7 @@ const SettingsTab = ({
             toast('success', t('investigationDetail.settings.transferred', {pseudo: selectedTransferUser.pseudo}));
             onNavigateAway();
         } catch (err) {
-            toast('error', err instanceof Error ? err.message : 'Error transferring ownership');
+            toast('error', err instanceof Error ? err.message : 'Erreur');
         } finally {
             setTransferring(false);
             setShowTransferConfirm(false);
@@ -612,22 +594,19 @@ const SettingsTab = ({
             toast('success', t('investigationDetail.settings.deleted'));
             onNavigateAway();
         } catch (err) {
-            toast('error', err instanceof Error ? err.message : 'Error deleting investigation');
+            toast('error', err instanceof Error ? err.message : 'Erreur');
         } finally {
             setDeleting(false);
         }
     };
 
+    const inputClass = "w-full px-3 py-2 bg-input-bg border border-border rounded-xl text-text-default text-sm focus:outline-none focus:border-[var(--theme-primary)] transition-colors placeholder-text-muted";
+
     return (
-        <div className="max-w-2xl divide-y divide-border-subtle">
+        <div className="max-w-2xl space-y-1 divide-y divide-white/6">
             <div className="flex items-center gap-4 py-3">
                 <label className="text-sm text-text-muted w-24 shrink-0">{t('investigationDetail.settings.titleLabel')}</label>
-                <input
-                    type="text"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="flex-1 px-3 py-1.5 bg-input-bg border border-border rounded-lg text-text-default text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
-                />
+                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className={inputClass}/>
             </div>
 
             <div className="flex items-start gap-4 py-3">
@@ -636,7 +615,7 @@ const SettingsTab = ({
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={2}
-                    className="flex-1 px-3 py-1.5 bg-input-bg border border-border rounded-lg text-text-default text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all resize-none"
+                    className={`${inputClass} resize-none`}
                     placeholder={t('investigationDetail.settings.descPlaceholder')}
                 />
             </div>
@@ -646,7 +625,8 @@ const SettingsTab = ({
                     <button
                         onClick={handleSave}
                         disabled={saving || !title.trim()}
-                        className="px-4 py-1.5 bg-primary hover:bg-primary/80 text-white rounded-lg text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="px-4 py-1.5 rounded-xl text-text-default text-sm font-semibold transition-all disabled:opacity-40"
+                        style={{background: 'var(--theme-primary)'}}
                     >
                         {saving ? t('investigationDetail.settings.saving') : t('investigationDetail.settings.saveChanges')}
                     </button>
@@ -659,37 +639,33 @@ const SettingsTab = ({
                 </div>
                 <div className="flex-1 flex gap-2 items-center relative" ref={transferRef}>
                     <div className="flex-1 relative">
-                        <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted"/>
+                        <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-dim"/>
                         <input
                             type="text"
                             value={selectedTransferUser ? selectedTransferUser.pseudo : transferQuery}
                             onChange={(e) => handleTransferSearch(e.target.value)}
                             placeholder={t('investigationDetail.settings.transferPlaceholder')}
-                            className="w-full pl-8 pr-3 py-1.5 bg-input-bg border border-border rounded-lg text-text-default text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
+                            className="w-full pl-8 pr-3 py-2 bg-input-bg border border-border rounded-xl text-text-default text-sm focus:outline-none focus:border-[var(--theme-primary)] transition-colors placeholder-text-muted"
                         />
                         {transferResults.length > 0 && !selectedTransferUser && (
-                            <div
-                                className="absolute top-full left-0 right-0 mt-1 z-20 bg-card border border-border rounded-lg py-1 shadow-lg max-h-40 overflow-y-auto">
+                            <div className="absolute top-full left-0 right-0 mt-1 z-20 rounded-xl py-1 shadow-xl max-h-40 overflow-y-auto" style={dropdownStyle}>
                                 {transferResults.map((u) => (
                                     <button
                                         key={u.id_user}
-                                        onClick={() => {
-                                            setSelectedTransferUser(u);
-                                            setTransferResults([]);
-                                            setTransferQuery(u.pseudo);
-                                        }}
-                                        className="w-full px-3 py-1.5 text-left text-sm text-text-default hover:bg-primary/10 transition-colors flex items-center gap-2"
+                                        onClick={() => { setSelectedTransferUser(u); setTransferResults([]); setTransferQuery(u.pseudo); }}
+                                        className="w-full px-3 py-1.5 text-left text-sm text-text-default hover:bg-input-bg transition-colors flex items-center gap-2"
                                     >
-                                        <span
-                                            className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-semibold text-primary">{u.pseudo.charAt(0).toUpperCase()}</span>
+                                        <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold shrink-0"
+                                            style={{background: 'color-mix(in srgb, var(--theme-primary) 20%, transparent)', color: 'var(--theme-primary)'}}>
+                                            {u.pseudo.charAt(0).toUpperCase()}
+                                        </span>
                                         {u.pseudo}
                                     </button>
                                 ))}
                             </div>
                         )}
                         {transferSearching && (
-                            <div
-                                className="absolute top-full left-0 right-0 mt-1 z-20 bg-card border border-border rounded-lg py-2 shadow-lg text-center text-xs text-text-muted">
+                            <div className="absolute top-full left-0 right-0 mt-1 z-20 rounded-xl py-2 shadow-xl text-center text-xs text-text-muted" style={dropdownStyle}>
                                 {t('investigationDetail.settings.transferSearching')}
                             </div>
                         )}
@@ -697,14 +673,14 @@ const SettingsTab = ({
                     <button
                         onClick={() => setShowTransferConfirm(true)}
                         disabled={!selectedTransferUser}
-                        className="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg text-xs font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+                        className="px-3 py-2 bg-yellow-600/80 hover:bg-yellow-600 text-white rounded-xl text-xs font-semibold transition-all disabled:opacity-40 whitespace-nowrap"
                     >
                         {t('investigationDetail.settings.transferButton')}
                     </button>
                 </div>
                 {showTransferConfirm && selectedTransferUser && (
-                    <div className="fixed inset-0 bg-overlay flex items-center justify-center z-50">
-                        <div className="bg-card border border-border rounded-xl p-5 max-w-sm w-full mx-4">
+                    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+                        <div className="bg-card border border-border rounded-2xl p-5 max-w-sm w-full mx-4">
                             <h4 className="text-text-default font-semibold text-sm mb-2">{t('investigationDetail.settings.confirmTransfer')}</h4>
                             <p className="text-text-muted text-xs mb-4">
                                 {t('investigationDetail.settings.confirmTransferDesc', {
@@ -714,11 +690,11 @@ const SettingsTab = ({
                             </p>
                             <div className="flex justify-end gap-2">
                                 <button onClick={() => setShowTransferConfirm(false)}
-                                        className="px-3 py-1.5 text-xs text-text-muted hover:text-text-default transition-colors">
+                                    className="px-3 py-1.5 text-xs text-text-muted hover:text-text-default transition-colors">
                                     {t('investigationDetail.settings.cancel')}
                                 </button>
                                 <button onClick={handleTransfer} disabled={transferring}
-                                        className="px-4 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg text-xs font-medium transition-all disabled:opacity-40">
+                                    className="px-4 py-1.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded-xl text-xs font-semibold transition-all disabled:opacity-40">
                                     {transferring ? t('investigationDetail.settings.transferring') : t('investigationDetail.settings.confirmTransferBtn')}
                                 </button>
                             </div>
@@ -733,11 +709,11 @@ const SettingsTab = ({
                         <span className="text-sm text-red-400">{t('investigationDetail.settings.deleteLabel')}</span>
                     </div>
                     <div className="flex-1 flex items-center justify-between">
-                        <span className="text-xs text-text-muted">{t('investigationDetail.settings.deleteDesc')}</span>
+                        <span className="text-xs text-text-dim">{t('investigationDetail.settings.deleteDesc')}</span>
                         {!showDeleteConfirm && (
                             <button
                                 onClick={() => setShowDeleteConfirm(true)}
-                                className="px-3 py-1.5 border border-red-500/50 text-red-400 hover:bg-red-500/10 rounded-lg text-xs font-medium transition-all ml-4 whitespace-nowrap"
+                                className="px-3 py-1.5 border border-red-500/40 text-red-400 hover:bg-red-500/10 rounded-xl text-xs font-medium transition-all ml-4 whitespace-nowrap"
                             >
                                 {t('investigationDetail.settings.deleteButton')}
                             </button>
@@ -755,18 +731,16 @@ const SettingsTab = ({
                                 value={deleteConfirmText}
                                 onChange={(e) => setDeleteConfirmText(e.target.value)}
                                 placeholder={investigation.title}
-                                className="flex-1 px-3 py-1.5 bg-input-bg border border-border-error rounded-lg text-text-default placeholder-text-dim text-sm focus:outline-none focus:ring-1 focus:ring-red-500/20 transition-all"
+                                className="flex-1 px-3 py-1.5 bg-red-500/5 border border-red-500/30 rounded-xl text-text-default placeholder-text-dim text-sm focus:outline-none focus:border-red-500/60 transition-colors"
                             />
-                            <button onClick={() => {
-                                setShowDeleteConfirm(false);
-                                setDeleteConfirmText('');
-                            }} className="px-3 py-1.5 text-xs text-text-muted hover:text-text-default transition-colors">
+                            <button onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(''); }}
+                                className="px-3 py-1.5 text-xs text-text-muted hover:text-text-default transition-colors">
                                 {t('investigationDetail.settings.cancel')}
                             </button>
                             <button
                                 onClick={handleDelete}
                                 disabled={deleteConfirmText !== investigation.title || deleting}
-                                className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+                                className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-semibold transition-all disabled:opacity-40 whitespace-nowrap"
                             >
                                 {deleting ? t('investigationDetail.settings.deleting') : t('investigationDetail.settings.confirmDelete')}
                             </button>
@@ -802,7 +776,7 @@ export const InvestigationDetail = () => {
                 navigate(`/investigations/${expectedSlug}`, {replace: true});
             }
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Error loading investigation');
+            setError(err instanceof Error ? err.message : 'Erreur');
         } finally {
             setLoading(false);
         }
@@ -814,7 +788,7 @@ export const InvestigationDetail = () => {
             const data = await api.getInvestigation(id);
             setInvestigation(data);
         } catch (err) {
-            toast('error', err instanceof Error ? err.message : 'Error refreshing data');
+            toast('error', err instanceof Error ? err.message : 'Erreur');
         }
     }, [id, toast]);
 
@@ -822,9 +796,7 @@ export const InvestigationDetail = () => {
         try {
             const data = await api.getInvestigationStatuses();
             setStatuses(data.statuses);
-        } catch (err) {
-            console.error('Error fetching statuses:', err);
-        }
+        } catch { /* ignore */ }
     }, []);
 
     useEffect(() => {
@@ -840,13 +812,13 @@ export const InvestigationDetail = () => {
             toast('success', t('investigations.statusUpdated'));
             refreshInvestigation();
         } catch (err) {
-            toast('error', err instanceof Error ? err.message : 'Error updating status');
+            toast('error', err instanceof Error ? err.message : 'Erreur');
         }
     };
 
     const formatDate = (dateStr: string | null) => {
         if (!dateStr) return '—';
-        return new Date(dateStr).toLocaleDateString('en-US', {
+        return new Date(dateStr).toLocaleDateString('fr-FR', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',
@@ -861,45 +833,42 @@ export const InvestigationDetail = () => {
 
     return (
         <Layout>
-            <div className="p-8">
+            <div className="px-6 pt-6 pb-8">
+                {/* Breadcrumb */}
                 <nav className="flex items-center gap-1.5 text-sm mb-6">
-                    <Link to="/investigations" className="text-text-muted hover:text-text-default transition-colors">
+                    <Link to="/investigations" className="text-text-dim hover:text-text-default transition-colors">
                         {t('sidebar.investigations')}
                     </Link>
-                    <ChevronRight size={14} className="text-text-muted"/>
+                    <ChevronRight size={13} className="text-text-dim"/>
                     <span className="text-text-default font-medium truncate max-w-xs">
-                        {loading ? '...' : investigation?.title ?? 'Not found'}
+                        {loading ? '…' : investigation?.title ?? 'Introuvable'}
                     </span>
                 </nav>
 
                 {loading ? (
-                    <div className="text-center text-text-muted py-12">{t('investigationDetail.loading')}</div>
+                    <div className="flex items-center justify-center py-20 text-text-dim text-sm">Chargement…</div>
                 ) : error ? (
-                    <div className="bg-card border border-border-error rounded-xl p-12 text-center">
-                        <p className="text-red-400 text-lg font-medium mb-2">{error}</p>
-                        <Link
-                            to="/investigations"
-                            className="text-text-muted hover:text-text-default transition-colors text-sm"
-                        >
+                    <div className="flex flex-col items-center justify-center py-20 text-center">
+                        <p className="text-red-400 font-medium mb-2">{error}</p>
+                        <Link to="/investigations" className="text-text-muted hover:text-text-default transition-colors text-sm">
                             {t('investigationDetail.backToInvestigations')}
                         </Link>
                     </div>
                 ) : investigation ? (
                     <div>
-                        <div className="flex items-start justify-between gap-4 mb-2">
+                        {/* Header */}
+                        <div className="flex items-start justify-between gap-4 mb-3">
                             <h1 className="text-2xl font-bold text-text-default">{investigation.title}</h1>
-                            <div className="relative">
+                            <div className="relative shrink-0">
                                 {canChangeStatus ? (
                                     <button
                                         onClick={() => setOpenDropdown(!openDropdown)}
                                         className="cursor-pointer hover:opacity-80 transition-opacity"
                                     >
-                                        <StatusBadge name={investigation.status.name}
-                                                     color={investigation.status.color}/>
+                                        <StatusBadge name={investigation.status.name} color={investigation.status.color}/>
                                     </button>
                                 ) : (
-                                    <StatusBadge name={investigation.status.name}
-                                                 color={investigation.status.color}/>
+                                    <StatusBadge name={investigation.status.name} color={investigation.status.color}/>
                                 )}
                                 {openDropdown && canChangeStatus && (
                                     <StatusDropdown
@@ -920,26 +889,26 @@ export const InvestigationDetail = () => {
                             <CategoriesSection investigation={investigation} onRefresh={refreshInvestigation}/>
                         </div>
 
-                        <div className="flex items-center gap-5 text-sm text-text-muted mb-8">
-                            <span className="flex items-center gap-2">
-                                <User size={14} className="text-primary"/>
+                        <div className="flex items-center gap-5 text-sm text-text-muted mb-8 flex-wrap">
+                            <span className="flex items-center gap-1.5">
+                                <User size={13} style={{color: 'var(--theme-primary)'}}/>
                                 {investigation.owner.pseudo}
                             </span>
-                            <span className="w-px h-4 bg-border"/>
-                            <span className="flex items-center gap-2">
-                                <Calendar size={14} className="text-primary"/>
+                            <span className="w-px h-4 bg-card/30"/>
+                            <span className="flex items-center gap-1.5">
+                                <Calendar size={13} style={{color: 'var(--theme-primary)'}}/>
                                 {formatDate(investigation.created_at)}
                             </span>
                             {investigation.updated_at && investigation.updated_at !== investigation.created_at && (
                                 <>
-                                    <span className="w-px h-4 bg-border"/>
-                                    <span className="flex items-center gap-2">
-                                        <LayersPlus size={14} className="text-primary"/>
+                                    <span className="w-px h-4 bg-card/30"/>
+                                    <span className="flex items-center gap-1.5">
+                                        <LayersPlus size={13} style={{color: 'var(--theme-primary)'}}/>
                                         {t('investigationDetail.updated')} {formatRelativeDate(investigation.updated_at)}
                                     </span>
                                 </>
                             )}
-                            <span className="w-px h-4 bg-border"/>
+                            <span className="w-px h-4 bg-card/30"/>
                             <span className="font-mono text-text-dim">#{investigation.id_investigation}</span>
                         </div>
 
@@ -950,7 +919,7 @@ export const InvestigationDetail = () => {
                                     label: t('investigationDetail.tabs.details'),
                                     icon: FileText,
                                     content: (
-                                        <div className="border-t border-border-subtle pt-6">
+                                        <div className="pt-5">
                                             {investigation.description ? (
                                                 <p className="text-text-muted">{investigation.description}</p>
                                             ) : (
@@ -971,6 +940,18 @@ export const InvestigationDetail = () => {
                                     ),
                                 },
                                 {
+                                    id: 'documents',
+                                    label: 'Documents',
+                                    icon: FileText,
+                                    content: (
+                                        <DocumentsTab
+                                            investigationId={investigation.id_investigation}
+                                            investigationTitle={investigation.title}
+                                            userPermission={investigation.user_permission}
+                                        />
+                                    ),
+                                },
+                                {
                                     id: 'collaborators',
                                     label: t('investigationDetail.tabs.collaborators'),
                                     icon: Users,
@@ -979,6 +960,25 @@ export const InvestigationDetail = () => {
                                             investigation={investigation}
                                             onRefresh={refreshInvestigation}
                                         />
+                                    ),
+                                },
+                                {
+                                    id: 'graph',
+                                    label: t('investigationDetail.tabs.graph'),
+                                    icon: Network,
+                                    content: (
+                                        <GraphTab
+                                            investigationId={investigation.id_investigation}
+                                            userPermission={investigation.user_permission}
+                                        />
+                                    ),
+                                },
+                                {
+                                    id: 'timeline',
+                                    label: t('investigationDetail.tabs.timeline'),
+                                    icon: History,
+                                    content: (
+                                        <TimelineTab investigationId={investigation.id_investigation}/>
                                     ),
                                 },
                                 ...(investigation.user_permission === 'owner' ? [{

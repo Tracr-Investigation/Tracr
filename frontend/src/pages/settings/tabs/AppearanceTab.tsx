@@ -23,52 +23,44 @@ export const AppearanceTab = () => {
         <div className="space-y-8 max-w-2xl">
             {/* Mode */}
             <div>
-                <h2 className="text-lg font-semibold text-text-default flex items-center gap-2 mb-1">
-                    {mode === 'dark' ? <Moon size={18} className="text-primary" /> : <Sun size={18} className="text-primary" />}
-                    {t('settings.appearance.displayMode')}
+                <h2 className="text-base font-semibold text-text-default flex items-center gap-2 mb-1">
+                    {mode === 'dark' ? <Moon size={16} style={{color: 'var(--theme-primary)'}}/> : <Sun size={16} style={{color: 'var(--theme-primary)'}}/>}
+                    Mode d'affichage
                 </h2>
                 <p className="text-sm text-text-muted mb-4">{t('settings.appearance.displayModeDesc')}</p>
 
                 <div className="grid grid-cols-2 gap-3">
-                    <button
-                        onClick={() => setMode('dark')}
-                        className={`flex items-center gap-4 px-5 py-4 rounded-xl border transition-all text-left ${
-                            mode === 'dark'
-                                ? 'border-primary bg-primary/10 text-text-default'
-                                : 'border-border hover:border-primary/40 text-text-muted hover:text-text-default'
-                        }`}
-                    >
-                        <Moon size={20} className={mode === 'dark' ? 'text-primary' : ''} />
-                        <div>
-                            <p className="font-medium text-sm">{t('settings.appearance.dark')}</p>
-                            <p className="text-xs text-text-dim mt-0.5">{t('settings.appearance.darkDesc')}</p>
-                        </div>
-                        {mode === 'dark' && <span className="ml-auto w-2 h-2 rounded-full bg-primary" />}
-                    </button>
-
-                    <button
-                        onClick={() => setMode('light')}
-                        className={`flex items-center gap-4 px-5 py-4 rounded-xl border transition-all text-left ${
-                            mode === 'light'
-                                ? 'border-primary bg-primary/10 text-text-default'
-                                : 'border-border hover:border-primary/40 text-text-muted hover:text-text-default'
-                        }`}
-                    >
-                        <Sun size={20} className={mode === 'light' ? 'text-primary' : ''} />
-                        <div>
-                            <p className="font-medium text-sm">{t('settings.appearance.light')}</p>
-                            <p className="text-xs text-text-dim mt-0.5">{t('settings.appearance.lightDesc')}</p>
-                        </div>
-                        {mode === 'light' && <span className="ml-auto w-2 h-2 rounded-full bg-primary" />}
-                    </button>
+                    {([
+                        {value: 'dark', Icon: Moon, label: 'Sombre', desc: 'Interface sombre'},
+                        {value: 'light', Icon: Sun, label: 'Clair', desc: 'Interface claire'},
+                    ] as const).map(({value, Icon, label, desc}) => {
+                        const active = mode === value;
+                        return (
+                            <button
+                                key={value}
+                                onClick={() => setMode(value)}
+                                className={`flex items-center gap-4 px-5 py-4 rounded-xl border transition-all text-left ${
+                                    active ? 'border-[var(--theme-primary)] text-text-default' : 'border-border bg-card/30 text-text-muted hover:text-text-default hover:border-border'
+                                }`}
+                                style={active ? {background: 'color-mix(in srgb, var(--theme-primary) 10%, transparent)'} : undefined}
+                            >
+                                <Icon size={20} style={active ? {color: 'var(--theme-primary)'} : undefined} className={active ? '' : 'text-text-dim'}/>
+                                <div>
+                                    <p className="font-medium text-sm">{label}</p>
+                                    <p className="text-xs text-text-dim mt-0.5">{desc}</p>
+                                </div>
+                                {active && <span className="ml-auto w-2 h-2 rounded-full" style={{background: 'var(--theme-primary)'}}/>}
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
 
             {/* Accent */}
             <div>
-                <h2 className="text-lg font-semibold text-text-default flex items-center gap-2 mb-1">
-                    <Palette size={18} className="text-primary" />
-                    {t('settings.appearance.accentColor')}
+                <h2 className="text-base font-semibold text-text-default flex items-center gap-2 mb-1">
+                    <Palette size={16} style={{color: 'var(--theme-primary)'}}/>
+                    Couleur d'accentuation
                 </h2>
                 <p className="text-sm text-text-muted mb-4">{t('settings.appearance.accentColorDesc')}</p>
 
@@ -79,18 +71,17 @@ export const AppearanceTab = () => {
                         return (
                             <button
                                 key={a.id}
-                                onClick={() => setPendingAccent(a.id)}
-                                className="flex flex-col items-center gap-2 p-3 rounded-xl border transition-all"
-                                style={{
-                                    borderColor: selected ? a.primary : undefined,
-                                    backgroundColor: selected ? `${a.primary}20` : undefined,
-                                }}
+                                onClick={() => setAccent(a.id)}
+                                className={`flex flex-col items-center gap-2 p-3 rounded-xl border transition-all ${
+                                    selected ? 'border-[var(--theme-primary)]' : 'border-border bg-card/30 hover:border-border'
+                                }`}
+                                style={selected ? {background: 'color-mix(in srgb, var(--theme-primary) 10%, transparent)'} : undefined}
                             >
                                 <span
-                                    className="w-8 h-8 rounded-full flex-shrink-0 ring-2 ring-offset-2 ring-offset-card transition-all"
+                                    className="w-8 h-8 rounded-full shrink-0 transition-all"
                                     style={{
                                         background: `linear-gradient(135deg, ${a.primary}, ${a.secondary})`,
-                                        ...(selected ? { boxShadow: `0 0 0 2px var(--bg-card), 0 0 0 4px ${a.primary}` } : {}),
+                                        ...(selected ? {boxShadow: `0 0 0 2px rgba(0,0,0,0.5), 0 0 0 4px ${a.primary}`} : {}),
                                     }}
                                 />
                                 <span
@@ -107,26 +98,13 @@ export const AppearanceTab = () => {
 
             {/* Preview */}
             <div>
-                <h2 className="text-lg font-semibold text-text-default flex items-center gap-2 mb-1">
-                    {t('settings.appearance.preview')}
-                </h2>
-                <p className="text-sm text-text-muted mb-4">{t('settings.appearance.previewDesc')}</p>
+                <h2 className="text-base font-semibold text-text-default mb-1">Aperçu</h2>
+                <p className="text-sm text-text-muted mb-4">Rendu en temps réel du thème sélectionné.</p>
 
-                <div
-                    className="bg-card rounded-xl p-5 space-y-3 border"
-                    style={{ borderColor: `${pendingTheme.primary}60` }}
-                >
+                <div className="bg-card/30 border border-border-subtle rounded-xl p-5 space-y-3">
                     <div className="flex items-center gap-3">
-                        <span
-                            className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold"
-                            style={{
-                                backgroundColor: `${pendingTheme.primary}20`,
-                                color: pendingTheme.primary,
-                            }}
-                        >
-                            T
-                        </span>
-
+                        <span className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold"
+                            style={{background: 'color-mix(in srgb, var(--theme-primary) 20%, transparent)', color: 'var(--theme-primary)'}}>T</span>
                         <div>
                             <p className="text-sm font-semibold" style={{ color: pendingTheme.primary }}>
                                 Tracr
@@ -135,38 +113,19 @@ export const AppearanceTab = () => {
                                 {t('settings.appearance.previewCurrent')}
                             </p>
                         </div>
-
-                        <span
-                            className="ml-auto px-2.5 py-1 rounded-full text-xs font-medium border"
-                            style={{
-                                backgroundColor: `${pendingTheme.primary}20`,
-                                color: pendingTheme.primary,
-                                borderColor: `${pendingTheme.primary}50`,
-                            }}
-                        >
-                            {t('settings.appearance.active')}
+                        <span className="ml-auto px-2.5 py-1 rounded-full text-xs font-semibold"
+                            style={{background: 'color-mix(in srgb, var(--theme-primary) 15%, transparent)', color: 'var(--theme-primary)'}}>
+                            Actif
                         </span>
                     </div>
-
-                    <div className="h-px" style={{ backgroundColor: `${pendingTheme.primary}40` }} />
-
+                    <div className="h-px bg-primary/10"/>
                     <div className="flex gap-2">
-                        <button
-                            className="px-3 py-1.5 rounded-lg text-white text-xs font-medium"
-                            style={{ backgroundColor: pendingTheme.primary }}
-                        >
-                            {t('settings.appearance.primary')}
+                        <button className="px-3 py-1.5 rounded-lg text-text-default text-xs font-medium" style={{background: 'var(--theme-primary)'}}>
+                            Primaire
                         </button>
-
-                        <button
-                            className="px-3 py-1.5 rounded-lg border text-xs font-medium"
-                            style={{
-                                backgroundColor: `${pendingTheme.primary}20`,
-                                color: pendingTheme.primary,
-                                borderColor: `${pendingTheme.primary}50`,
-                            }}
-                        >
-                            {t('settings.appearance.secondary')}
+                        <button className="px-3 py-1.5 rounded-lg text-xs font-medium border"
+                            style={{background: 'color-mix(in srgb, var(--theme-primary) 15%, transparent)', color: 'var(--theme-primary)', borderColor: 'color-mix(in srgb, var(--theme-primary) 30%, transparent)'}}>
+                            Secondaire
                         </button>
 
                         <button

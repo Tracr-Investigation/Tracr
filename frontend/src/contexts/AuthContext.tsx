@@ -7,6 +7,7 @@ interface User {
   pseudo: string;
   role: string;
   language: string;
+  must_change_password?: boolean;
 }
 
 interface AuthContextType {
@@ -25,7 +26,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { i18n } = useTranslation();
 
   useEffect(() => {
-      const checkAuth = async () => {
+    const checkAuth = async () => {
       const token = localStorage.getItem('token');
 
       if (!token) {
@@ -33,26 +34,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      try {
-        const response = await fetch(`${API_URL}/me`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+      const delays = [500, 1000, 2000, 3000];
+      for (let attempt = 0; attempt <= delays.length; attempt++) {
+        try {
+          const response = await fetch(`${API_URL}/me`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
 
-        if (response.ok) {
-          const data = await response.json();
-          const language = data.language ?? 'en';
-          setUser({ id_user: data.id_user, pseudo: data.pseudo, role: data.role, language });
-          i18n.changeLanguage(language);
-        } else {
-          localStorage.removeItem('token');
+          if (response.ok) {
+            const data = await response.json();
+            const language = data.language ?? 'en';
+            setUser({ id_user: data.id_user, pseudo: data.pseudo, role: data.role, language });
+            i18n.changeLanguage(language);
+          } else if (response.status === 401 || response.status === 403) {
+            localStorage.removeItem('token');
+          }
+          break;
+        } catch {
+          // Network error — backend not ready yet
+          if (attempt < delays.length) {
+            await new Promise((r) => setTimeout(r, delays[attempt]));
+          }
         }
-      } catch {
-        localStorage.removeItem('token');
-      } finally {
-        setLoading(false);
       }
+
+      setLoading(false);
     };
 
     checkAuth();

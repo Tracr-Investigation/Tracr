@@ -11,3 +11,7 @@ psycopg2-binary
 python-socketio[asgi]
 redis
 alembic
+weasyprint
+nh3
+geopy
+staticmap

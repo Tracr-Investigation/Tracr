@@ -7,14 +7,17 @@ import { ProtectedRoute } from './routes/ProtectedRoute';
 import { AdminRoute } from './routes/AdminRoute';
 import { Login } from './pages/login/Login';
 import { Register } from './pages/register/Register';
+import { SetupRecovery } from './pages/register/SetupRecovery';
 import { Home } from './pages/home/Home';
 import { Investigations } from './pages/investigations/Investigations';
 import { InvestigationDetail } from './pages/investigations/InvestigationDetail';
+import { DocumentDetail } from './pages/investigations/DocumentDetail';
 import { Templates } from './pages/templates/Templates';
 import { Settings } from './pages/settings/Settings';
 import { Admin } from './pages/admin/Admin';
 import { Notifications } from './pages/notifications/Notifications';
 import { Calendar } from './pages/calendar/Calendar';
+import { ForceChangePassword } from './pages/force-change-password/ForceChangePassword';
 import { NotFound } from './pages/not-found/NotFound';
 import { useThemeStore } from './stores/themeStore';
 
@@ -41,6 +44,15 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/force-change-password" element={<ForceChangePassword />} />
+          <Route
+            path="/setup-recovery"
+            element={
+              <ProtectedRoute>
+                <SetupRecovery />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/"
             element={
@@ -62,6 +74,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <InvestigationDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/investigations/:slug/documents/:docId"
+            element={
+              <ProtectedRoute>
+                <DocumentDetail />
               </ProtectedRoute>
             }
           />

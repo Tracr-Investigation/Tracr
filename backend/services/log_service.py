@@ -9,12 +9,14 @@ def create_log(
     category: str,
     action: str,
     id_user: Optional[int] = None,
+    id_investigation: Optional[int] = None,
     detail: Optional[str] = None,
     ip_address: Optional[str] = None,
 ) -> Log:
     """Create a new log entry"""
     log = Log(
         id_user=id_user,
+        id_investigation=id_investigation,
         category=category,
         action=action,
         detail=detail,
@@ -109,3 +111,47 @@ def get_categories(db: Session) -> list[str]:
     """Get all distinct log categories"""
     rows = db.query(Log.category).distinct().order_by(Log.category).all()
     return [row[0] for row in rows]
+
+
+def get_timeline_for_investigation(
+    db: Session,
+    investigation_id: int,
+    skip: int = 0,
+    limit: int = 50,
+) -> list[dict]:
+    """Get activity timeline for a specific investigation, excluding read-only consultations"""
+    rows = (
+        db.query(Log, User.pseudo)
+        .outerjoin(User, Log.id_user == User.id_user)
+        .filter(
+            Log.id_investigation == investigation_id,
+            Log.category != "consultation",
+        )
+        .order_by(Log.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+    return [
+        {
+            "id_log": log.id_log,
+            "id_user": log.id_user,
+            "pseudo": pseudo,
+            "category": log.category,
+            "action": log.action,
+            "detail": log.detail,
+            "created_at": log.created_at.isoformat() if log.created_at else None,
+        }
+        for log, pseudo in rows
+    ]
+
+
+def count_timeline_for_investigation(db: Session, investigation_id: int) -> int:
+    return (
+        db.query(Log)
+        .filter(
+            Log.id_investigation == investigation_id,
+            Log.category != "consultation",
+        )
+        .count()
+    )

@@ -49,6 +49,7 @@ async def create_investigation(
         category="investigation",
         action="create",
         id_user=user.id_user,
+        id_investigation=investigation.id_investigation,
         detail=f"Investigation #{investigation.id_investigation} - {investigation.title}",
         ip_address=ip,
     )
@@ -149,6 +150,7 @@ async def accept_invitation(
         category="collaboration",
         action="accept_invitation",
         id_user=user.id_user,
+        id_investigation=result["id_investigation"],
         detail=f"Invitation #{id_collaborator} accepted - Investigation #{result['id_investigation']}",
         ip_address=ip,
     )
@@ -278,6 +280,7 @@ async def update_investigation(
         category="investigation",
         action="update",
         id_user=user.id_user,
+        id_investigation=investigation_id,
         detail=f"Investigation #{investigation_id} updated",
         ip_address=ip,
     )
@@ -344,6 +347,7 @@ async def transfer_investigation(
         category="investigation",
         action="transfer_ownership",
         id_user=user.id_user,
+        id_investigation=investigation_id,
         detail=f"Investigation #{investigation_id} transferred to {body.new_owner_pseudo}",
         ip_address=ip,
     )
@@ -420,6 +424,7 @@ async def update_investigation_status(
         category="investigation",
         action="status_change",
         id_user=user.id_user,
+        id_investigation=investigation_id,
         detail=f"Investigation #{investigation_id} : {old_status_name} → {new_status.name}",
         ip_address=ip,
     )
@@ -493,6 +498,7 @@ async def invite_collaborator(
         category="collaboration",
         action="invite",
         id_user=user.id_user,
+        id_investigation=investigation_id,
         detail=f"Invited {body.pseudo} on Investigation #{investigation_id} ({body.permission_level.value})",
         ip_address=ip,
     )
@@ -555,6 +561,7 @@ async def update_collaborator_permission(
         category="collaboration",
         action="update_permission",
         id_user=user.id_user,
+        id_investigation=investigation_id,
         detail=f"Collaborator #{id_collaborator} permission -> {body.permission_level.value} (Investigation #{investigation_id})",
         ip_address=ip,
     )
@@ -605,6 +612,7 @@ async def remove_collaborator(
         category="collaboration",
         action="remove" if not is_self_removal else "self_remove",
         id_user=user.id_user,
+        id_investigation=investigation_id,
         detail=f"Collaborator #{id_collaborator} removed from Investigation #{investigation_id}",
         ip_address=ip,
     )
