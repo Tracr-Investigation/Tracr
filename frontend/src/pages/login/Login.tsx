@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { PasswordStrength } from '../../components/PasswordStrength';
 import { isPasswordValid } from '../../utils/passwordValidation';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { FeatureShowcase } from '../../components/FeatureShowcase';
 
 type Panel = 'login' | 'recovery' | 'success';
 
@@ -99,7 +100,7 @@ export const Login = () => {
     const translateX = panel === 'login' ? '0%' : panel === 'recovery' ? '-33.333%' : '-66.666%';
 
     return (
-        <div className="min-h-screen bg-surface flex flex-col items-center justify-center p-4" style={{ position: 'relative', overflow: 'hidden' }}>
+        <div className="min-h-screen bg-surface flex flex-col lg:flex-row" style={{ position: 'relative', overflow: 'hidden' }}>
 
             {/* Background glow */}
             <div style={{
@@ -115,6 +116,14 @@ export const Login = () => {
                 maskImage: 'radial-gradient(ellipse 70% 60% at 50% 50%, black, transparent)',
                 WebkitMaskImage: 'radial-gradient(ellipse 70% 60% at 50% 50%, black, transparent)',
             }} />
+
+            {/* Left: feature showcase */}
+            <div className="hidden lg:flex flex-1 flex-col justify-center relative z-10" style={{ borderRight: '1px solid var(--border-subtle)' }}>
+                <FeatureShowcase />
+            </div>
+
+            {/* Right: form */}
+            <div className="flex-1 lg:flex-none lg:w-[460px] flex flex-col items-center justify-center p-4 lg:p-8 relative z-10">
 
             {/* Card */}
             <div style={{
@@ -503,9 +512,11 @@ export const Login = () => {
             {/* Bottom hint */}
             <div style={{ marginTop: '20px', fontSize: '12px', color: 'var(--text-dim)', textAlign: 'center' }}>
                 {panel === 'login' && (
-                    <>Secure investigation platform,  all data is encrypted</>
+                    <>Secure investigation platform, all data is encrypted</>
                 )}
             </div>
+
+            </div> {/* end right column */}
         </div>
     );
 };

@@ -13,11 +13,14 @@ from models.task_response import TaskResponse
 from models.document import Document
 from models.document_comment import DocumentComment
 from models.template import Template
+from models.entity import Entity
+from models.entity_relation import EntityRelation
 __all__ = [
     "User", "Role", "UserRole", "Log",
     "Investigation", "InvestigationStatus", "Notification", "InvestigationCollaborator",
     "Category", "InvestigationCategory",
     "Task", "TaskResponse",
     "Document", "DocumentComment", "Template",
+    "Entity", "EntityRelation",
 ]
 

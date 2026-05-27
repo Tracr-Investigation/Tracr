@@ -66,7 +66,7 @@ export const LocationNodeView = ({
   const mapsUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}&zoom=14`;
 
   return (
-    <NodeViewWrapper className="group relative my-4">
+    <NodeViewWrapper className="group relative my-4 isolate">
       <div
         data-drag-handle
         contentEditable={false}

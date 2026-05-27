@@ -1,6 +1,54 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
+export interface EntityData {
+    id_entity: number;
+    id_investigation: number;
+    type: string;
+    label: string;
+    value: string | null;
+    notes: string | null;
+    color: string | null;
+    pos_x: number | null;
+    pos_y: number | null;
+    created_by: number | null;
+    created_by_pseudo: string | null;
+    created_at: string | null;
+    updated_at: string | null;
+}
+
+export interface RelationData {
+    id_relation: number;
+    id_investigation: number;
+    source_id: number;
+    target_id: number;
+    label: string | null;
+    created_by: number | null;
+    created_by_pseudo: string | null;
+    created_at: string | null;
+}
+
 export {API_URL};
+
+export interface TemplateCategoryData {
+    id_category_template: number;
+    name: string;
+    color: string | null;
+    icon: string | null;
+    created_at: string | null;
+}
+
+export interface TemplateData {
+    id_template: number;
+    name: string;
+    description: string;
+    is_public: boolean;
+    created_by: number | null;
+    created_by_pseudo: string | null;
+    is_owner: boolean;
+    created_at: string | null;
+    updated_at: string | null;
+    category: TemplateCategoryData | null;
+}
 
 function parseApiError(detail: unknown, fallback: string): string {
     if (typeof detail === 'string') return detail;
@@ -761,6 +809,53 @@ export const api = {
         return data;
     },
 
+    // ── Template categories ─────────────────────────────────────────────────
+    listTemplateCategories: async () => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/templates/categories`, {
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching template categories'));
+        return data as { categories: TemplateCategoryData[] };
+    },
+
+    createTemplateCategory: async (body: { name: string; color?: string; icon?: string }) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/templates/categories`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+            body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error creating template category'));
+        return data as TemplateCategoryData;
+    },
+
+    updateTemplateCategory: async (id: number, body: { name?: string; color?: string; icon?: string }) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/templates/categories/${id}`, {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+            body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error updating template category'));
+        return data as TemplateCategoryData;
+    },
+
+    deleteTemplateCategory: async (id: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/templates/categories/${id}`, {
+            method: 'DELETE',
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error deleting template category'));
+        return data;
+    },
+
+    // ── Templates ────────────────────────────────────────────────────────────
     listTemplates: async () => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/templates`, {
@@ -768,17 +863,7 @@ export const api = {
         });
         const data = await response.json();
         if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching templates'));
-        return data as { templates: Array<{
-            id_template: number;
-            name: string;
-            description: string;
-            is_public: boolean;
-            created_by: number | null;
-            created_by_pseudo: string | null;
-            is_owner: boolean;
-            created_at: string | null;
-            updated_at: string | null;
-        }> };
+        return data as { templates: TemplateData[] };
     },
 
     getTemplate: async (id: number) => {
@@ -788,18 +873,7 @@ export const api = {
         });
         const data = await response.json();
         if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching template'));
-        return data as {
-            id_template: number;
-            name: string;
-            description: string;
-            content_html: string;
-            is_public: boolean;
-            created_by: number | null;
-            created_by_pseudo: string | null;
-            is_owner: boolean;
-            created_at: string | null;
-            updated_at: string | null;
-        };
+        return data as TemplateData & { content_html: string };
     },
 
     createTemplate: async (body: {
@@ -807,6 +881,7 @@ export const api = {
         description?: string;
         content_html?: string;
         is_public?: boolean;
+        id_category_template?: number | null;
     }) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/templates`, {
@@ -816,7 +891,7 @@ export const api = {
         });
         const data = await response.json();
         if (!response.ok) throw new Error(parseApiError(data.detail, 'Error creating template'));
-        return data;
+        return data as TemplateData;
     },
 
     updateTemplate: async (id: number, body: {
@@ -824,6 +899,8 @@ export const api = {
         description?: string;
         content_html?: string;
         is_public?: boolean;
+        id_category_template?: number | null;
+        clear_category?: boolean;
     }) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/templates/${id}`, {
@@ -833,7 +910,7 @@ export const api = {
         });
         const data = await response.json();
         if (!response.ok) throw new Error(parseApiError(data.detail, 'Error updating template'));
-        return data;
+        return data as TemplateData;
     },
 
     deleteTemplate: async (id: number) => {
@@ -1061,6 +1138,149 @@ export const api = {
         });
         const data = await response.json();
         if (!response.ok) throw new Error(parseApiError(data.detail, 'Restore error'));
+        return data;
+    },
+
+    // --- Timeline ---
+
+    getTimeline: async (investigationId: number, skip = 0, limit = 50) => {
+        const token = localStorage.getItem('token');
+        const params = new URLSearchParams({skip: String(skip), limit: String(limit)});
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/timeline?${params}`, {
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching timeline'));
+        return data as {
+            events: Array<{
+                id_log: number;
+                id_user: number | null;
+                pseudo: string | null;
+                category: string;
+                action: string;
+                detail: string | null;
+                created_at: string | null;
+            }>;
+            total: number;
+        };
+    },
+
+    // --- Graph ---
+
+    getGraph: async (investigationId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/graph`, {
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching graph'));
+        return data as {
+            nodes: EntityData[];
+            edges: RelationData[];
+        };
+    },
+
+    // --- Entities ---
+
+    listEntities: async (investigationId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/entities`, {
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching entities'));
+        return data as { entities: EntityData[] };
+    },
+
+    createEntity: async (investigationId: number, body: {
+        type: string; label: string; value?: string | null; notes?: string | null;
+        color?: string | null; pos_x?: number | null; pos_y?: number | null;
+    }) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/entities`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+            body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error creating entity'));
+        return data as EntityData;
+    },
+
+    updateEntity: async (investigationId: number, entityId: number, body: {
+        label?: string | null; value?: string | null; notes?: string | null;
+        color?: string | null; pos_x?: number | null; pos_y?: number | null;
+        clear_value?: boolean; clear_notes?: boolean;
+    }) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/entities/${entityId}`, {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+            body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error updating entity'));
+        return data as EntityData;
+    },
+
+    resetEntityPositions: async (investigationId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/entities/reset-positions`, {
+            method: 'POST',
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error resetting positions'));
+        return data;
+    },
+
+    deleteEntity: async (investigationId: number, entityId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/entities/${entityId}`, {
+            method: 'DELETE',
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error deleting entity'));
+        return data;
+    },
+
+    // --- Relations ---
+
+    createRelation: async (investigationId: number, body: {
+        source_id: number; target_id: number; label?: string | null;
+    }) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/relations`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+            body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error creating relation'));
+        return data as RelationData;
+    },
+
+    updateRelation: async (investigationId: number, relationId: number, label: string | null) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/relations/${relationId}`, {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+            body: JSON.stringify({label}),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error updating relation'));
+        return data as RelationData;
+    },
+
+    deleteRelation: async (investigationId: number, relationId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/relations/${relationId}`, {
+            method: 'DELETE',
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error deleting relation'));
         return data;
     },
 

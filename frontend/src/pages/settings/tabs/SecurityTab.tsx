@@ -154,7 +154,8 @@ export const SecurityTab = () => {
             {/* Change password section */}
             <div className="space-y-6">
                 <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-primary/10 rounded-xl">
+                    <div className="p-2.5 rounded-xl" style={{background: 'color-mix(in srgb, var(--theme-primary) 15%, transparent)'}}>
+
                         <Shield size={22} className="text-primary"/>
                     </div>
                     <div>
@@ -163,7 +164,7 @@ export const SecurityTab = () => {
                     </div>
                 </div>
 
-                <div className="h-px bg-border-subtle"/>
+                <div className="h-px bg-primary/10"/>
 
                 <form onSubmit={handleChangePassword} className="space-y-5">
                     <div>
@@ -173,7 +174,7 @@ export const SecurityTab = () => {
                                 type={showCurrent ? 'text' : 'password'}
                                 value={currentPassword}
                                 onChange={(e) => setCurrentPassword(e.target.value)}
-                                className="w-full px-4 py-3 pr-12 bg-input-bg border border-border rounded-xl text-text-default placeholder-text-dim focus:outline-none focus:border-border-focus focus:ring-2 focus:ring-primary/20 transition-all"
+                                className="w-full px-4 py-3 pr-12 bg-input-bg border border-border rounded-xl text-text-default placeholder-text-dim focus:outline-none focus:border-[var(--theme-primary)] transition-colors"
                                 placeholder={t('security.currentPasswordPlaceholder')}
                                 required
                             />
@@ -190,7 +191,7 @@ export const SecurityTab = () => {
                                 type={showNew ? 'text' : 'password'}
                                 value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
-                                className="w-full px-4 py-3 pr-12 bg-input-bg border border-border rounded-xl text-text-default placeholder-text-dim focus:outline-none focus:border-border-focus focus:ring-2 focus:ring-primary/20 transition-all"
+                                className="w-full px-4 py-3 pr-12 bg-input-bg border border-border rounded-xl text-text-default placeholder-text-dim focus:outline-none focus:border-[var(--theme-primary)] transition-colors"
                                 placeholder={t('security.newPasswordPlaceholder')}
                                 required
                             />
@@ -208,7 +209,7 @@ export const SecurityTab = () => {
                                 type={showConfirm ? 'text' : 'password'}
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
-                                className="w-full px-4 py-3 pr-12 bg-input-bg border border-border rounded-xl text-text-default placeholder-text-dim focus:outline-none focus:border-border-focus focus:ring-2 focus:ring-primary/20 transition-all"
+                                className="w-full px-4 py-3 pr-12 bg-input-bg border border-border rounded-xl text-text-default placeholder-text-dim focus:outline-none focus:border-[var(--theme-primary)] transition-colors"
                                 placeholder={t('security.confirmPasswordPlaceholder')}
                                 required
                             />
@@ -219,7 +220,7 @@ export const SecurityTab = () => {
                     </div>
 
                     {error && (
-                        <div className="p-4 bg-red-500/10 border border-border-error rounded-xl">
+                        <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
                             <p className="text-red-400 text-sm">{error}</p>
                         </div>
                     )}
@@ -229,7 +230,7 @@ export const SecurityTab = () => {
                         </div>
                     )}
 
-                    <button type="submit" disabled={loading} className="w-full py-3 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+                    <button type="submit" disabled={loading} className="w-full py-3 text-text-default font-semibold rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all" style={{background: 'var(--theme-primary)'}}>
                         {loading ? t('security.updating') : t('security.changePassword')}
                     </button>
                 </form>
@@ -238,7 +239,8 @@ export const SecurityTab = () => {
             {/* Recovery code section */}
             <div className="space-y-6">
                 <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-primary/10 rounded-xl">
+                    <div className="p-2.5 rounded-xl" style={{background: 'color-mix(in srgb, var(--theme-primary) 15%, transparent)'}}>
+
                         <KeyRound size={22} className="text-primary"/>
                     </div>
                     <div>
@@ -247,7 +249,7 @@ export const SecurityTab = () => {
                     </div>
                 </div>
 
-                <div className="h-px bg-border-subtle"/>
+                <div className="h-px bg-primary/10"/>
 
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -262,7 +264,8 @@ export const SecurityTab = () => {
                     </div>
                     <button
                         onClick={openRecoveryModal}
-                        className="px-4 py-2 text-sm bg-primary/10 border border-primary/20 text-primary font-medium rounded-xl hover:bg-primary/20 transition-all"
+                        className="px-4 py-2 text-sm font-medium rounded-xl transition-all"
+                        style={{background: 'color-mix(in srgb, var(--theme-primary) 12%, transparent)', border: '1px solid color-mix(in srgb, var(--theme-primary) 25%, transparent)', color: 'var(--theme-primary)'}}
                     >
                         {hasRecovery ? t('security.recoveryRegenerate') : t('security.recoveryGenerate')}
                     </button>
@@ -316,7 +319,7 @@ export const SecurityTab = () => {
                                         type={showRecoveryPassword ? 'text' : 'password'}
                                         value={recoveryPassword}
                                         onChange={(e) => setRecoveryPassword(e.target.value)}
-                                        className="w-full px-4 py-3 pr-12 bg-input-bg border border-border rounded-xl text-text-default placeholder-text-dim focus:outline-none focus:border-border-focus focus:ring-2 focus:ring-primary/20 transition-all"
+                                        className="w-full px-4 py-3 pr-12 bg-input-bg border border-border rounded-xl text-text-default placeholder-text-dim focus:outline-none focus:border-[var(--theme-primary)] transition-colors"
                                         placeholder={t('security.recoveryPasswordPlaceholder')}
                                         required
                                         autoFocus
@@ -326,7 +329,7 @@ export const SecurityTab = () => {
                                     </button>
                                 </div>
                                 {recoveryError && (
-                                    <div className="p-3 bg-red-500/10 border border-border-error rounded-xl">
+                                    <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl">
                                         <p className="text-red-400 text-sm">{recoveryError}</p>
                                     </div>
                                 )}
@@ -334,7 +337,7 @@ export const SecurityTab = () => {
                                     <button type="button" onClick={closeRecoveryModal} className="flex-1 py-3 bg-card border border-border text-text-muted font-medium rounded-xl hover:bg-primary/10 transition-all">
                                         {t('security.cancel')}
                                     </button>
-                                    <button type="submit" disabled={recoveryLoading || !recoveryPassword} className="flex-1 py-3 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+                                    <button type="submit" disabled={recoveryLoading || !recoveryPassword} className="flex-1 py-3 text-text-default font-semibold rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all" style={{background: 'var(--theme-primary)'}}>
                                         {recoveryLoading ? t('security.recoveryGenerating') : t('security.recoveryConfirm')}
                                     </button>
                                 </div>
@@ -349,7 +352,7 @@ export const SecurityTab = () => {
                                         <p className="text-sm text-text-muted">{t('security.recoveryGenerating')}</p>
                                     </div>
                                 ) : recoveryError ? (
-                                    <div className="p-3 bg-red-500/10 border border-border-error rounded-xl">
+                                    <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl">
                                         <p className="text-red-400 text-sm">{recoveryError}</p>
                                     </div>
                                 ) : (
@@ -357,7 +360,7 @@ export const SecurityTab = () => {
                                         <p className="text-sm text-text-muted">{t('security.recoveryWordsDesc')}</p>
                                         <div className="grid grid-cols-3 gap-2">
                                             {recoveryWords.map((word, i) => (
-                                                <div key={i} className="flex items-center gap-1.5 bg-surface border border-border rounded-lg px-2.5 py-1.5">
+                                                <div key={i} className="flex items-center gap-1.5 bg-input-bg border border-border rounded-lg px-2.5 py-1.5">
                                                     <span className="text-xs text-text-dim w-4 shrink-0">{i + 1}.</span>
                                                     <span className="text-xs font-mono font-medium text-text-default">{word}</span>
                                                 </div>
@@ -379,7 +382,7 @@ export const SecurityTab = () => {
                                             type="button"
                                             disabled={!recoveryConfirmed}
                                             onClick={closeRecoveryModal}
-                                            className="w-full py-3 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-xl hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                                            className="w-full py-3 bg-gradient-to-r from-primary to-secondary text-text-default font-semibold rounded-xl hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                                         >
                                             {t('security.recoveryDone')}
                                         </button>
