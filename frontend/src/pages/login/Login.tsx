@@ -180,6 +180,7 @@ export const Login = () => {
                                     Username
                                 </label>
                                 <input
+                                    data-cy="login-pseudo"
                                     type="text"
                                     value={pseudo}
                                     onChange={(e) => setPseudo(e.target.value)}
@@ -220,6 +221,7 @@ export const Login = () => {
                                 </div>
                                 <div style={{ position: 'relative' }}>
                                     <input
+                                        data-cy="login-password"
                                         type={showPassword ? 'text' : 'password'}
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
@@ -260,7 +262,7 @@ export const Login = () => {
                                 </div>
                             )}
 
-                            <button type="submit" disabled={loginLoading} style={{
+                            <button data-cy="login-submit" type="submit" disabled={loginLoading} style={{
                                 width: '100%', padding: '12px',
                                 background: 'linear-gradient(135deg, var(--theme-primary), var(--theme-secondary))',
                                 border: 'none', borderRadius: '10px',

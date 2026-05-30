@@ -197,6 +197,7 @@ export const Sidebar = () => {
 
                     {/* Logout */}
                     <button
+                        data-cy="logout"
                         onClick={() => { logout(); navigate('/login'); }}
                         title={collapsed ? t('sidebar.logout') : undefined}
                         className={`
