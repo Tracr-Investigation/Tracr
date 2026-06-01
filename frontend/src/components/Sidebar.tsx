@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
@@ -21,24 +22,35 @@ const Tooltip = ({
     label: string;
     show: boolean;
     children: ReactNode;
-}) => (
-    <div className="relative group">
-        {children}
-        {show && (
-            <span
-                className="
-                    pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2.5 z-50
-                    whitespace-nowrap rounded-md bg-card border border-border
-                    px-2.5 py-1.5 text-xs font-medium text-text-default shadow-lg
-                    opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0
-                    transition-all duration-150
-                "
-            >
-                {label}
-            </span>
-        )}
-    </div>
-);
+}) => {
+    const ref = useRef<HTMLDivElement>(null);
+    const [coords, setCoords] = useState<{ x: number; y: number } | null>(null);
+
+    const open = () => {
+        if (!show) return;
+        const r = ref.current?.getBoundingClientRect();
+        if (r) setCoords({ x: r.right + 10, y: r.top + r.height / 2 });
+    };
+    const close = () => setCoords(null);
+
+    return (
+        <div ref={ref} className="relative" onMouseEnter={open} onMouseLeave={close}>
+            {children}
+            {show && coords && createPortal(
+                <span
+                    style={{ position: 'fixed', left: coords.x, top: coords.y, transform: 'translateY(-50%)' }}
+                    className="
+                        z-[60] pointer-events-none whitespace-nowrap rounded-md bg-card border border-border
+                        px-2.5 py-1.5 text-xs font-medium text-text-default shadow-lg
+                    "
+                >
+                    {label}
+                </span>,
+                document.body,
+            )}
+        </div>
+    );
+};
 
 // ── Nav item ──────────────────────────────────────────────────────────────────
 
