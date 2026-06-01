@@ -71,7 +71,7 @@ export const AppearanceTab = () => {
                         return (
                             <button
                                 key={a.id}
-                                onClick={() => setAccent(a.id)}
+                                onClick={() => setPendingAccent(a.id)}
                                 className={`flex flex-col items-center gap-2 p-3 rounded-xl border transition-all ${
                                     selected ? 'border-[var(--theme-primary)]' : 'border-border bg-card/30 hover:border-border'
                                 }`}

@@ -434,8 +434,8 @@ export const GraphTab = ({
     const {t} = useTranslation();
     const {toast} = useToast();
 
-    const [nodes, setNodes, onNodesChange] = useNodesState([]);
-    const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+    const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+    const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
     const [loading, setLoading]       = useState(true);
     const [showEntityModal, setShowEntityModal] = useState(false);
     const [editingEntity, setEditingEntity]     = useState<EntityData | null>(null);
@@ -453,7 +453,7 @@ export const GraphTab = ({
     // close export dropdown on outside click
     useEffect(() => {
         const handler = (e: MouseEvent) => {
-            if (exportMenuRef.current && !exportMenuRef.current.contains(e.target as Node)) {
+            if (exportMenuRef.current && !exportMenuRef.current.contains(e.target as globalThis.Node)) {
                 setShowExportMenu(false);
             }
         };

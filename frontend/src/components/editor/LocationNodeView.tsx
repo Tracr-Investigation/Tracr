@@ -1,13 +1,7 @@
 import 'leaflet/dist/leaflet.css';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-expect-error
 import L from 'leaflet';
 import { useEffect, useState, useRef } from 'react';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-expect-error
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-expect-error
 import { NodeViewWrapper } from '@tiptap/react';
 import { Trash2, GripVertical, MapPin, Navigation } from 'lucide-react';
 

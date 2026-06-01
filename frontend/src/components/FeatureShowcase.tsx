@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactElement } from 'react';
 import { FileText, CheckSquare, Users, Settings, Network } from 'lucide-react';
 
 // ─── Graph preview ────────────────────────────────────────────────────────────
@@ -328,7 +328,7 @@ function DocumentPreview() {
 
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
 
-const TABS: { label: string; Component: () => JSX.Element }[] = [
+const TABS: { label: string; Component: () => ReactElement }[] = [
     { label: 'Graph',     Component: GraphPreview },
     { label: 'Documents', Component: DocumentPreview },
     { label: 'Timeline',  Component: TimelinePreview },

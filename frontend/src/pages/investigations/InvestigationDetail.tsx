@@ -37,14 +37,15 @@ import {formatRelativeDate} from '../../utils/date';
 import {extractIdFromSlug, toInvestigationSlug} from '../../utils/slug';
 import {useTranslation} from 'react-i18next';
 
-function getIconComponent(iconName: string | null): React.ComponentType<{ size?: number; className?: string }> {
+function getIconComponent(iconName: string | null): React.ComponentType<{ size?: number; className?: string; style?: React.CSSProperties }> {
     if (!iconName) return Tag;
     const icon = (LucideIcons as Record<string, unknown>)[iconName];
     if (icon && typeof icon === 'object' && '$$typeof' in icon) return icon as React.ComponentType<{
         size?: number;
-        className?: string
+        className?: string;
+        style?: React.CSSProperties
     }>;
-    if (typeof icon === 'function') return icon as React.ComponentType<{ size?: number; className?: string }>;
+    if (typeof icon === 'function') return icon as React.ComponentType<{ size?: number; className?: string; style?: React.CSSProperties }>;
     return Tag;
 }
 
