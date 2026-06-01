@@ -103,7 +103,7 @@ const NavItem = ({
 export const Sidebar = () => {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [peeking, setPeeking] = useState(false);
-    const peekTimer = useRef<ReturnType<typeof setTimeout>>();
+    const peekTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const { collapsed, toggle } = useSidebarStore();
     const { user, logout } = useAuth();
     const { unreadCount } = useNotifications();
