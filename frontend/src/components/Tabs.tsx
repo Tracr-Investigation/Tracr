@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 
 export interface TabItem {
@@ -13,8 +13,37 @@ interface TabsProps {
   defaultTab?: string;
 }
 
+const getHashTab = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  const hash = window.location.hash.replace(/^#/, '');
+  return hash || null;
+};
+
 export const Tabs = ({ tabs, defaultTab }: TabsProps) => {
-  const [activeTab, setActiveTab] = useState(defaultTab ?? tabs[0]?.id);
+  const hasTab = (id: string | null): id is string => !!id && tabs.some((t) => t.id === id);
+
+  const [activeTab, setActiveTab] = useState(() => {
+    const hash = getHashTab();
+    return hasTab(hash) ? hash : (defaultTab ?? tabs[0]?.id);
+  });
+
+  // Permet l'ouverture directe d'un onglet via le hash d'URL (#graph, #map…).
+  useEffect(() => {
+    const onHashChange = () => {
+      const hash = getHashTab();
+      if (hasTab(hash)) setActiveTab(hash);
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabs]);
+
+  const handleSelect = (id: string) => {
+    setActiveTab(id);
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(null, '', `#${id}`);
+    }
+  };
 
   const current = tabs.find((t) => t.id === activeTab);
 
@@ -29,7 +58,7 @@ export const Tabs = ({ tabs, defaultTab }: TabsProps) => {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleSelect(tab.id)}
                 className={`
                   flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-all border-b-2
                   ${active
