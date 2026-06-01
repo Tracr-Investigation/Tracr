@@ -25,11 +25,13 @@ import {
     CheckSquare,
     History,
     Network,
+    Map as MapIcon,
 } from 'lucide-react';
 import {TasksTab} from './tabs/TasksTab';
 import {DocumentsTab} from './tabs/DocumentsTab';
 import {TimelineTab} from './tabs/TimelineTab';
 import {GraphTab} from './tabs/GraphTab';
+import {MapTab} from './tabs/MapTab';
 import * as LucideIcons from 'lucide-react';
 import {formatRelativeDate} from '../../utils/date';
 import {extractIdFromSlug, toInvestigationSlug} from '../../utils/slug';
@@ -979,6 +981,14 @@ export const InvestigationDetail = () => {
                                     icon: History,
                                     content: (
                                         <TimelineTab investigationId={investigation.id_investigation}/>
+                                    ),
+                                },
+                                {
+                                    id: 'map',
+                                    label: t('investigationDetail.tabs.map'),
+                                    icon: MapIcon,
+                                    content: (
+                                        <MapTab investigationId={investigation.id_investigation}/>
                                     ),
                                 },
                                 ...(investigation.user_permission === 'owner' ? [{
