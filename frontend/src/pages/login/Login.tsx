@@ -1,14 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../services/api';
 import { useTranslation } from 'react-i18next';
 import { PasswordStrength } from '../../components/PasswordStrength';
 import { isPasswordValid } from '../../utils/passwordValidation';
-import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, ChevronRight, UserPlus } from 'lucide-react';
 import { FeatureShowcase } from '../../components/FeatureShowcase';
 
 type Panel = 'login' | 'recovery' | 'success';
+
+const LAST_PSEUDO_KEY = 'tracr.lastPseudo';
 
 const TracrLogo = () => (
     <svg width="48" height="48" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -45,11 +47,47 @@ export const Login = () => {
 
     const [panel, setPanel] = useState<Panel>('login');
 
-    const [pseudo, setPseudo] = useState('');
+    const rememberedPseudo = (() => {
+        try { return localStorage.getItem(LAST_PSEUDO_KEY) ?? ''; } catch { return ''; }
+    })();
+
+    // 'account' = bouton du compte mémorisé, 'password' = saisie du mot de passe, 'fresh' = nouveau compte (form complet)
+    type LoginView = 'account' | 'password' | 'fresh';
+    const [loginView, setLoginView] = useState<LoginView>(rememberedPseudo ? 'account' : 'fresh');
+
+    const [pseudo, setPseudo] = useState(rememberedPseudo);
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loginError, setLoginError] = useState('');
     const [loginLoading, setLoginLoading] = useState(false);
+
+    const passwordRef = useRef<HTMLInputElement>(null);
+
+    // Quand on passe sur la saisie du mot de passe, on place directement le curseur dessus
+    useEffect(() => {
+        if (loginView === 'password') passwordRef.current?.focus();
+    }, [loginView]);
+
+    // Clic sur le compte mémorisé → on demande juste le mot de passe
+    const selectRememberedAccount = () => {
+        setLoginError('');
+        setPseudo(rememberedPseudo);
+        setLoginView('password');
+    };
+
+    // « Nouvel utilisateur » → formulaire complet vierge
+    const useAnotherAccount = () => {
+        setLoginError('');
+        setPseudo('');
+        setPassword('');
+        setLoginView('fresh');
+    };
+
+    // Oublier le compte mémorisé et revenir au choix
+    const forgetPseudo = () => {
+        try { localStorage.removeItem(LAST_PSEUDO_KEY); } catch { /* ignore */ }
+        useAnotherAccount();
+    };
 
     const [recPseudo, setRecPseudo] = useState('');
     const [recPhrase, setRecPhrase] = useState('');
@@ -66,6 +104,7 @@ export const Login = () => {
         setLoginLoading(true);
         try {
             const data = await api.login(pseudo, password);
+            try { localStorage.setItem(LAST_PSEUDO_KEY, data.pseudo); } catch { /* ignore */ }
             login({id_user: data.id_user, pseudo: data.pseudo, role: data.role, language: data.language ?? 'en', must_change_password: data.must_change_password ?? false}, data.token);
             if (data.must_change_password) {
                 navigate('/force-change-password');
@@ -173,8 +212,91 @@ export const Login = () => {
                             </div>
                         </div>
 
-                        {/* Form */}
+                        {/* ── Vue « compte mémorisé » : un bouton avec le pseudo + nouvel utilisateur ── */}
+                        {loginView === 'account' ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                            <button type="button" onClick={selectRememberedAccount} style={{
+                                display: 'flex', alignItems: 'center', gap: '14px',
+                                width: '100%', padding: '14px 16px',
+                                background: 'var(--bg-input)',
+                                border: '1px solid var(--border-default)',
+                                borderRadius: '12px',
+                                cursor: 'pointer', textAlign: 'left',
+                                transition: 'border-color 0.2s, transform 0.15s',
+                            }}
+                                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border-focus)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-default)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                            >
+                                <div style={{
+                                    flexShrink: 0, width: '44px', height: '44px', borderRadius: '50%',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    background: 'linear-gradient(135deg, var(--theme-primary), var(--theme-secondary))',
+                                    color: 'white', fontSize: '18px', fontWeight: 700, textTransform: 'uppercase',
+                                }}>
+                                    {rememberedPseudo.charAt(0)}
+                                </div>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-default)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        {rememberedPseudo}
+                                    </div>
+                                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                        Appuyez pour vous connecter
+                                    </div>
+                                </div>
+                                <ChevronRight size={18} style={{ color: 'var(--text-dim)', flexShrink: 0 }} />
+                            </button>
+
+                            <button type="button" onClick={useAnotherAccount} style={{
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                                width: '100%', padding: '12px',
+                                background: 'none',
+                                border: '1px dashed var(--border-default)',
+                                borderRadius: '12px',
+                                color: 'var(--text-muted)', fontSize: '13px', fontWeight: 500,
+                                cursor: 'pointer',
+                                transition: 'color 0.15s, border-color 0.15s',
+                            }}
+                                onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-default)'; e.currentTarget.style.borderColor = 'var(--border-focus)'; }}
+                                onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border-default)'; }}
+                            >
+                                <UserPlus size={16} />
+                                Nouvel utilisateur
+                            </button>
+                        </div>
+                        ) : (
+                        /* ── Vue formulaire : mot de passe (compte mémorisé) ou pseudo + mot de passe (nouveau) ── */
                         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                            {loginView === 'password' ? (
+                            <div style={{
+                                display: 'flex', alignItems: 'center', gap: '12px',
+                                padding: '12px 14px',
+                                background: 'var(--bg-input)',
+                                border: '1px solid var(--border-default)',
+                                borderRadius: '10px',
+                            }}>
+                                <div style={{
+                                    flexShrink: 0, width: '36px', height: '36px', borderRadius: '50%',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    background: 'linear-gradient(135deg, var(--theme-primary), var(--theme-secondary))',
+                                    color: 'white', fontSize: '15px', fontWeight: 700, textTransform: 'uppercase',
+                                }}>
+                                    {pseudo.charAt(0)}
+                                </div>
+                                <div style={{ flex: 1, minWidth: 0, fontSize: '14px', fontWeight: 600, color: 'var(--text-default)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {pseudo}
+                                </div>
+                                <button type="button" onClick={forgetPseudo} style={{
+                                    flexShrink: 0, fontSize: '12px', color: 'var(--theme-primary)',
+                                    background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                                    opacity: 0.85, transition: 'opacity 0.15s',
+                                }}
+                                    onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
+                                    onMouseLeave={e => (e.currentTarget.style.opacity = '0.85')}
+                                >
+                                    Changer
+                                </button>
+                            </div>
+                            ) : (
                             <div>
                                 <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: 'var(--text-default)', marginBottom: '8px' }}>
                                     Username
@@ -200,6 +322,7 @@ export const Login = () => {
                                     onBlur={e => e.target.style.borderColor = 'var(--border-default)'}
                                 />
                             </div>
+                            )}
 
                             <div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
@@ -220,6 +343,7 @@ export const Login = () => {
                                 </div>
                                 <div style={{ position: 'relative' }}>
                                     <input
+                                        ref={passwordRef}
                                         type={showPassword ? 'text' : 'password'}
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
@@ -276,6 +400,7 @@ export const Login = () => {
                                 {loginLoading ? 'Signing in…' : 'Sign in'}
                             </button>
                         </form>
+                        )}
 
                         <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '13px', color: 'var(--text-muted)' }}>
                             Don't have an account?{' '}
