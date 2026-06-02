@@ -19,6 +19,7 @@ import { Notifications } from './pages/notifications/Notifications';
 import { Calendar } from './pages/calendar/Calendar';
 import { ForceChangePassword } from './pages/force-change-password/ForceChangePassword';
 import { NotFound } from './pages/not-found/NotFound';
+import { IdleScreen } from './components/IdleScreen';
 import { useThemeStore } from './stores/themeStore';
 
 const ACCENT_CLASSES: string[] = ['accent-emerald', 'accent-blue', 'accent-rose', 'accent-amber', 'accent-cyan'];
@@ -41,6 +42,7 @@ function App() {
       <AuthProvider>
         <NotificationProvider>
         <ToastProvider>
+        <IdleScreen />
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
