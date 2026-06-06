@@ -239,7 +239,7 @@ export const Sidebar = () => {
 
                     {/* Theme toggle */}
                     <Tooltip
-                        label={mode === 'dark' ? 'Mode clair' : 'Mode sombre'}
+                        label={mode === 'dark' ? t('sidebar.lightMode') : t('sidebar.darkMode')}
                         show={effectiveCollapsed}
                     >
                         <button
@@ -255,7 +255,7 @@ export const Sidebar = () => {
                                 : <Moon size={18} className="shrink-0" />
                             }
                             {!effectiveCollapsed && (
-                                <span>{mode === 'dark' ? 'Mode clair' : 'Mode sombre'}</span>
+                                <span>{mode === 'dark' ? t('sidebar.lightMode') : t('sidebar.darkMode')}</span>
                             )}
                         </button>
                     </Tooltip>
@@ -296,7 +296,7 @@ export const Sidebar = () => {
 
                     {/* Toggle déplier / replier — en bas, séparé */}
                     <div className="mt-1 pt-2 border-t border-border/60">
-                        <Tooltip label={collapsed ? 'Déplier (Ctrl+B)' : 'Replier (Ctrl+B)'} show={effectiveCollapsed}>
+                        <Tooltip label={collapsed ? t('sidebar.expandShortcut') : t('sidebar.collapseShortcut')} show={effectiveCollapsed}>
                             <button
                                 onClick={toggle}
                                 className={`
@@ -310,7 +310,7 @@ export const Sidebar = () => {
                                     : <ChevronsLeft size={18} className="shrink-0" />
                                 }
                                 {!effectiveCollapsed && (
-                                    <span>{collapsed ? 'Déplier' : 'Replier'}</span>
+                                    <span>{collapsed ? t('sidebar.expand') : t('sidebar.collapse')}</span>
                                 )}
                             </button>
                         </Tooltip>

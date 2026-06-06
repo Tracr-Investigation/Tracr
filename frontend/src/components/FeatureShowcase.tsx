@@ -3,7 +3,7 @@ import { FileText, CheckSquare, Users, Settings, Network } from 'lucide-react';
 
 // ─── Graph preview ────────────────────────────────────────────────────────────
 
-const NW = 80, NH = 28;
+const NW = 105, NH = 32;
 
 // 9 nodes — realistic OSINT investigation map
 const GN = [
@@ -18,38 +18,29 @@ const GN = [
     { x: 420, y: 265, type: 'account',      color: '#06b6d4', label: '@a_smith1337',   value: ''        },
 ] as const;
 
-// Centers & handles (NW=80, NH=28):
-// Alice(265,159):  T(265,145) B(265,173) L(225,159) R(305,159)
-// Bob(460,114):    T(460,100) B(460,128) L(420,114) R(500,114)
-// malware(120,36): T(120,22)  B(120,50)  L(80,36)   R(160,36)
-// corp-vpn(420,36):T(420,22)  B(420,50)  L(380,36)  R(460,36)
-// email(52,147):   T(52,133)  B(52,161)  L(12,147)  R(92,147)
-// IP1(500,199):    T(500,185) B(500,213) L(460,199) R(540,199)
-// IP2(265,279):    T(265,265) B(265,293) L(225,279) R(305,279)
-// ThreatCorp(68,269): T(68,255) B(68,283) L(28,269) R(108,269)
-// Account(460,279):T(460,265) B(460,293) L(420,279) R(500,279)
-
 const GE = [
-    { d: 'M 265 145 C 265 97 120 97 120 50',     delay: 0.3  }, // Alice T → malware B
-    { d: 'M 305 159 C 362 159 362 114 420 114',  delay: 0.45 }, // Alice R → Bob L
-    { d: 'M 225 159 C 158 159 158 147 92 147',   delay: 0.6  }, // Alice L → email R
-    { d: 'M 265 173 L 265 265',                  delay: 0.75 }, // Alice B → IP2 T (straight)
-    { d: 'M 265 173 C 265 214 68 214 68 255',    delay: 0.9  }, // Alice B → ThreatCorp T
-    { d: 'M 460 100 C 460 75 420 75 420 50',     delay: 1.05 }, // Bob T → corp-vpn B
-    { d: 'M 460 128 C 460 156 500 156 500 185',  delay: 1.2  }, // Bob B → IP1 T
-    { d: 'M 160 36 L 380 36',                    delay: 1.35 }, // malware R → corp-vpn L (straight)
-    { d: 'M 500 213 C 500 239 460 239 460 265',  delay: 1.5  }, // IP1 B → account T
-    { d: 'M 305 279 L 420 279',                  delay: 1.65 }, // IP2 R → account L (straight)
+    { d: 'M 277.5 145 C 277.5 97 132.5 97 132.5 54',       delay: 0.3  },
+    { d: 'M 330 161 C 362 161 362 116 420 116',             delay: 0.45 },
+    { d: 'M 225 161 C 158 161 158 149 117 149',             delay: 0.6  },
+    { d: 'M 277.5 177 L 277.5 265',                         delay: 0.75 },
+    { d: 'M 277.5 177 C 277.5 214 80.5 214 80.5 255',       delay: 0.9  },
+    { d: 'M 472.5 100 C 472.5 75 432.5 75 432.5 54',        delay: 1.05 },
+    { d: 'M 472.5 132 C 472.5 156 512.5 156 512.5 185',     delay: 1.2  },
+    { d: 'M 185 38 L 380 38',                               delay: 1.35 },
+    { d: 'M 512.5 217 C 512.5 239 472.5 239 472.5 265',     delay: 1.5  },
+    { d: 'M 330 281 L 420 281',                             delay: 1.65 },
 ] as const;
 
 function NodeIcon({ type, color, nx, ny }: { type: string; color: string; nx: number; ny: number }) {
-    const cx = nx + 14, cy = ny + 14;
+    const cx = nx + 14, cy = ny + 16;
+
     if (type === 'person') return (
         <g>
             <circle cx={cx} cy={cy - 2.5} r="2.8" fill={color}/>
             <path d={`M ${cx-5} ${cy+6} Q ${cx} ${cy+2} ${cx+5} ${cy+6}`} stroke={color} strokeWidth="1.2" fill="none" strokeLinecap="round"/>
         </g>
     );
+
     if (type === 'domain') return (
         <g>
             <circle cx={cx} cy={cy} r="5" fill="none" stroke={color} strokeWidth="1.1"/>
@@ -57,6 +48,7 @@ function NodeIcon({ type, color, nx, ny }: { type: string; color: string; nx: nu
             <ellipse cx={cx} cy={cy} rx="2.5" ry="5" fill="none" stroke={color} strokeWidth="0.9"/>
         </g>
     );
+
     if (type === 'ip') return (
         <g>
             <rect x={cx-5} y={cy-4.5} width="10" height="3" rx="1" fill="none" stroke={color} strokeWidth="1.1"/>
@@ -65,15 +57,18 @@ function NodeIcon({ type, color, nx, ny }: { type: string; color: string; nx: nu
             <circle cx={cx+2.5} cy={cy+3} r="0.7" fill={color}/>
         </g>
     );
+
     if (type === 'email') return (
         <g>
             <rect x={cx-5} y={cy-3.5} width="10" height="7.5" rx="1.2" fill="none" stroke={color} strokeWidth="1.1"/>
             <polyline points={`${cx-5},${cy-3.5} ${cx},${cy+0.5} ${cx+5},${cy-3.5}`} fill="none" stroke={color} strokeWidth="1.1"/>
         </g>
     );
+
     if (type === 'account') return (
         <text x={cx} y={cy+3.5} textAnchor="middle" fontSize="11" fontWeight="700" fill={color} fontFamily="monospace">@</text>
     );
+
     return (
         <g>
             <rect x={cx-4} y={cy-5} width="8" height="10" rx="0.5" fill="none" stroke={color} strokeWidth="1.1"/>
@@ -86,49 +81,86 @@ function NodeIcon({ type, color, nx, ny }: { type: string; color: string; nx: nu
 function GraphPreview() {
     return (
         <div style={{ height: '100%' }}>
-        <svg viewBox="0 0 620 330" preserveAspectRatio="xMidYMid slice" style={{ width: '100%', height: '100%', display: 'block' }}>
-            <defs>
-                <pattern id="pgdots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-                    <circle cx="1" cy="1" r="0.7" fill="#232323"/>
-                </pattern>
-                <marker id="pgarr" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
-                    <path d="M 0 1 L 5 3.5 L 0 6 Z" fill="#484848"/>
-                </marker>
-            </defs>
-            <rect width="620" height="330" fill="#111"/>
-            <rect width="620" height="330" fill="url(#pgdots)"/>
+            <svg viewBox="0 0 620 330" preserveAspectRatio="xMidYMid slice" style={{ width: '100%', height: '100%', display: 'block' }}>
+                <defs>
+                    <pattern id="pgdots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                        <circle cx="1" cy="1" r="0.7" fill="#232323"/>
+                    </pattern>
+                    <marker id="pgarr" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+                        <path d="M 0 1 L 5 3.5 L 0 6 Z" fill="#484848"/>
+                    </marker>
+                </defs>
 
-            {GE.map((e, i) => (
-                <path key={i} d={e.d} fill="none" stroke="#3e3e3e" strokeWidth="1.2"
-                    markerEnd="url(#pgarr)" pathLength="1" strokeDasharray="1" strokeDashoffset="1"
-                    style={{ animation: 'pgDraw 0.55s ease forwards', animationDelay: `${e.delay}s` }}
-                />
-            ))}
+                <rect width="620" height="330" fill="#111"/>
+                <rect width="620" height="330" fill="url(#pgdots)"/>
 
-            {GN.map((n, i) => (
-                <g key={i} opacity="0" style={{ animation: 'pgFade 0.35s ease forwards', animationDelay: `${0.05 + i * 0.08}s` }}>
-                    <rect x={n.x} y={n.y} width={NW} height={NH} rx="7"
-                        fill="#1c1c1c" stroke={n.color + '80'} strokeWidth="1.5"/>
-                    <rect x={n.x+4} y={n.y+4} width="20" height="20" rx="5" fill={n.color + '1e'}/>
-                    <NodeIcon type={n.type} color={n.color} nx={n.x} ny={n.y}/>
-                    <circle cx={n.x + NW/2} cy={n.y}          r="2.5" fill="#1c1c1c" stroke={n.color + 'a0'} strokeWidth="1.3"/>
-                    <circle cx={n.x + NW/2} cy={n.y + NH}     r="2.5" fill="#1c1c1c" stroke={n.color + 'a0'} strokeWidth="1.3"/>
-                    <circle cx={n.x}        cy={n.y + NH/2}   r="2.5" fill="#1c1c1c" stroke={n.color + 'a0'} strokeWidth="1.3"/>
-                    <circle cx={n.x + NW}   cy={n.y + NH/2}   r="2.5" fill="#1c1c1c" stroke={n.color + 'a0'} strokeWidth="1.3"/>
-                    <text x={n.x+30} y={n.y+12} fontSize="8.5" fontWeight="600" fill="#e5e5e5"
-                        fontFamily="-apple-system,BlinkMacSystemFont,'Inter',sans-serif">{n.label}</text>
-                    {n.value
-                        ? <text x={n.x+30} y={n.y+22} fontSize="7.5" fill="#777"
-                            fontFamily="'IBM Plex Mono',monospace">{n.value}</text>
-                        : null}
-                </g>
-            ))}
+                {GE.map((e, i) => (
+                    <path
+                        key={i}
+                        d={e.d}
+                        fill="none"
+                        stroke="#3e3e3e"
+                        strokeWidth="1.2"
+                        markerEnd="url(#pgarr)"
+                        pathLength="1"
+                        strokeDasharray="1"
+                        strokeDashoffset="1"
+                        style={{ animation: 'pgDraw 0.55s ease forwards', animationDelay: `${e.delay}s` }}
+                    />
+                ))}
 
-            <style>{`
-                @keyframes pgDraw { to { stroke-dashoffset: 0; } }
-                @keyframes pgFade { from { opacity: 0; } to { opacity: 1; } }
-            `}</style>
-        </svg>
+                {GN.map((n, i) => (
+                    <g key={i} opacity="0" style={{ animation: 'pgFade 0.35s ease forwards', animationDelay: `${0.05 + i * 0.08}s` }}>
+                        <rect
+                            x={n.x}
+                            y={n.y}
+                            width={NW}
+                            height={NH}
+                            rx="8"
+                            fill="#1c1c1c"
+                            stroke={n.color + '80'}
+                            strokeWidth="1.5"
+                        />
+
+                        <rect x={n.x + 5} y={n.y + 6} width="22" height="20" rx="5" fill={n.color + '1e'}/>
+
+                        <NodeIcon type={n.type} color={n.color} nx={n.x} ny={n.y}/>
+
+                        <circle cx={n.x + NW / 2} cy={n.y}          r="2.5" fill="#1c1c1c" stroke={n.color + 'a0'} strokeWidth="1.3"/>
+                        <circle cx={n.x + NW / 2} cy={n.y + NH}     r="2.5" fill="#1c1c1c" stroke={n.color + 'a0'} strokeWidth="1.3"/>
+                        <circle cx={n.x}        cy={n.y + NH / 2}   r="2.5" fill="#1c1c1c" stroke={n.color + 'a0'} strokeWidth="1.3"/>
+                        <circle cx={n.x + NW}   cy={n.y + NH / 2}   r="2.5" fill="#1c1c1c" stroke={n.color + 'a0'} strokeWidth="1.3"/>
+
+                        <text
+                            x={n.x + 33}
+                            y={n.y + 14}
+                            fontSize="7.5"
+                            fontWeight="600"
+                            fill="#e5e5e5"
+                            fontFamily="-apple-system,BlinkMacSystemFont,'Inter',sans-serif"
+                        >
+                            {n.label}
+                        </text>
+
+                        {n.value ? (
+                            <text
+                                x={n.x + 33}
+                                y={n.y + 25}
+                                fontSize="6.5"
+                                fill="#777"
+                                fontFamily="'IBM Plex Mono',monospace"
+                            >
+                                {n.value}
+                            </text>
+                        ) : null}
+                    </g>
+                ))}
+
+                <style>{`
+                    @keyframes pgDraw { to { stroke-dashoffset: 0; } }
+                    @keyframes pgFade { from { opacity: 0; } to { opacity: 1; } }
+                `}</style>
+            </svg>
         </div>
     );
 }
@@ -214,7 +246,6 @@ function TasksPreview() {
     const done = TASKS.filter(t => t.done).length;
     return (
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            {/* Header */}
             <div className="px-4 py-2.5 border-b border-border flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-3">
                     <span className="text-text-default text-xs font-semibold">Tasks</span>
@@ -226,11 +257,9 @@ function TasksPreview() {
                 </div>
                 <span className="text-text-dim text-[10px]">{done}/{TASKS.length} done</span>
             </div>
-            {/* Progress bar */}
             <div className="h-0.5 bg-border shrink-0">
                 <div className="h-full bg-primary/60 transition-all" style={{ width: `${(done / TASKS.length) * 100}%` }}/>
             </div>
-            {/* List */}
             <div className="p-2 space-y-1.5 overflow-hidden flex-1">
                 {TASKS.map((t, i) => (
                     <div key={i} className={`bg-card border border-border rounded-xl px-3 py-2.5 flex items-center gap-3 ${t.done ? 'opacity-40' : ''}`}>
@@ -266,7 +295,6 @@ function TasksPreview() {
 function DocumentPreview() {
     return (
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            {/* Toolbar */}
             <div className="px-3 py-1.5 border-b border-border flex items-center gap-1 shrink-0 bg-card">
                 {['B','I','U','|','H₁','H₂','|','≡','•','—'].map((b, i) => (
                     <span key={i} className={`px-1.5 py-0.5 rounded text-[10px] ${b === '|' ? 'text-border mx-0.5' : 'text-text-dim hover:text-text-muted'}`}
@@ -279,7 +307,6 @@ function DocumentPreview() {
                     <span className="text-text-dim text-[10px]">Bob is editing</span>
                 </div>
             </div>
-            {/* Content */}
             <div className="p-5 overflow-hidden flex-1">
                 <div className="flex items-center justify-between mb-1">
                     <span className="text-text-dim text-[10px] uppercase tracking-widest">Investigation Report</span>
@@ -348,60 +375,57 @@ export const FeatureShowcase = () => {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '0 32px 0 56px' }}>
-
-            {/* Logo + tabs — anchored at top, never move */}
             <div style={{ paddingTop: '44px', paddingBottom: '20px', flexShrink: 0 }}>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-                <div style={{ width: '40px', height: '40px', flexShrink: 0, background: 'color-mix(in srgb, var(--theme-primary) 12%, transparent)', borderRadius: '11px', border: '1px solid color-mix(in srgb, var(--theme-primary) 20%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <svg width="28" height="28" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <g transform="translate(15,15)">
-                            <line x1="15" y1="15" x2="35" y2="35" stroke="var(--theme-primary)" strokeWidth="2" opacity="0.6"/>
-                            <line x1="35" y1="35" x2="55" y2="20" stroke="var(--theme-primary)" strokeWidth="2" opacity="0.6"/>
-                            <line x1="35" y1="35" x2="50" y2="55" stroke="var(--theme-primary)" strokeWidth="2" opacity="0.6"/>
-                            <line x1="15" y1="15" x2="55" y2="20" stroke="var(--theme-secondary)" strokeWidth="1.5" opacity="0.3"/>
-                            <line x1="50" y1="55" x2="55" y2="20" stroke="var(--theme-secondary)" strokeWidth="1.5" opacity="0.3"/>
-                            <circle cx="15" cy="15" r="5" fill="var(--theme-primary)"/>
-                            <circle cx="55" cy="20" r="5" fill="var(--theme-primary)"/>
-                            <circle cx="50" cy="55" r="4" fill="white" opacity="0.8"/>
-                            <circle cx="35" cy="35" r="6" fill="var(--theme-secondary)"/>
-                        </g>
-                    </svg>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                    <div style={{ width: '40px', height: '40px', flexShrink: 0, background: 'color-mix(in srgb, var(--theme-primary) 12%, transparent)', borderRadius: '11px', border: '1px solid color-mix(in srgb, var(--theme-primary) 20%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <svg width="28" height="28" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <g transform="translate(15,15)">
+                                <line x1="15" y1="15" x2="35" y2="35" stroke="var(--theme-primary)" strokeWidth="2" opacity="0.6"/>
+                                <line x1="35" y1="35" x2="55" y2="20" stroke="var(--theme-primary)" strokeWidth="2" opacity="0.6"/>
+                                <line x1="35" y1="35" x2="50" y2="55" stroke="var(--theme-primary)" strokeWidth="2" opacity="0.6"/>
+                                <line x1="15" y1="15" x2="55" y2="20" stroke="var(--theme-secondary)" strokeWidth="1.5" opacity="0.3"/>
+                                <line x1="50" y1="55" x2="55" y2="20" stroke="var(--theme-secondary)" strokeWidth="1.5" opacity="0.3"/>
+                                <circle cx="15" cy="15" r="5" fill="var(--theme-primary)"/>
+                                <circle cx="55" cy="20" r="5" fill="var(--theme-primary)"/>
+                                <circle cx="50" cy="55" r="4" fill="white" opacity="0.8"/>
+                                <circle cx="35" cy="35" r="6" fill="var(--theme-secondary)"/>
+                            </g>
+                        </svg>
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '17px', fontWeight: 800, letterSpacing: '0.12em', color: 'var(--text-default)', textTransform: 'uppercase' }}>Tracr</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>OSINT Investigation Platform</div>
+                    </div>
                 </div>
-                <div>
-                    <div style={{ fontSize: '17px', fontWeight: 800, letterSpacing: '0.12em', color: 'var(--text-default)', textTransform: 'uppercase' }}>Tracr</div>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>OSINT Investigation Platform</div>
+
+                <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+                    {TABS.map((tab, i) => (
+                        <button
+                            key={i}
+                            onClick={() => setActive(i)}
+                            style={{
+                                padding: '5px 12px',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                fontWeight: 500,
+                                cursor: 'pointer',
+                                background: active === i ? 'color-mix(in srgb, var(--theme-primary) 12%, transparent)' : 'transparent',
+                                border: `1px solid ${active === i ? 'color-mix(in srgb, var(--theme-primary) 25%, transparent)' : 'transparent'}`,
+                                color: active === i ? 'var(--theme-primary)' : 'var(--text-muted)',
+                                transition: 'all 0.2s ease',
+                            }}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
                 </div>
             </div>
 
-            {/* Tabs */}
-            <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
-                {TABS.map((tab, i) => (
-                    <button
-                        key={i}
-                        onClick={() => setActive(i)}
-                        style={{
-                            padding: '5px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 500, cursor: 'pointer',
-                            background: active === i ? 'color-mix(in srgb, var(--theme-primary) 12%, transparent)' : 'transparent',
-                            border: `1px solid ${active === i ? 'color-mix(in srgb, var(--theme-primary) 25%, transparent)' : 'transparent'}`,
-                            color: active === i ? 'var(--theme-primary)' : 'var(--text-muted)',
-                            transition: 'all 0.2s ease',
-                        }}
-                    >
-                        {tab.label}
-                    </button>
-                ))}
-            </div>
-
-            </div>{/* end top section */}
-
-            {/* Preview — takes remaining space, never shifts logo */}
             <div className="border border-border rounded-xl overflow-hidden bg-card" style={{ flex: 1, marginBottom: '44px', minHeight: 0 }}>
                 <div key={active} style={{ animation: 'pgFade 0.25s ease forwards', height: '100%' }}>
                     <ActivePreview />
                 </div>
             </div>
-
         </div>
     );
 };
