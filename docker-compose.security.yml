@@ -1,0 +1,92 @@
+services:
+  # SAST
+  semgrep:
+    image: semgrep/semgrep:latest
+    profiles: ["security"]
+    working_dir: /src
+    volumes:
+      - ./:/src:ro
+      - ./security-reports:/reports
+    command: >
+      semgrep scan
+      --config=p/default
+      --config=p/security-audit
+      --config=p/secrets
+      --config=p/python
+      --config=p/javascript
+      --config=p/typescript
+      --config=p/react
+      --config=p/owasp-top-ten
+      --metrics=off
+      --exclude=frontend/node_modules
+      --exclude=backend/alembic/versions
+      --sarif --output=/reports/semgrep.sarif
+
+  # SCA + IaC + secrets sur le filesystem
+  trivy-fs:
+    image: aquasec/trivy:latest
+    profiles: ["security"]
+    volumes:
+      - ./:/src:ro
+      - ./security-reports:/reports
+      - trivy_cache:/root/.cache
+    command: >
+      fs /src
+      --scanners vuln,misconfig,secret
+      --severity CRITICAL,HIGH,MEDIUM
+      --ignore-unfixed
+      --format table
+      --output /reports/trivy-fs.txt
+
+  trivy-image:
+    image: aquasec/trivy:latest
+    profiles: ["security"]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./security-reports:/reports
+      - trivy_cache:/root/.cache
+    entrypoint: ["trivy"]
+    command: ["image", "--severity", "CRITICAL,HIGH", "--ignore-unfixed", "--scanners", "vuln,secret"]
+
+  # Secrets historique git complet
+  gitleaks:
+    image: zricethezav/gitleaks:latest
+    profiles: ["security"]
+    volumes:
+      - ./:/repo:ro
+      - ./security-reports:/reports
+    command: >
+      detect
+      --source=/repo
+      --config=/repo/.gitleaks.toml
+      --report-format=sarif
+      --report-path=/reports/gitleaks.sarif
+      --verbose
+
+  # Lint Dockerfile
+  hadolint:
+    image: hadolint/hadolint:latest-debian
+    profiles: ["security"]
+    volumes:
+      - ./:/repo:ro
+    entrypoint: ["sh", "-c"]
+    command:
+      - 'for f in backend/Dockerfile frontend/Dockerfile websocket/Dockerfile; do echo "=== $$f ==="; hadolint /repo/$$f || true; done'
+
+  # DAST
+  zap-api:
+    image: zaproxy/zap-stable:latest
+    profiles: ["security"]
+    network_mode: "host"
+    volumes:
+      - ./security-reports:/zap/wrk:rw
+    # Scan API via le schéma OpenAPI de FastAPI
+    command: >
+      zap-api-scan.py
+      -t http://localhost:8000/openapi.json
+      -f openapi
+      -r zap-api-report.html
+
+
+volumes:
+  trivy_cache:

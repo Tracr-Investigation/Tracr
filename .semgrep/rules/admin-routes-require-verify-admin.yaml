@@ -1,0 +1,54 @@
+rules:
+  - id: tracr-admin-routes-require-verify-admin
+    languages: [python]
+    message: >
+      Route admin déclarée sans `Depends(verify_admin)` dans sa signature.
+      Toute route du router admin doit prendre un paramètre protégé par
+      verify_admin.
+    severity: ERROR
+    paths:
+      include:
+        - "**/backend/app/routes/admin*.py"
+    patterns:
+      - pattern-either:
+          - pattern: |
+              @router.get(...)
+              async def $FUNC(...):
+                  ...
+          - pattern: |
+              @router.post(...)
+              async def $FUNC(...):
+                  ...
+          - pattern: |
+              @router.put(...)
+              async def $FUNC(...):
+                  ...
+          - pattern: |
+              @router.patch(...)
+              async def $FUNC(...):
+                  ...
+          - pattern: |
+              @router.delete(...)
+              async def $FUNC(...):
+                  ...
+          - pattern: |
+              @router.get(...)
+              def $FUNC(...):
+                  ...
+          - pattern: |
+              @router.post(...)
+              def $FUNC(...):
+                  ...
+          - pattern: |
+              @router.put(...)
+              def $FUNC(...):
+                  ...
+          - pattern: |
+              @router.patch(...)
+              def $FUNC(...):
+                  ...
+          - pattern: |
+              @router.delete(...)
+              def $FUNC(...):
+                  ...
+      - pattern-not-regex: "Depends\\(verify_admin\\)"

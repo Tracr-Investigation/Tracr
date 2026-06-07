@@ -101,6 +101,31 @@ alembic upgrade head
 python -m uvicorn app.main:app --reload
 ```
 
+### CI/CD
+
+Infra 100% open source : Semgrep (SAST), Trivy, Gitleaks, Hadolint, OWASP ZAP
+
+**Pre-commit**  hooks à chaque commit :
+
+```bash
+pip install pre-commit && pre-commit install
+```
+
+**Scans du repo** (rapports dans `./security-reports/`):
+
+```bash
+docker compose -f docker-compose.security.yml run --rm semgrep    # SAST
+docker compose -f docker-compose.security.yml run --rm trivy-fs   # SCA + IaC + secrets
+docker compose -f docker-compose.security.yml run --rm gitleaks   # secrets
+docker compose -f docker-compose.security.yml run --rm hadolint   # lint Dockerfile
+
+# DAST
+docker compose up -d backend
+docker compose -f docker-compose.security.yml run --rm zap-api
+```
+
+**CI GitHub Actions**  workflows `sast.yml`, `secrets.yml`, `sca-and-images.yml`, `dast.yml` (push/PR + scans hebdo). Résultats SARIF dans Security → Code scanning.
+
 ## Ports
 
 | Service    | Port |
