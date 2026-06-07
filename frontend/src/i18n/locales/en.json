@@ -7,7 +7,13 @@
     "settings": "Settings",
     "administration": "Administration",
     "notifications": "Notifications",
-    "logout": "Logout"
+    "logout": "Logout",
+    "lightMode": "Light mode",
+    "darkMode": "Dark mode",
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "collapseShortcut": "Collapse (Ctrl+B)",
+    "expandShortcut": "Expand (Ctrl+B)"
   },
   "home": {
     "title": "Dashboard",

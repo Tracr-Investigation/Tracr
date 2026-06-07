@@ -7,7 +7,13 @@
     "settings": "Paramètres",
     "administration": "Administration",
     "notifications": "Notifications",
-    "logout": "Déconnexion"
+    "logout": "Déconnexion",
+    "lightMode": "Mode clair",
+    "darkMode": "Mode sombre",
+    "collapse": "Replier",
+    "expand": "Déplier",
+    "collapseShortcut": "Replier (Ctrl+B)",
+    "expandShortcut": "Déplier (Ctrl+B)"
   },
   "home": {
     "title": "Tableau de bord",
