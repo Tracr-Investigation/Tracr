@@ -121,6 +121,8 @@ services:
         condition: service_healthy
       websocket:
         condition: service_started
+      docs:
+        condition: service_started
     ports:
       - "5173:5173"
     networks:
@@ -131,6 +133,24 @@ services:
     cap_drop:
       - ALL
 
+  docs:
+    build:
+      context: ./docs
+      dockerfile: Dockerfile
+    container_name: tracr_docs
+    volumes:
+      - ./docs:/app
+      - docs_node_modules:/app/node_modules
+      - docs_cache:/app/.docusaurus
+    networks:
+      - tracr_net
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+
 networks:
   tracr_net:
     driver: bridge
@@ -139,3 +159,5 @@ volumes:
   postgres_data:
   redis_data:
   frontend_node_modules:
+  docs_node_modules:
+  docs_cache:
