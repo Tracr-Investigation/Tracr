@@ -63,7 +63,7 @@ export const LocationNode = Node.create({
   },
 
   addNodeView() {
-    return ReactNodeViewRenderer(LocationNodeView);
+    return ReactNodeViewRenderer(LocationNodeView as unknown as Parameters<typeof ReactNodeViewRenderer>[0]);
   },
 
   addCommands() {

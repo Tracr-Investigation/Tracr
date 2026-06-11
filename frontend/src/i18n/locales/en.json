@@ -7,7 +7,13 @@
     "settings": "Settings",
     "administration": "Administration",
     "notifications": "Notifications",
-    "logout": "Logout"
+    "logout": "Logout",
+    "lightMode": "Light mode",
+    "darkMode": "Dark mode",
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "collapseShortcut": "Collapse (Ctrl+B)",
+    "expandShortcut": "Expand (Ctrl+B)"
   },
   "home": {
     "title": "Dashboard",
@@ -20,11 +26,24 @@
     "noAssignedTasks": "No assigned tasks",
     "loading": "Loading...",
     "collab": "Collab",
+    "activeInvestigations": "Active investigations",
+    "openTasks": "Open tasks",
+    "overdueTasks": "Overdue",
+    "dueThisWeek": "This week",
+    "recentNotifications": "Recent notifications",
+    "noNotifications": "No notifications",
+    "byStatus": "Investigations by status",
+    "byCategory": "By category",
+    "noData": "No data",
     "taskStatus": {
       "todo": "To do",
       "en_cours": "In progress",
       "termine": "Done"
     }
+  },
+  "osint": {
+    "pivotsTitle": "OSINT pivots",
+    "pivotsHint": "Add a value or label to enable pivots."
   },
   "calendar": {
     "title": "Calendar",
@@ -83,7 +102,16 @@
       "collaborators": "Collaborators",
       "graph": "Graph",
       "timeline": "Timeline",
+      "map": "Map",
       "settings": "Settings"
+    },
+    "map": {
+      "empty": "No location",
+      "emptyHint": "Add 'Location' entities in the graph to see them here.",
+      "summary": "{{placed}} of {{total}} location(s) placed",
+      "locations": "Locations",
+      "refresh": "Refresh",
+      "geocodeFailed": "Geocoding failed"
     },
     "graph": {
       "addEntity": "Add entity",
