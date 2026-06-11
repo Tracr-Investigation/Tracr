@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Trivy - dépendances (SCA)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scanners: vuln
@@ -36,7 +36,7 @@ jobs:
           category: trivy-deps
 
       - name: Trivy - IaC / config (Dockerfile, compose)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: config
           format: sarif
@@ -65,7 +65,7 @@ jobs:
         run: docker build -t tracr-${{ matrix.service }}:ci ./${{ matrix.service }}
 
       - name: Trivy - scan image
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: image
           image-ref: tracr-${{ matrix.service }}:ci
