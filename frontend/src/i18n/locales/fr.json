@@ -7,7 +7,13 @@
     "settings": "Paramètres",
     "administration": "Administration",
     "notifications": "Notifications",
-    "logout": "Déconnexion"
+    "logout": "Déconnexion",
+    "lightMode": "Mode clair",
+    "darkMode": "Mode sombre",
+    "collapse": "Replier",
+    "expand": "Déplier",
+    "collapseShortcut": "Replier (Ctrl+B)",
+    "expandShortcut": "Déplier (Ctrl+B)"
   },
   "home": {
     "title": "Tableau de bord",
@@ -20,11 +26,24 @@
     "noAssignedTasks": "Aucune tâche assignée",
     "loading": "Chargement...",
     "collab": "Collab",
+    "activeInvestigations": "Enquêtes actives",
+    "openTasks": "Tâches ouvertes",
+    "overdueTasks": "En retard",
+    "dueThisWeek": "Cette semaine",
+    "recentNotifications": "Notifications récentes",
+    "noNotifications": "Aucune notification",
+    "byStatus": "Enquêtes par statut",
+    "byCategory": "Par catégorie",
+    "noData": "Aucune donnée",
     "taskStatus": {
       "todo": "À faire",
       "en_cours": "En cours",
       "termine": "Terminé"
     }
+  },
+  "osint": {
+    "pivotsTitle": "Pivots OSINT",
+    "pivotsHint": "Renseignez une valeur ou un libellé pour activer les pivots."
   },
   "calendar": {
     "title": "Calendrier",
@@ -83,7 +102,16 @@
       "collaborators": "Collaborateurs",
       "graph": "Graphe",
       "timeline": "Chronologie",
+      "map": "Carte",
       "settings": "Paramètres"
+    },
+    "map": {
+      "empty": "Aucune localisation",
+      "emptyHint": "Ajoutez des entités de type « Location » dans le graphe pour les voir ici.",
+      "summary": "{{placed}} sur {{total}} localisation(s) placée(s)",
+      "locations": "Localisations",
+      "refresh": "Rafraîchir",
+      "geocodeFailed": "Géocodage impossible"
     },
     "graph": {
       "addEntity": "Ajouter une entité",

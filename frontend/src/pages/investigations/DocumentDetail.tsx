@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import debounce from 'lodash.debounce';
-import { ArrowLeft, Save, Loader2, Check, FileDown, History } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Check, FileDown, History, ScanSearch } from 'lucide-react';
 
 import { Layout } from '../../components/Layout';
 import { DocumentEditor, type RemoteUser, type DocumentEditorHandle } from '../../components/editor/DocumentEditor';
 import { BackupPanel } from '../../components/editor/BackupPanel';
+import { IocPanel } from '../../components/osint/IocPanel';
 import { api } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
@@ -208,6 +209,7 @@ export const DocumentDetail = () => {
   const [remoteUsers, setRemoteUsers] = useState<RemoteUser[]>([]);
   const [exporting, setExporting] = useState(false);
   const [showBackupPanel, setShowBackupPanel] = useState(false);
+  const [showIocPanel, setShowIocPanel] = useState(false);
   const [currentHtml, setCurrentHtml] = useState('');
   const editorRef = useRef<DocumentEditorHandle>(null);
 
@@ -395,6 +397,15 @@ export const DocumentDetail = () => {
 
           <ExportPdfButton exporting={exporting} onClick={handleExportPdf} />
 
+          <button
+            onClick={() => setShowIocPanel((v) => !v)}
+            title="Détecter les indicateurs (IOC)"
+            className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${showIocPanel ? 'text-primary bg-primary/20' : 'text-secondary hover:text-accent hover:bg-primary/10'}`}
+          >
+            <ScanSearch size={13} />
+            IOC
+          </button>
+
           {canEdit && (
             <button
               onClick={() => setShowBackupPanel((v) => !v)}
@@ -412,6 +423,7 @@ export const DocumentDetail = () => {
             <DocumentEditor
               ref={editorRef}
               documentId={safeDocument.id_document}
+              investigationId={investigationId as number}
               initialContent={safeDocument.content_html}
               readOnly={!canEdit}
               isOwner={isOwner}
@@ -419,8 +431,18 @@ export const DocumentDetail = () => {
               currentUserPseudo={currentUserPseudo}
               onContentChange={handleContentChange}
               onRemoteUsersChange={setRemoteUsers}
+              onEntityMentionClick={() => navigate(`${backLink}#graph`)}
             />
           </div>
+
+          {showIocPanel && (
+            <IocPanel
+              investigationId={investigationId as number}
+              html={currentHtml || safeDocument.content_html}
+              canEdit={canEdit}
+              onClose={() => setShowIocPanel(false)}
+            />
+          )}
 
           {showBackupPanel && canEdit && (
             <BackupPanel

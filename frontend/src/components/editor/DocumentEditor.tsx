@@ -7,6 +7,7 @@ import * as Y from 'yjs';
 import type { WebsocketProvider } from 'y-websocket';
 
 import { createBaseExtensions } from './editorExtensions';
+import { createEntityMention } from './entityMention';
 import { CommentMark } from './CommentMark';
 import { EditorToolbar } from './EditorToolbar';
 import { CommentSidebar, type CommentSidebarHandle } from './CommentSidebar';
@@ -27,6 +28,7 @@ const TOAST_TEMPLATE_ERROR_FALLBACK = 'Erreur';
 
 interface Props {
   documentId: number;
+  investigationId: number;
   initialContent: string;
   readOnly: boolean;
   isOwner: boolean;
@@ -34,6 +36,7 @@ interface Props {
   currentUserPseudo: string;
   onContentChange: (html: string) => void;
   onRemoteUsersChange?: (users: RemoteUser[]) => void;
+  onEntityMentionClick?: (entityId: number) => void;
 }
 
 interface CursorUserInfo {
@@ -56,10 +59,11 @@ const buildExtensions = (
   ydoc: Y.Doc | undefined,
   provider: WebsocketProvider | undefined,
   user: CursorUserInfo,
+  investigationId: number,
 ): Extensions => {
   const hasCollaboration = Boolean(ydoc && provider);
   const base = createBaseExtensions(PLACEHOLDER_TEXT, hasCollaboration);
-  const withComment = [...base, CommentMark];
+  const withComment = [...base, CommentMark, createEntityMention(investigationId)];
 
   if (!ydoc || !provider) return withComment;
 
@@ -88,6 +92,7 @@ export interface DocumentEditorHandle {
 
 export const DocumentEditor = forwardRef<DocumentEditorHandle, Props>(({
   documentId,
+  investigationId,
   initialContent,
   readOnly,
   isOwner,
@@ -95,6 +100,7 @@ export const DocumentEditor = forwardRef<DocumentEditorHandle, Props>(({
   currentUserPseudo,
   onContentChange,
   onRemoteUsersChange,
+  onEntityMentionClick,
 }, ref) => {
   const [hasSelection, setHasSelection]             = useState(false);
   const [commentCount, setCommentCount]             = useState(0);
@@ -133,10 +139,10 @@ export const DocumentEditor = forwardRef<DocumentEditorHandle, Props>(({
   const editor = useEditor(
     {
       editable: isEditable,
-      extensions: buildExtensions(ydoc, provider, cursorUserInfo),
+      extensions: buildExtensions(ydoc, provider, cursorUserInfo, investigationId),
       onUpdate: ({ editor: instance }) => handleEditorUpdate(instance),
     },
-    [ydoc, provider],
+    [ydoc, provider, investigationId],
   );
 
   useEffect(() => { editorRef.current = editor; }, [editor]);
@@ -204,6 +210,13 @@ export const DocumentEditor = forwardRef<DocumentEditorHandle, Props>(({
     if (hasSelection && !readOnly) sidebarRef.current?.openCommentForm();
   };
 
+  const handleEditorAreaClick = useCallback((e: React.MouseEvent) => {
+    if (!onEntityMentionClick) return;
+    const mention = (e.target as HTMLElement).closest('.entity-mention');
+    const id = mention?.getAttribute('data-id');
+    if (id) onEntityMentionClick(Number(id));
+  }, [onEntityMentionClick]);
+
   // ── Render ────────────────────────────────────────────────────────────────
 
   const isEditorReady = Boolean(editor) && (readOnly || isCollaborationReady);
@@ -236,6 +249,7 @@ export const DocumentEditor = forwardRef<DocumentEditorHandle, Props>(({
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
+          onClick={handleEditorAreaClick}
         >
           {!readOnly && (
             <div className="sticky top-0 z-[800]">

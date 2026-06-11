@@ -5,7 +5,8 @@ from config import settings
 
 engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True)
 
-limiter = Limiter(key_func=get_remote_address)
+# Limiter desactivable via RATE_LIMIT_ENABLED=false (utile pour les tests E2E)
+limiter = Limiter(key_func=get_remote_address, enabled=settings.RATE_LIMIT_ENABLED)
 
 
 def get_db():

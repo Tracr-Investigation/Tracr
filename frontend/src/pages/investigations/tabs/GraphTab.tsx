@@ -41,6 +41,7 @@ import {api} from '../../../services/api';
 import type {EntityData, RelationData} from '../../../services/api';
 import {useToast} from '../../../contexts/ToastContext';
 import {useTranslation} from 'react-i18next';
+import {EnrichmentPivots} from '../../../components/osint/EnrichmentPivots';
 
 // ─── Entity types config ─────────────────────────────────────────────────────
 
@@ -91,16 +92,18 @@ const EntityNode = ({data}: {data: {entity: EntityData; onEdit: (e: EntityData) 
                 </div>
             </div>
 
-            <div className="absolute -top-7 right-0 hidden group-hover:flex gap-1 z-10">
+            {/* Barre d'actions : left-0/right-0 + pb-2 créent un pont hoverable
+                continu jusqu'au nœud, pour ne pas perdre le survol entre les deux. */}
+            <div className="absolute -top-8 left-0 right-0 pb-2 hidden group-hover:flex justify-end gap-1 z-10">
                 <button
                     onClick={() => onEdit(entity)}
-                    className="w-6 h-6 rounded-md bg-card/30 border border-border-subtle flex items-center justify-center hover:bg-primary/10 hover:border-primary/40 transition-all"
+                    className="w-6 h-6 rounded-md bg-card border border-border-subtle flex items-center justify-center hover:bg-primary/10 hover:border-primary/40 transition-all"
                 >
                     <Edit2 size={10} className="text-text-muted"/>
                 </button>
                 <button
                     onClick={() => onDelete(entity)}
-                    className="w-6 h-6 rounded-md bg-card/30 border border-border-subtle flex items-center justify-center hover:bg-red-500/10 hover:border-red-500/40 transition-all"
+                    className="w-6 h-6 rounded-md bg-card border border-border-subtle flex items-center justify-center hover:bg-red-500/10 hover:border-red-500/40 transition-all"
                 >
                     <Trash2 size={10} className="text-red-400"/>
                 </button>
@@ -274,6 +277,16 @@ const EntityPanel = ({
                                 className="w-full px-4 py-2.5 bg-input-bg border border-border-subtle rounded-xl text-text-default text-sm focus:outline-none focus:border-[var(--theme-primary)] transition-colors resize-none"
                             />
                         </div>
+
+                        {/* Pivots OSINT — entité existante uniquement */}
+                        {entity && (
+                            <div>
+                                <label className="block text-xs font-semibold text-text-default/50 uppercase tracking-wider mb-2">
+                                    {t('osint.pivotsTitle')}
+                                </label>
+                                <EnrichmentPivots type={entity.type} value={value} label={label}/>
+                            </div>
+                        )}
                     </div>
 
                     {/* Footer */}
@@ -421,8 +434,8 @@ export const GraphTab = ({
     const {t} = useTranslation();
     const {toast} = useToast();
 
-    const [nodes, setNodes, onNodesChange] = useNodesState([]);
-    const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+    const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+    const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
     const [loading, setLoading]       = useState(true);
     const [showEntityModal, setShowEntityModal] = useState(false);
     const [editingEntity, setEditingEntity]     = useState<EntityData | null>(null);
@@ -440,7 +453,7 @@ export const GraphTab = ({
     // close export dropdown on outside click
     useEffect(() => {
         const handler = (e: MouseEvent) => {
-            if (exportMenuRef.current && !exportMenuRef.current.contains(e.target as Node)) {
+            if (exportMenuRef.current && !exportMenuRef.current.contains(e.target as globalThis.Node)) {
                 setShowExportMenu(false);
             }
         };

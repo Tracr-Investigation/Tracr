@@ -1,0 +1,17 @@
+{
+  "name": "tracr-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "cy:open": "cypress open",
+    "cy:run": "cypress run",
+    "cy:run:auth": "cypress run --spec 'cypress/e2e/auth.cy.ts'",
+    "cy:run:investigations": "cypress run --spec 'cypress/e2e/investigations.cy.ts'",
+    "cy:run:documents": "cypress run --spec 'cypress/e2e/documents.cy.ts'",
+    "cy:run:tasks": "cypress run --spec 'cypress/e2e/tasks.cy.ts'"
+  },
+  "devDependencies": {
+    "cypress": "^13.17.0",
+    "typescript": "^5.7.3"
+  }
+}
