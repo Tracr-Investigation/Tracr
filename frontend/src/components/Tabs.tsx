@@ -58,6 +58,7 @@ export const Tabs = ({ tabs, defaultTab }: TabsProps) => {
             return (
               <button
                 key={tab.id}
+                data-cy={`tab-${tab.id}`}
                 onClick={() => handleSelect(tab.id)}
                 className={`
                   flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-all border-b-2

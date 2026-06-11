@@ -160,6 +160,7 @@ export const Register = () => {
                         <div>
                             <label style={labelStyle}>Username</label>
                             <input
+                                data-cy="register-pseudo"
                                 type="text"
                                 value={pseudo}
                                 onChange={(e) => setPseudo(e.target.value)}
@@ -176,6 +177,7 @@ export const Register = () => {
                             <label style={labelStyle}>Password</label>
                             <div style={{ position: 'relative' }}>
                                 <input
+                                    data-cy="register-password"
                                     type={showPassword ? 'text' : 'password'}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
@@ -200,6 +202,7 @@ export const Register = () => {
                             <label style={labelStyle}>Confirm password</label>
                             <div style={{ position: 'relative' }}>
                                 <input
+                                    data-cy="register-confirm-password"
                                     type={showConfirm ? 'text' : 'password'}
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
@@ -247,6 +250,7 @@ export const Register = () => {
                         )}
 
                         <button
+                            data-cy="register-submit"
                             type="submit"
                             disabled={loading}
                             style={{

@@ -1,0 +1,7 @@
+# Override Docker Compose pour faire tourner le backend sur la DB "tracr_e2e"
+services:
+  backend:
+    environment:
+      POSTGRES_DB: tracr_e2e
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/tracr_e2e
+      RATE_LIMIT_ENABLED: "false"

@@ -101,6 +101,111 @@ alembic upgrade head
 python -m uvicorn app.main:app --reload
 ```
 
+## Tests
+
+### Backend  tests fonctionnels (pytest)
+
+Les tests s'exécutent dans le container backend car ils ont besoin de PostgreSQL et Redis.
+
+```bash
+# Demarrer la stack
+docker compose up -d
+
+# Installer les dependances 
+# utils 0 (root) car le venv appartient a root mais le container tourne en user 
+docker compose exec -u 0 backend pip install -r requirements-test.txt
+
+# 3. Lancer tous les tests
+docker compose exec backend pytest tests/ -v
+
+# Variantes
+docker compose exec backend pytest tests/test_auth.py -v                    # un fichier
+docker compose exec backend pytest tests/test_auth.py::TestLogin -v         # une classe
+docker compose exec backend pytest tests/test_auth.py::TestLogin::test_login_success -v  # un test
+docker compose exec backend pytest -k "register" -v                         # filtrer par mot-cle
+docker compose exec backend pytest tests/ -v --cov=app --cov=services       # avec couverture
+```
+
+### Backend tests des images Docker 
+
+Tests qui valident la conformité des images (user non-root, ports, healthchecks, taille, présence de tini, etc.). Lancement **depuis l'hôte** car ils utilisent la CLI `docker`.
+
+```bash
+# Pre-requis : pytest installe sur l'hote
+pip install pytest
+
+# Lancer --noconftest evite la dependance Postgres
+cd backend
+pytest tests/test_docker_images.py --noconftest -v
+```
+
+### E2E  Cypress
+
+Cypress tourne contre une **DB dédiée** `tracr_e2e` pour ne pas polluer la DB de dev. Le fichier [docker-compose.e2e.yml](docker-compose.e2e.yml) override le backend pour pointer dessus et désactive le rate-limit.
+
+#### Setup initial
+
+```bash
+# Creer la DB tracr_e2e dans l'instance Postgres
+source .env
+docker compose exec -T postgres psql -U "$POSTGRES_USER" -d postgres -c "CREATE DATABASE tracr_e2e;"
+```
+
+#### Switch dev → E2E
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.e2e.yml up -d --force-recreate backend
+```
+
+Le backend pointe maintenant sur `tracr_e2e`. Alembic migre les tables automatiquement. Le rate-limit est désactivé.
+
+#### Restaurer la db d'origine
+
+```bash
+docker compose up -d --force-recreate backend
+```
+
+#### Reset de la DB E2E (entre sessions)
+
+```bash
+source .env
+docker compose exec -T postgres psql -U "$POSTGRES_USER" -d tracr_e2e -c "TRUNCATE TABLE users RESTART IDENTITY CASCADE;"
+```
+
+#### Mode classique (Cypress installé localement)
+
+```bash
+cd e2e
+npm install                 
+
+npm run cy:open              # GUI interactive
+npm run cy:run               # headless 
+
+# Cibler un fichier precis
+npm run cy:run:auth
+npm run cy:run:investigations
+npm run cy:run:documents
+npm run cy:run:tasks
+```
+
+#### Mode Docker
+
+
+```bash
+cd e2e
+
+# Headless  tous les specs
+docker run -it --rm --network host -v "$PWD":/e2e -w /e2e cypress/included:13.17.0
+
+# Headless  un seul fichier
+docker run -it --rm --network host -v "$PWD":/e2e -w /e2e cypress/included:13.17.0 --spec 'cypress/e2e/auth.cy.ts'
+
+# Avec affichage (GUI Cypress) 
+docker run -it --rm --network host -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v "$PWD":/e2e -w /e2e  --entrypoint cypress cypress/included:13.17.0 open --project /e2e
+```
+
+Les captures d'écran des tests failed sont dans `e2e/cypress/screenshots/`.
+
 ## Ports
 
 | Service    | Port |

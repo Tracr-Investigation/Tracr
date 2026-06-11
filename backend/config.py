@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     JWT_EXPIRATION_HOURS: int = 24
 
+    RATE_LIMIT_ENABLED: bool = True 
+
     class Config:
         env_file = "../.env"
         case_sensitive = True
