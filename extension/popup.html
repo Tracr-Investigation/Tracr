@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 100 100" width="22" height="22" aria-hidden="true">
+        <rect width="100" height="100" fill="#1a1a1a" rx="22"/>
+        <g>
+          <line x1="30" y1="30" x2="50" y2="50" stroke="#8b5cf6" stroke-width="3" opacity="0.6"/>
+          <line x1="50" y1="50" x2="70" y2="35" stroke="#8b5cf6" stroke-width="3" opacity="0.6"/>
+          <line x1="50" y1="50" x2="65" y2="70" stroke="#8b5cf6" stroke-width="3" opacity="0.6"/>
+          <line x1="30" y1="30" x2="70" y2="35" stroke="#a78bfa" stroke-width="2" opacity="0.3"/>
+          <line x1="65" y1="70" x2="70" y2="35" stroke="#a78bfa" stroke-width="2" opacity="0.3"/>
+          <circle cx="30" cy="30" r="7" fill="#8b5cf6"/>
+          <circle cx="50" cy="50" r="8" fill="#a78bfa"/>
+          <circle cx="70" cy="35" r="7" fill="#8b5cf6"/>
+          <circle cx="65" cy="70" r="6" fill="#ffffff"/>
+        </g>
+      </svg>
+      <span class="wordmark">Tracr</span>
+    </div>
+    <button id="logoutBtn" class="link hidden" title="Se déconnecter">Déconnexion</button>
+  </header>
+
+  <!-- ── Écran de connexion ───────────────────────────────────── -->
+  <section id="loginView" class="view hidden">
+    <h1>Connexion</h1>
+    <p class="sub">Archivez vos sources directement dans une enquête.</p>
+    <label>Serveur</label>
+    <input id="apiUrl" type="text" placeholder="http://localhost:8000" />
+    <label>Pseudo</label>
+    <input id="pseudo" type="text" autocomplete="username" />
+    <label>Mot de passe</label>
+    <input id="password" type="password" autocomplete="current-password" />
+    <button id="loginBtn" class="primary">Se connecter</button>
+    <p id="loginError" class="error hidden"></p>
+  </section>
+
+  <!-- ── Écran de capture ─────────────────────────────────────── -->
+  <section id="captureView" class="view hidden">
+    <div class="who">
+      <span class="dot"></span> Connecté : <strong id="whoPseudo"></strong>
+    </div>
+
+    <label>Enquête</label>
+    <select id="investigationSelect"></select>
+
+    <label>Titre de la source</label>
+    <input id="titleInput" type="text" maxlength="255" />
+
+    <div class="meta">
+      <span id="metaHost" class="muted"></span>
+      <span id="metaTime" class="muted"></span>
+    </div>
+
+    <label>Capture d'écran</label>
+    <div class="seg">
+      <button id="captureFull" class="primary seg-btn">
+        <svg viewBox="0 0 24 24" class="ic"><path d="M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>
+        Page entière
+      </button>
+      <button id="captureVisible" class="secondary seg-btn">
+        <svg viewBox="0 0 24 24" class="ic"><path d="M4 8a2 2 0 0 1 2-2h1l1-2h8l1 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8Z"/><circle cx="12" cy="12.5" r="3.2"/></svg>
+        Visible
+      </button>
+      <button id="captureRegion" class="secondary seg-btn">
+        <svg viewBox="0 0 24 24" class="ic"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/></svg>
+        Sélection
+      </button>
+    </div>
+
+    <div class="actions">
+      <button id="captureMhtml" class="secondary">
+        <svg viewBox="0 0 24 24" class="ic"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14 3v5h5"/></svg>
+        Archiver le code (MHTML)
+      </button>
+      <button id="captureBoth" class="secondary">
+        <svg viewBox="0 0 24 24" class="ic"><path d="M4 8h12v12H4z"/><path d="M8 4h12v12"/></svg>
+        Page entière + MHTML
+      </button>
+      <button id="captureHtml" class="secondary">
+        <svg viewBox="0 0 24 24" class="ic"><path d="M4 4h16v16H4z"/><path d="M4 9h16M9 9v11"/></svg>
+        Page autonome (HTML)
+      </button>
+    </div>
+
+    <p id="captureStatus" class="status hidden"></p>
+    <p class="hint">« Sélection » : dessinez une zone sur la page. · Clic droit sur une image/vidéo → « Tracr : archiver ce média ».</p>
+  </section>
+
+  <script src="api.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
