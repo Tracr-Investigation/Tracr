@@ -15,6 +15,7 @@ from models.document_comment import DocumentComment
 from models.template import Template
 from models.entity import Entity
 from models.entity_relation import EntityRelation
+from models.source import InvestigationSource
 __all__ = [
     "User", "Role", "UserRole", "Log",
     "Investigation", "InvestigationStatus", "Notification", "InvestigationCollaborator",
@@ -22,5 +23,6 @@ __all__ = [
     "Task", "TaskResponse",
     "Document", "DocumentComment", "Template",
     "Entity", "EntityRelation",
+    "InvestigationSource",
 ]
 
