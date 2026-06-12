@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from app.dependencies import limiter
 from app.routes import auth, admin, investigations, tasks
-from app.routes import notifications, documents, templates, geocode, entities
+from app.routes import notifications, documents, templates, geocode, entities, sources
 from socketio import ASGIApp as SocketASGIApp
 from app.socketio_server import sio
 
@@ -33,6 +33,8 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
 fastapi_app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    # Autorise l'extension navigateur (Chrome / Firefox) a appeler l'API
+    allow_origin_regex=r"^(chrome-extension|moz-extension)://.*$",
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -65,5 +67,7 @@ fastapi_app.include_router(documents.docs_router)
 fastapi_app.include_router(templates.router)
 fastapi_app.include_router(geocode.router)
 fastapi_app.include_router(entities.router)
+fastapi_app.include_router(sources.router)
+fastapi_app.include_router(sources.sources_router)
 
 app = SocketASGIApp(sio, other_asgi_app=fastapi_app, socketio_path="socket.io")
