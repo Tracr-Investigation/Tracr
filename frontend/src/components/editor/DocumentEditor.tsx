@@ -257,6 +257,7 @@ export const DocumentEditor = forwardRef<DocumentEditorHandle, Props>(({
                 editor={editor!}
                 hasSelection={hasSelection}
                 commentCount={commentCount}
+                investigationId={investigationId}
                 onCommentClick={handleCommentClick}
                 onInsertTemplateClick={() => setTemplateSidebarOpen(v => !v)}
               />
