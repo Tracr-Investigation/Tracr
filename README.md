@@ -208,13 +208,15 @@ Les captures d'écran des tests failed sont dans `e2e/cypress/screenshots/`.
 
 ## Ports
 
-| Service    | Port |
-|------------|------|
-| Frontend   | 5173 |
-| Backend    | 8000 |
-| WebSocket  | 1234 |
-| PostgreSQL | 5432 |
-| Redis      | 6379 |
+| Service        | Port |
+|----------------|------|
+| Frontend       | 5173 |
+| Backend        | 8000 |
+| WebSocket      | 1234 |
+| PostgreSQL     | 5432 |
+| Redis          | 6379 |
+| MinIO (API)    | 9000 |
+| MinIO (console)| 9001 |
 
 ## Stack technique
 
@@ -223,6 +225,8 @@ Les captures d'écran des tests failed sont dans `e2e/cypress/screenshots/`.
 | **Frontend** | React 19, TypeScript, Vite, Tailwind CSS, Zustand, React Query, TipTap, Yjs |
 | **Backend** | FastAPI, SQLModel, Alembic, Uvicorn, python-socketio |
 | **Base de données** | PostgreSQL 16 |
+| **Stockage objet** | MinIO (captures de sources OSINT) |
+| **Extension** | Manifest V3 (`extension/`) — capture de sources, voir [extension/README.md](extension/README.md) |
 | **Cache** | Redis 7 |
 | **Authentification** | JWT (python-jose), bcrypt (passlib) |
 | **Collaboration** | y-websocket (CRDT temps réel) |
