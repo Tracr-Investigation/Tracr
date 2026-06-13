@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tracr — Maquettes (wireframes basse-fidélité)</title>
+<style>
+  :root {
+    --ink: #3b3f46;        /* traits principaux */
+    --line: #c7ccd3;       /* bordures boîtes */
+    --fill: #eef1f4;       /* remplissage léger */
+    --bar: #cdd3da;        /* barres de texte */
+    --bar-dark: #aeb6bf;   /* barre titre */
+    --accent: #9aa3ad;     /* éléments actifs (gris foncé) */
+    --bg: #ffffff;
+    --label: #6b7280;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #f3f4f6;
+    color: var(--ink);
+    padding: 40px 20px;
+  }
+  h1.page-title {
+    text-align: center;
+    font-size: 22px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #4b5563;
+    margin-bottom: 4px;
+  }
+  p.subtitle { text-align: center; color: var(--label); margin-top: 0; margin-bottom: 40px; font-size: 13px; }
+
+  .frames {
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+    align-items: center;
+  }
+  .frame {
+    background: var(--bg);
+    border: 2px solid var(--ink);
+    border-radius: 10px;
+    width: 1000px;
+    max-width: 100%;
+    overflow: hidden;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+  }
+  .frame-label {
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--label);
+    margin: 0 0 10px 4px;
+    font-weight: 600;
+  }
+  .frame-wrap { width: 1000px; max-width: 100%; }
+
+  /* ---- primitives wireframe ---- */
+  .bar { height: 9px; background: var(--bar); border-radius: 4px; }
+  .bar.title { height: 14px; background: var(--bar-dark); border-radius: 4px; }
+  .bar.w90{width:90%}.bar.w80{width:80%}.bar.w70{width:70%}.bar.w60{width:60%}
+  .bar.w50{width:50%}.bar.w40{width:40%}.bar.w30{width:30%}.bar.w20{width:20%}
+  .stack { display:flex; flex-direction:column; gap:7px; }
+  .box {
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    background: var(--fill);
+  }
+  .img {
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    background:
+      linear-gradient(45deg, transparent 49%, var(--line) 49.5%, var(--line) 50.5%, transparent 51%),
+      linear-gradient(-45deg, transparent 49%, var(--line) 49.5%, var(--line) 50.5%, transparent 51%),
+      #f6f8fa;
+  }
+  .btn {
+    display:inline-flex; align-items:center; justify-content:center;
+    height: 30px; min-width: 90px; padding: 0 14px;
+    border-radius: 7px; background: var(--accent);
+    color:#fff; font-size:11px; letter-spacing:.05em;
+  }
+  .btn.ghost { background: #fff; border:1.5px dashed var(--line); color: var(--label); }
+  .chip { display:inline-block; height:18px; padding:0 10px; line-height:18px; border-radius:20px; background:var(--bar); font-size:10px; color:#555; }
+  .dot { width: 30px; height: 30px; border-radius: 50%; background: var(--accent); }
+  .input { height: 34px; border:1.5px solid var(--line); border-radius:7px; background:#fff; display:flex; align-items:center; padding:0 10px; }
+  .input .bar { width: 40%; }
+
+  /* ---- app shell (sidebar + content) ---- */
+  .shell { display:flex; min-height: 560px; }
+  .sidebar {
+    width: 190px; flex-shrink:0; border-right:2px solid var(--ink);
+    padding:14px 12px; display:flex; flex-direction:column; gap:6px; background:#fafbfc;
+  }
+  .sidebar .logo { display:flex; align-items:center; gap:8px; margin-bottom:14px; }
+  .sidebar .logo .dot { width:24px;height:24px; }
+  .nav-item { display:flex; align-items:center; gap:10px; padding:8px; border-radius:7px; }
+  .nav-item .ico { width:18px;height:18px;border:1.5px solid var(--line);border-radius:4px;flex-shrink:0;background:#fff; }
+  .nav-item.active { background: var(--fill); }
+  .nav-item.active .ico { background: var(--accent); border-color: var(--accent); }
+  .sidebar .spacer { flex:1; }
+  .content { flex:1; padding:22px 26px; display:flex; flex-direction:column; gap:18px; }
+  .topbar { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+
+  .grid { display:grid; gap:16px; }
+  .g3 { grid-template-columns: repeat(3,1fr); }
+  .g2 { grid-template-columns: repeat(2,1fr); }
+  .g4 { grid-template-columns: repeat(4,1fr); }
+  .card { border:1.5px solid var(--line); border-radius:9px; padding:14px; background:#fff; display:flex; flex-direction:column; gap:9px; }
+
+  .tabs { display:flex; gap:8px; border-bottom:2px solid var(--line); padding-bottom:0; }
+  .tab { padding:8px 12px; font-size:11px; color:var(--label); border-bottom:2px solid transparent; margin-bottom:-2px; }
+  .tab.active { color:var(--ink); border-bottom:2px solid var(--accent); font-weight:600; }
+
+  .row { display:flex; align-items:center; gap:12px; }
+  .between { justify-content:space-between; }
+
+  /* table */
+  .table { border:1.5px solid var(--line); border-radius:9px; overflow:hidden; }
+  .tr { display:grid; grid-template-columns: 40px 2fr 1fr 1fr 80px; gap:12px; padding:11px 14px; align-items:center; border-bottom:1.5px solid var(--line); }
+  .tr:last-child{border-bottom:none}
+  .tr.head { background: var(--fill); }
+
+  /* split auth layout */
+  .auth { display:flex; min-height:520px; }
+  .auth .showcase { flex:1; border-right:2px solid var(--ink); background:#fafbfc; padding:40px; display:flex; flex-direction:column; justify-content:center; gap:14px; }
+  .auth .formside { width:420px; flex-shrink:0; display:flex; align-items:center; justify-content:center; padding:30px; }
+  .auth .authcard { width:100%; max-width:320px; display:flex; flex-direction:column; gap:16px; align-items:stretch; }
+  .center { align-items:center; text-align:center; }
+
+  @media print {
+    body { background:#fff; padding:0; }
+    .frame { box-shadow:none; page-break-after: always; margin-bottom:0; }
+  }
+</style>
+</head>
+<body>
+
+  <h1 class="page-title">Tracr — Maquettes</h1>
+  <p class="subtitle">Wireframes basse-fidélité · disposition des écrans avant développement</p>
+
+  <div class="frames">
+
+    <!-- ============ 1. LOGIN ============ -->
+    <div class="frame-wrap">
+      <div class="frame-label">01 · Connexion (/login)</div>
+      <div class="frame">
+        <div class="auth">
+          <div class="showcase">
+            <div class="img" style="width:60px;height:60px;border-radius:14px;"></div>
+            <div class="bar title w50"></div>
+            <div class="stack"><div class="bar w80"></div><div class="bar w70"></div><div class="bar w60"></div></div>
+          </div>
+          <div class="formside">
+            <div class="authcard">
+              <div class="center" style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+                <div class="img" style="width:56px;height:56px;border-radius:14px;"></div>
+                <div class="bar title w40"></div>
+                <div class="bar w60"></div>
+              </div>
+              <div class="stack"><div class="bar w30"></div><div class="input"><div class="bar"></div></div></div>
+              <div class="stack"><div class="bar w30"></div><div class="input"><div class="bar"></div></div></div>
+              <div class="btn" style="width:100%">SE CONNECTER</div>
+              <div class="center"><div class="bar w50" style="margin:0 auto;"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 2. REGISTER ============ -->
+    <div class="frame-wrap">
+      <div class="frame-label">02 · Inscription (/register)</div>
+      <div class="frame">
+        <div class="auth">
+          <div class="showcase">
+            <div class="img" style="width:60px;height:60px;border-radius:14px;"></div>
+            <div class="bar title w50"></div>
+            <div class="stack"><div class="bar w80"></div><div class="bar w70"></div></div>
+          </div>
+          <div class="formside">
+            <div class="authcard">
+              <div class="center" style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+                <div class="bar title w60"></div>
+                <div class="bar w50"></div>
+              </div>
+              <div class="stack"><div class="bar w30"></div><div class="input"><div class="bar"></div></div></div>
+              <div class="stack"><div class="bar w30"></div><div class="input"><div class="bar"></div></div></div>
+              <div class="stack"><div class="bar w40"></div><div class="input"><div class="bar"></div></div></div>
+              <!-- jauge force mot de passe -->
+              <div class="row" style="gap:5px;"><div class="bar w20"></div><div class="bar w20"></div><div class="bar w20"></div><div class="bar w20"></div></div>
+              <div class="btn" style="width:100%">CRÉER LE COMPTE</div>
+              <div class="center"><div class="bar w50" style="margin:0 auto;"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 3. DASHBOARD ============ -->
+    <div class="frame-wrap">
+      <div class="frame-label">03 · Tableau de bord (/)</div>
+      <div class="frame">
+        <div class="shell">
+          <!-- sidebar -->
+          <aside class="sidebar">
+            <div class="logo"><div class="dot"></div><div class="bar title w50"></div></div>
+            <div class="nav-item active"><div class="ico"></div><div class="bar w70"></div></div>
+            <div class="nav-item"><div class="ico"></div><div class="bar w70"></div></div>
+            <div class="nav-item"><div class="ico"></div><div class="bar w60"></div></div>
+            <div class="nav-item"><div class="ico"></div><div class="bar w70"></div></div>
+            <div class="nav-item"><div class="ico"></div><div class="bar w60"></div></div>
+            <div class="nav-item"><div class="ico"></div><div class="bar w50"></div></div>
+            <div class="spacer"></div>
+            <div class="nav-item"><div class="ico"></div><div class="bar w60"></div></div>
+            <div class="row" style="padding:8px;gap:8px;"><div class="dot" style="width:24px;height:24px;"></div><div class="stack" style="flex:1"><div class="bar w70"></div><div class="bar w40"></div></div></div>
+          </aside>
+          <!-- content -->
+          <div class="content">
+            <div class="topbar"><div class="bar title w30"></div><div class="btn">+ NOUVEAU</div></div>
+            <!-- stat cards -->
+            <div class="grid g4">
+              <div class="card"><div class="bar w40"></div><div class="bar title w30"></div></div>
+              <div class="card"><div class="bar w40"></div><div class="bar title w30"></div></div>
+              <div class="card"><div class="bar w40"></div><div class="bar title w30"></div></div>
+              <div class="card"><div class="bar w40"></div><div class="bar title w30"></div></div>
+            </div>
+            <div class="grid g2">
+              <div class="card" style="gap:12px;">
+                <div class="bar title w40"></div>
+                <div class="row between"><div class="bar w50"></div><div class="chip">statut</div></div>
+                <div class="row between"><div class="bar w60"></div><div class="chip">statut</div></div>
+                <div class="row between"><div class="bar w40"></div><div class="chip">statut</div></div>
+              </div>
+              <div class="card" style="gap:12px;">
+                <div class="bar title w50"></div>
+                <div class="row"><div class="dot" style="width:22px;height:22px;"></div><div class="bar w70"></div></div>
+                <div class="row"><div class="dot" style="width:22px;height:22px;"></div><div class="bar w60"></div></div>
+                <div class="row"><div class="dot" style="width:22px;height:22px;"></div><div class="bar w50"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 4. INVESTIGATIONS LIST ============ -->
+    <div class="frame-wrap">
+      <div class="frame-label">04 · Liste des enquêtes (/investigations)</div>
+      <div class="frame">
+        <div class="shell">
+          <aside class="sidebar">
+            <div class="logo"><div class="dot"></div><div class="bar title w50"></div></div>
+            <div class="nav-item"><div class="ico"></div><div class="bar w70"></div></div>
+            <div class="nav-item active"><div class="ico"></div><div class="bar w70"></div></div>
+            <div class="nav-item"><div class="ico"></div><div class="bar w60"></div></div>
+            <div class="nav-item"><div class="ico"></div><div class="bar w70"></div></div>
+            <div class="nav-item"><div class="ico"></div><div class="bar w60"></div></div>
+            <div class="spacer"></div>
+            <div class="nav-item"><div class="ico"></div><div class="bar w60"></div></div>
+          </aside>
+          <div class="content">
+            <div class="topbar"><div class="bar title w30"></div><div class="btn">+ NOUVELLE ENQUÊTE</div></div>
+            <!-- search + filter -->
+            <div class="row" style="gap:10px;">
+              <div class="input" style="flex:1;"><div class="bar w30"></div></div>
+              <div class="btn ghost">FILTRES</div>
+            </div>
+            <!-- cards grid -->
+            <div class="grid g3">
+              <div class="card"><div class="row between"><div class="bar title w60"></div><div class="chip">statut</div></div><div class="bar w90"></div><div class="bar w70"></div><div class="row" style="gap:6px;"><div class="chip">tag</div><div class="chip">tag</div></div><div class="bar w40"></div></div>
+              <div class="card"><div class="row between"><div class="bar title w50"></div><div class="chip">statut</div></div><div class="bar w90"></div><div class="bar w60"></div><div class="row" style="gap:6px;"><div class="chip">tag</div></div><div class="bar w40"></div></div>
+              <div class="card"><div class="row between"><div class="bar title w60"></div><div class="chip">statut</div></div><div class="bar w80"></div><div class="bar w70"></div><div class="row" style="gap:6px;"><div class="chip">tag</div><div class="chip">tag</div></div><div class="bar w40"></div></div>
+              <div class="card"><div class="row between"><div class="bar title w50"></div><div class="chip">statut</div></div><div class="bar w90"></div><div class="bar w60"></div><div class="row" style="gap:6px;"><div class="chip">tag</div></div><div class="bar w40"></div></div>
+              <div class="card"><div class="row between"><div class="bar title w70"></div><div class="chip">statut</div></div><div class="bar w80"></div><div class="bar w70"></div><div class="row" style="gap:6px;"><div class="chip">tag</div><div class="chip">tag</div></div><div class="bar w40"></div></div>
+              <div class="card"><div class="row between"><div class="bar title w50"></div><div class="chip">statut</div></div><div class="bar w90"></div><div class="bar w60"></div><div class="row" style="gap:6px;"><div class="chip">tag</div></div><div class="bar w40"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 5. INVESTIGATION DETAIL — onglet SOURCES ============ -->
+    <div class="frame-wrap">
+      <div class="frame-label">05 · Détail enquête — onglet Sources (/investigations/:slug)</div>
+      <div class="frame">
+        <div class="shell">
+          <aside class="sidebar">
+            <div class="logo"><div class="dot"></div><div class="bar title w50"></div></div>
+            <div class="nav-item"><div class="ico"></div><div class="bar w70"></div></div>
+            <div class="nav-item active"><div class="ico"></div><div class="bar w70"></div></div>
+            <div class="nav-item"><div class="ico"></div><div class="bar w60"></div></div>
+            <div class="spacer"></div>
+            <div class="nav-item"><div class="ico"></div><div class="bar w60"></div></div>
+          </aside>
+          <div class="content">
+            <!-- header enquête -->
+            <div class="topbar"><div class="stack"><div class="bar title w60" style="width:280px"></div><div class="bar w40" style="width:180px"></div></div><div class="chip">statut</div></div>
+            <!-- tabs -->
+            <div class="tabs">
+              <div class="tab">Détails</div>
+              <div class="tab">Tâches</div>
+              <div class="tab">Documents</div>
+              <div class="tab active">Sources</div>
+              <div class="tab">Collaborateurs</div>
+              <div class="tab">Graphe</div>
+              <div class="tab">Timeline</div>
+              <div class="tab">Carte</div>
+            </div>
+            <!-- sources toolbar -->
+            <div class="row between">
+              <div class="input" style="width:260px;"><div class="bar w40"></div></div>
+              <div class="btn">+ AJOUTER UNE SOURCE</div>
+            </div>
+            <!-- source cards (capture, titre, url, type, date) -->
+            <div class="grid g3">
+              <div class="card" style="gap:8px;"><div class="img" style="height:90px;"></div><div class="bar title w70"></div><div class="bar w90"></div><div class="row between"><div class="chip">type</div><div class="bar w30"></div></div></div>
+              <div class="card" style="gap:8px;"><div class="img" style="height:90px;"></div><div class="bar title w60"></div><div class="bar w80"></div><div class="row between"><div class="chip">type</div><div class="bar w30"></div></div></div>
+              <div class="card" style="gap:8px;"><div class="img" style="height:90px;"></div><div class="bar title w70"></div><div class="bar w90"></div><div class="row between"><div class="chip">type</div><div class="bar w30"></div></div></div>
+              <div class="card" style="gap:8px;"><div class="img" style="height:90px;"></div><div class="bar title w50"></div><div class="bar w70"></div><div class="row between"><div class="chip">type</div><div class="bar w30"></div></div></div>
+              <div class="card" style="gap:8px;"><div class="img" style="height:90px;"></div><div class="bar title w60"></div><div class="bar w80"></div><div class="row between"><div class="chip">type</div><div class="bar w30"></div></div></div>
+              <div class="card" style="gap:8px;"><div class="img" style="height:90px;"></div><div class="bar title w70"></div><div class="bar w90"></div><div class="row between"><div class="chip">type</div><div class="bar w30"></div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 6. ADMIN ============ -->
+    <div class="frame-wrap">
+      <div class="frame-label">06 · Administration — onglet Utilisateurs (/admin)</div>
+      <div class="frame">
+        <div class="shell">
+          <aside class="sidebar">
+            <div class="logo"><div class="dot"></div><div class="bar title w50"></div></div>
+            <div class="nav-item"><div class="ico"></div><div class="bar w70"></div></div>
+            <div class="nav-item"><div class="ico"></div><div class="bar w70"></div></div>
+            <div class="nav-item"><div class="ico"></div><div class="bar w60"></div></div>
+            <div class="nav-item active"><div class="ico"></div><div class="bar w60"></div></div>
+            <div class="spacer"></div>
+            <div class="nav-item"><div class="ico"></div><div class="bar w60"></div></div>
+          </aside>
+          <div class="content">
+            <div class="topbar"><div class="bar title w30"></div><div class="btn">+ UTILISATEUR</div></div>
+            <!-- tabs admin -->
+            <div class="tabs">
+              <div class="tab active">Utilisateurs</div>
+              <div class="tab">Logs</div>
+              <div class="tab">Statuts</div>
+              <div class="tab">Catégories</div>
+              <div class="tab">Modèles</div>
+            </div>
+            <!-- table -->
+            <div class="table">
+              <div class="tr head"><div class="bar w60"></div><div class="bar w50"></div><div class="bar w50"></div><div class="bar w60"></div><div class="bar w60"></div></div>
+              <div class="tr"><div class="dot" style="width:26px;height:26px;"></div><div class="bar w70"></div><div class="chip">rôle</div><div class="bar w50"></div><div class="btn ghost" style="height:24px;min-width:auto;">···</div></div>
+              <div class="tr"><div class="dot" style="width:26px;height:26px;"></div><div class="bar w60"></div><div class="chip">rôle</div><div class="bar w40"></div><div class="btn ghost" style="height:24px;min-width:auto;">···</div></div>
+              <div class="tr"><div class="dot" style="width:26px;height:26px;"></div><div class="bar w80"></div><div class="chip">rôle</div><div class="bar w50"></div><div class="btn ghost" style="height:24px;min-width:auto;">···</div></div>
+              <div class="tr"><div class="dot" style="width:26px;height:26px;"></div><div class="bar w60"></div><div class="chip">rôle</div><div class="bar w40"></div><div class="btn ghost" style="height:24px;min-width:auto;">···</div></div>
+              <div class="tr"><div class="dot" style="width:26px;height:26px;"></div><div class="bar w70"></div><div class="chip">rôle</div><div class="bar w50"></div><div class="btn ghost" style="height:24px;min-width:auto;">···</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 7. DÉTAIL ENQUÊTE — onglet DÉTAILS ============ -->
+    <div class="frame-wrap">
+      <div class="frame-label">07 · Détail enquête — onglet Détails (/investigations/:slug)</div>
+      <div class="frame">
+        <div class="shell">
+          <aside class="sidebar">
+            <div class="logo"><div class="dot"></div><div class="bar title w50"></div></div>
+            <div class="nav-item"><div class="ico"></div><div class="bar w70"></div></div>
+            <div class="nav-item active"><div class="ico"></div><div class="bar w70"></div></div>
+            <div class="nav-item"><div class="ico"></div><div class="bar w60"></div></div>
+            <div class="spacer"></div>
+            <div class="nav-item"><div class="ico"></div><div class="bar w60"></div></div>
+          </aside>
+          <div class="content">
+            <div class="topbar"><div class="stack"><div class="bar title" style="width:300px"></div><div class="bar w40" style="width:160px"></div></div><div class="chip">statut</div></div>
+            <div class="tabs">
+              <div class="tab active">Détails</div>
+              <div class="tab">Tâches</div>
+              <div class="tab">Documents</div>
+              <div class="tab">Sources</div>
+              <div class="tab">Collaborateurs</div>
+              <div class="tab">Graphe</div>
+              <div class="tab">Timeline</div>
+              <div class="tab">Carte</div>
+            </div>
+            <!-- description + meta -->
+            <div class="grid g2" style="grid-template-columns:2fr 1fr;">
+              <div class="card" style="gap:9px;">
+                <div class="bar title w40"></div>
+                <div class="stack"><div class="bar w90"></div><div class="bar w80"></div><div class="bar w90"></div><div class="bar w70"></div><div class="bar w60"></div></div>
+              </div>
+              <div class="card" style="gap:12px;">
+                <div class="bar title w50"></div>
+                <div class="row between"><div class="bar w40"></div><div class="chip">valeur</div></div>
+                <div class="row between"><div class="bar w50"></div><div class="bar w30"></div></div>
+                <div class="row between"><div class="bar w40"></div><div class="bar w30"></div></div>
+                <div class="row" style="gap:6px;"><div class="chip">tag</div><div class="chip">tag</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 8. GRAPHE D'ENTITÉS ============ -->
+    <div class="frame-wrap">
+      <div class="frame-label">08 · Détail enquête — onglet Graphe (graphe d'entités OSINT)</div>
+      <div class="frame">
+        <div class="shell">
+          <aside class="sidebar">
+            <div class="logo"><div class="dot"></div><div class="bar title w50"></div></div>
+            <div class="nav-item"><div class="ico"></div><div class="bar w70"></div></div>
+            <div class="nav-item active"><div class="ico"></div><div class="bar w70"></div></div>
+            <div class="nav-item"><div class="ico"></div><div class="bar w60"></div></div>
+            <div class="spacer"></div>
+            <div class="nav-item"><div class="ico"></div><div class="bar w60"></div></div>
+          </aside>
+          <div class="content">
+            <div class="topbar"><div class="bar title" style="width:280px"></div><div class="chip">statut</div></div>
+            <div class="tabs">
+              <div class="tab">Détails</div>
+              <div class="tab">Sources</div>
+              <div class="tab active">Graphe</div>
+              <div class="tab">Timeline</div>
+              <div class="tab">Carte</div>
+            </div>
+            <!-- toolbar graphe -->
+            <div class="row between">
+              <div class="row" style="gap:6px;"><div class="chip">person</div><div class="chip">IP</div><div class="chip">domain</div><div class="chip">email</div></div>
+              <div class="row" style="gap:8px;"><div class="btn ghost">EXPORT PNG</div><div class="btn">+ ENTITÉ</div></div>
+            </div>
+            <!-- canvas graphe -->
+            <div class="box" style="position:relative; height:330px; background:#fbfcfd; overflow:hidden;">
+              <svg style="position:absolute;inset:0;width:100%;height:100%;" stroke="#b9c0c8" stroke-width="2" fill="none">
+                <line x1="22%" y1="30%" x2="48%" y2="52%"/>
+                <line x1="48%" y1="52%" x2="76%" y2="28%"/>
+                <line x1="48%" y1="52%" x2="40%" y2="82%"/>
+                <line x1="48%" y1="52%" x2="78%" y2="74%"/>
+                <line x1="76%" y1="28%" x2="88%" y2="50%"/>
+              </svg>
+              <!-- noeuds -->
+              <div style="position:absolute;left:22%;top:30%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:5px;"><div class="dot" style="width:40px;height:40px;"></div><div class="chip">person</div></div>
+              <div style="position:absolute;left:48%;top:52%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:5px;"><div class="dot" style="width:48px;height:48px;"></div><div class="chip">domain</div></div>
+              <div style="position:absolute;left:76%;top:28%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:5px;"><div class="dot" style="width:40px;height:40px;"></div><div class="chip">IP</div></div>
+              <div style="position:absolute;left:40%;top:82%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:5px;"><div class="dot" style="width:36px;height:36px;"></div><div class="chip">email</div></div>
+              <div style="position:absolute;left:78%;top:74%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:5px;"><div class="dot" style="width:36px;height:36px;"></div><div class="chip">org</div></div>
+              <div style="position:absolute;left:88%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:5px;"><div class="dot" style="width:34px;height:34px;"></div><div class="chip">phone</div></div>
+              <!-- minimap + controls -->
+              <div class="box" style="position:absolute;right:12px;bottom:12px;width:120px;height:70px;background:#fff;"></div>
+              <div class="box" style="position:absolute;left:12px;bottom:12px;width:30px;height:90px;background:#fff;display:flex;flex-direction:column;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 9. ÉDITEUR DE DOCUMENT (l'IDE) ============ -->
+    <div class="frame-wrap">
+      <div class="frame-label">09 · Éditeur de document collaboratif (/investigations/:slug/documents/:id)</div>
+      <div class="frame">
+        <div class="shell">
+          <aside class="sidebar">
+            <div class="logo"><div class="dot"></div><div class="bar title w50"></div></div>
+            <div class="nav-item"><div class="ico"></div><div class="bar w70"></div></div>
+            <div class="nav-item active"><div class="ico"></div><div class="bar w70"></div></div>
+            <div class="nav-item"><div class="ico"></div><div class="bar w60"></div></div>
+            <div class="spacer"></div>
+            <div class="nav-item"><div class="ico"></div><div class="bar w60"></div></div>
+          </aside>
+          <div class="content" style="gap:14px;">
+            <!-- header éditeur : retour + titre + statut save + actions + avatars présence -->
+            <div class="topbar">
+              <div class="row" style="gap:10px;"><div class="ico" style="width:22px;height:22px;border:1.5px solid var(--line);border-radius:5px;"></div><div class="bar title" style="width:240px"></div><div class="chip">enregistré</div></div>
+              <div class="row" style="gap:8px;">
+                <!-- avatars utilisateurs connectés (collaboratif) -->
+                <div class="dot" style="width:24px;height:24px;"></div>
+                <div class="dot" style="width:24px;height:24px;"></div>
+                <div class="btn ghost" style="min-width:auto;">PDF</div>
+                <div class="btn ghost" style="min-width:auto;">Historique</div>
+                <div class="btn">Scan IOC</div>
+              </div>
+            </div>
+            <div class="row" style="align-items:stretch; gap:14px;">
+              <!-- zone éditeur -->
+              <div class="box" style="flex:1; background:#fff; display:flex; flex-direction:column;">
+                <!-- toolbar de formatage -->
+                <div class="row" style="gap:5px; padding:9px 12px; border-bottom:1.5px solid var(--line); flex-wrap:wrap;">
+                  <div class="box" style="width:26px;height:26px;background:#fff;"></div>
+                  <div class="box" style="width:26px;height:26px;background:#fff;"></div>
+                  <div class="box" style="width:26px;height:26px;background:#fff;"></div>
+                  <div class="box" style="width:1px;height:26px;border:none;background:var(--line);margin:0 3px;"></div>
+                  <div class="box" style="width:26px;height:26px;background:#fff;"></div>
+                  <div class="box" style="width:26px;height:26px;background:#fff;"></div>
+                  <div class="box" style="width:26px;height:26px;background:#fff;"></div>
+                  <div class="box" style="width:1px;height:26px;border:none;background:var(--line);margin:0 3px;"></div>
+                  <div class="box" style="width:26px;height:26px;background:#fff;"></div>
+                  <div class="box" style="width:26px;height:26px;background:#fff;"></div>
+                </div>
+                <!-- corps du document -->
+                <div class="stack" style="padding:20px; gap:11px;">
+                  <div class="bar title w50"></div>
+                  <div class="bar w90"></div><div class="bar w80"></div><div class="bar w90"></div><div class="bar w70"></div>
+                  <div class="bar title w40" style="margin-top:8px;"></div>
+                  <div class="bar w80"></div><div class="bar w90"></div><div class="bar w60"></div>
+                </div>
+              </div>
+              <!-- panneau latéral IOC / OSINT -->
+              <div class="box" style="width:220px; background:#fafbfc; padding:14px; display:flex; flex-direction:column; gap:10px;">
+                <div class="bar title w70"></div>
+                <div class="card" style="padding:9px;gap:6px;"><div class="chip">IP</div><div class="bar w80"></div></div>
+                <div class="card" style="padding:9px;gap:6px;"><div class="chip">domain</div><div class="bar w70"></div></div>
+                <div class="card" style="padding:9px;gap:6px;"><div class="chip">email</div><div class="bar w90"></div></div>
+                <div class="btn ghost" style="width:100%;">Pivot OSINT</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
