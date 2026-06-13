@@ -1,0 +1,24 @@
+rules:
+  - id: tracr-html-must-be-sanitized
+    languages: [python]
+    message: >
+      Contenu HTML potentiellement écrit en base sans passer par
+      sanitize_editor_html() ou nh3.clean() risque XSS.
+    severity: ERROR
+    paths:
+      include: ["**/backend/"]
+      exclude:
+        - "**/backend/utils/html_sanitize.py"
+        - "**/backend/alembic/"
+        - "**/backend/tests/"
+    pattern-either:
+      - pattern: $OBJ.content = $X
+      - pattern: $OBJ.body = $X
+      - pattern: $OBJ.html = $X
+    pattern-not-either:
+      - pattern: $OBJ.content = sanitize_editor_html(...)
+      - pattern: $OBJ.body = sanitize_editor_html(...)
+      - pattern: $OBJ.html = sanitize_editor_html(...)
+      - pattern: $OBJ.content = nh3.clean(...)
+      - pattern: $OBJ.body = nh3.clean(...)
+      - pattern: $OBJ.html = nh3.clean(...)

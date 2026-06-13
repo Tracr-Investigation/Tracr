@@ -1,0 +1,31 @@
+rules:
+  - id: tracr-no-debug-true-hardcoded
+    languages: [python]
+    message: >
+      DEBUG=True hardcodé dans le code. Passer par
+      la configuration (Settings / variables d'environnement).
+    severity: ERROR
+    paths:
+      include: ["**/backend/"]
+      exclude:
+        - "**/backend/tests/"
+    pattern-either:
+      - pattern: DEBUG = True
+      - pattern: debug=True
+
+  - id: tracr-no-hardcoded-secret-key
+    languages: [python]
+    message: >
+      SECRET_KEY / JWT_SECRET hardcodé dans le code source.
+      Charger depuis l'environnement via Settings ou os.environ.
+    severity: ERROR
+    paths:
+      include: ["**/backend/"]
+      exclude:
+        - "**/backend/tests/"
+        - "**/backend/utils/wordlist.py"
+    pattern-either:
+      - pattern: SECRET_KEY = "..."
+      - pattern: JWT_SECRET = "..."
+      - pattern: secret_key = "..."
+      - pattern: jwt_secret = "..."

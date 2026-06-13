@@ -34,6 +34,10 @@ build/
 *.log
 
 
+security-reports/
+*.sarif
+
+
 # Add manually
 
 
