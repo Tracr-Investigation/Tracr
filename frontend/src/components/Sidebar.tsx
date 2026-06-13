@@ -9,7 +9,7 @@ import { useSidebarStore } from '../stores/sidebarStore';
 import {
     FileSearch, FileText, Settings, Shield, LogOut,
     ChevronsLeft, ChevronsRight, Menu, X, Bell,
-    LayoutDashboard, Calendar, Moon, Sun,
+    LayoutDashboard, Calendar, Moon, Sun, BookOpen,
 } from 'lucide-react';
 
 // ── Tooltip (mode replié) ───────────────────────────────────────────────────────
@@ -154,13 +154,14 @@ export const Sidebar = () => {
         return () => window.removeEventListener('keydown', onKey);
     }, [toggle]);
 
-    const mainItems = [
+    const mainItems: { icon: React.ElementType; label: string; path?: string; href?: string }[] = [
         { icon: LayoutDashboard, label: t('sidebar.dashboard'),      path: '/' },
         { icon: FileSearch,      label: t('sidebar.investigations'),  path: '/investigations' },
         { icon: Calendar,        label: t('sidebar.calendar'),        path: '/calendar' },
         { icon: FileText,        label: t('sidebar.templates'),       path: '/templates' },
         { icon: Settings,        label: t('sidebar.settings'),        path: '/settings' },
         ...(isAdmin ? [{ icon: Shield, label: t('sidebar.administration'), path: '/admin' }] : []),
+        { icon: BookOpen,        label: t('sidebar.help'),            href: '/docs/' },
     ];
 
     const initials = user?.pseudo ? user.pseudo.slice(0, 2).toUpperCase() : 'U';
@@ -215,12 +216,15 @@ export const Sidebar = () => {
                 <nav className="flex-1 overflow-y-auto py-3 px-2 flex flex-col gap-0.5">
                     {mainItems.map(item => (
                         <NavItem
-                            key={item.path}
+                            key={item.path ?? item.href}
                             icon={item.icon}
                             label={item.label}
-                            active={isActive(item.path)}
+                            active={item.path ? isActive(item.path) : false}
                             collapsed={effectiveCollapsed}
-                            onClick={() => nav(item.path)}
+                            onClick={() => {
+                                if (item.href) { window.open(item.href, '_blank'); return; }
+                                if (item.path) nav(item.path);
+                            }}
                         />
                     ))}
                 </nav>

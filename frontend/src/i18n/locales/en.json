@@ -13,7 +13,8 @@
     "collapse": "Collapse",
     "expand": "Expand",
     "collapseShortcut": "Collapse (Ctrl+B)",
-    "expandShortcut": "Expand (Ctrl+B)"
+    "expandShortcut": "Expand (Ctrl+B)",
+    "help": "Documentation"
   },
   "home": {
     "title": "Dashboard",

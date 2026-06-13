@@ -13,7 +13,8 @@
     "collapse": "Replier",
     "expand": "Déplier",
     "collapseShortcut": "Replier (Ctrl+B)",
-    "expandShortcut": "Déplier (Ctrl+B)"
+    "expandShortcut": "Déplier (Ctrl+B)",
+    "help": "Documentation"
   },
   "home": {
     "title": "Tableau de bord",
