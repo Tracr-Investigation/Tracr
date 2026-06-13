@@ -100,6 +100,31 @@ def _generate_map_image(lat: float, lng: float) -> str | None:
         return None
 
 
+_SOURCE_VIEW_RE = re.compile(r'src="(https?://[^"]*?/sources/(\d+)/view\?sig=([A-Za-z0-9]+)[^"]*)"')
+
+
+def _inline_source_views(html: str, db) -> str:
+    """Remplace les <img src=".../sources/{id}/view?sig=..."> par des data URI en
+    lisant les octets DIRECTEMENT depuis le stockage (pas de requête HTTP vers le
+    backend lui-même, qui provoquerait un deadlock pendant l'export)."""
+    from services import source_service
+
+    def _replace(match: re.Match) -> str:
+        sid, sig = int(match.group(2)), match.group(3)
+        try:
+            source = source_service.get_source(db, sid)
+            if not source or not source_service.verify_view_signature(source, sig):
+                return match.group(0)
+            data = source_service.get_content(source)
+            mime = source.mime_type or "image/png"
+            b64 = base64.b64encode(data).decode()
+            return f'src="data:{mime};base64,{b64}"'
+        except Exception:
+            return match.group(0)
+
+    return _SOURCE_VIEW_RE.sub(_replace, html)
+
+
 def _embed_external_images(html: str) -> str:
     """Remplace les src des <img> par des data URI base64.
 
@@ -108,6 +133,10 @@ def _embed_external_images(html: str) -> str:
     """
     def _replace(match: re.Match) -> str:
         src = match.group(1)
+        # Nos URLs /sources/{id}/view sont résolues localement en amont : ne JAMAIS
+        # les fetch en HTTP (boucle vers le backend → deadlock).
+        if "/sources/" in src and "/view" in src:
+            return match.group(0)
         try:
             if "staticmap.openstreetmap.de" in src:
                 center = re.search(r"center=([\d.\-]+),([\d.\-]+)", src)
@@ -126,11 +155,14 @@ def _embed_external_images(html: str) -> str:
     return re.sub(r'src="(https?://[^"]+)"', _replace, html)
 
 
-def render_pdf(document: Document) -> Tuple[bytes, str]:
-    """Retourne (bytes PDF, filename)."""
+def render_pdf(document: Document, db=None) -> Tuple[bytes, str]:
+    """Retourne (bytes PDF, filename). `db` permet d'inliner les sources archivées
+    sans requête HTTP vers le backend."""
     from weasyprint import HTML
 
     html_str = _wrap_html(document.title, document.content_html or "")
+    if db is not None:
+        html_str = _inline_source_views(html_str, db)
     html_str = _embed_external_images(html_str)
     pdf_bytes = HTML(string=html_str).write_pdf()
     if pdf_bytes is None:

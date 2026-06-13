@@ -23,8 +23,10 @@ import {
   Unlink,
   Palette,
   MapPin,
+  Archive,
 } from 'lucide-react';
 import { LocationModal } from './LocationModal';
+import { SourcePickerDialog } from './SourcePickerDialog';
 
 const ICON_SIZE = 14;
 const SWATCH_SIZE_PX = 20;
@@ -55,6 +57,7 @@ interface Props {
   editor: Editor;
   hasSelection: boolean;
   commentCount?: number;
+  investigationId?: number;
   onCommentClick?: () => void;
   onInsertTemplateClick?: () => void;
 }
@@ -588,12 +591,14 @@ export const EditorToolbar = ({
   editor,
   hasSelection,
   commentCount = 0,
+  investigationId,
   onCommentClick,
   onInsertTemplateClick,
 }: Props) => {
   const [showLinkDialog, setShowLinkDialog] = useState(false);
   const [linkInitialUrl, setLinkInitialUrl] = useState('');
   const [showLocationModal, setShowLocationModal] = useState(false);
+  const [showSourceDialog, setShowSourceDialog] = useState(false);
 
   const handleOpenLinkDialog = () => {
     const currentHref = (editor.getAttributes('link').href as string | undefined) ?? '';
@@ -647,6 +652,15 @@ export const EditorToolbar = ({
           <MapPin size={ICON_SIZE} />
         </Btn>
 
+        {investigationId != null && (
+          <Btn
+            onClick={() => { setShowLinkDialog(false); setShowSourceDialog(true); }}
+            title="Insérer une source archivée"
+          >
+            <Archive size={ICON_SIZE} />
+          </Btn>
+        )}
+
         {showInsertTemplate && (
           <>
             <Divider />
@@ -679,6 +693,15 @@ export const EditorToolbar = ({
         open={showLocationModal}
         onClose={() => setShowLocationModal(false)}
       />
+
+      {investigationId != null && (
+        <SourcePickerDialog
+          editor={editor}
+          investigationId={investigationId}
+          open={showSourceDialog}
+          onClose={() => setShowSourceDialog(false)}
+        />
+      )}
     </>
   );
 };

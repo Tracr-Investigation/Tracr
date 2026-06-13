@@ -197,7 +197,7 @@ async def export_document(
     document, _ = _load_document_with_access(db, document_id, user.id_user)
 
     try:
-        data, filename = export_service.render_pdf(document)
+        data, filename = export_service.render_pdf(document, db)
         media_type = "application/pdf"
     except Exception:
         raise HTTPException(status_code=500, detail="Export failed")
