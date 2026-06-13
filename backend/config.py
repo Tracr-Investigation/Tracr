@@ -23,6 +23,16 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     JWT_EXPIRATION_HOURS: int = 24
 
+    RATE_LIMIT_ENABLED: bool = True
+
+    # MinIO / stockage objet des captures de sources
+    MINIO_ENDPOINT: str = "minio:9000"
+    MINIO_ACCESS_KEY: str = "tracr"
+    MINIO_SECRET_KEY: str = "tracr_password_2024"
+    MINIO_BUCKET: str = "tracr-sources"
+    MINIO_SECURE: bool = False
+    MAX_SOURCE_SIZE_MB: int = 200
+
     class Config:
         env_file = "../.env"
         case_sensitive = True

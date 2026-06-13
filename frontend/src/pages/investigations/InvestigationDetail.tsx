@@ -26,9 +26,11 @@ import {
     History,
     Network,
     Map as MapIcon,
+    Archive,
 } from 'lucide-react';
 import {TasksTab} from './tabs/TasksTab';
 import {DocumentsTab} from './tabs/DocumentsTab';
+import {SourcesTab} from './tabs/SourcesTab';
 import {TimelineTab} from './tabs/TimelineTab';
 import {GraphTab} from './tabs/GraphTab';
 import {MapTab} from './tabs/MapTab';
@@ -950,6 +952,17 @@ export const InvestigationDetail = () => {
                                         <DocumentsTab
                                             investigationId={investigation.id_investigation}
                                             investigationTitle={investigation.title}
+                                            userPermission={investigation.user_permission}
+                                        />
+                                    ),
+                                },
+                                {
+                                    id: 'sources',
+                                    label: 'Sources',
+                                    icon: Archive,
+                                    content: (
+                                        <SourcesTab
+                                            investigationId={investigation.id_investigation}
                                             userPermission={investigation.user_permission}
                                         />
                                     ),

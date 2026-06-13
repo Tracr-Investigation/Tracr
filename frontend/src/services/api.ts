@@ -29,6 +29,26 @@ export interface RelationData {
 
 export {API_URL};
 
+export type SourceType = 'page_screenshot' | 'page_mhtml' | 'media' | 'web_archive';
+
+export interface SourceData {
+    id_source: number;
+    id_investigation: number;
+    created_by: number | null;
+    created_by_pseudo: string | null;
+    title: string;
+    source_url: string;
+    source_type: SourceType;
+    mime_type: string;
+    size_bytes: number;
+    content_hash: string;
+    capture_group: string | null;
+    page_metadata: Record<string, unknown> | null;
+    view_sig: string;
+    captured_at: string | null;
+    created_at: string | null;
+}
+
 export interface TemplateCategoryData {
     id_category_template: number;
     name: string;
@@ -1217,6 +1237,57 @@ export const api = {
         const data = await response.json();
         if (!response.ok) throw new Error(parseApiError(data.detail, 'Restore error'));
         return data;
+    },
+
+    // --- Sources (preuves OSINT) ---
+
+    listSources: async (investigationId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/sources`, {
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching sources'));
+        return data as { sources: SourceData[] };
+    },
+
+    getSource: async (id: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/sources/${id}`, {
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching source'));
+        return data as SourceData;
+    },
+
+    deleteSource: async (id: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/sources/${id}`, {
+            method: 'DELETE',
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error deleting source'));
+        return data;
+    },
+
+    // Recupere le binaire de la capture (preview + telechargement). Auth requise,
+    // donc on passe par fetch + blob plutot qu'une URL <img src> directe.
+    downloadSource: async (id: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/sources/${id}/download`, {
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            throw new Error(parseApiError(data.detail, 'Download failed'));
+        }
+        const cd = response.headers.get('Content-Disposition') || '';
+        const match = cd.match(/filename\*=UTF-8''([^;]+)/) || cd.match(/filename="?([^";]+)"?/);
+        const filename = match ? decodeURIComponent(match[1]) : `source-${id}`;
+        const blob = await response.blob();
+        return { blob, filename };
     },
 
     // --- Timeline ---
