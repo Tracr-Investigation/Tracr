@@ -287,7 +287,8 @@ const CollaboratorsTab = ({
                             className="px-4 py-2.5 bg-input-bg border border-border rounded-xl text-text-default text-sm focus:outline-none focus:border-[var(--theme-primary)] transition-colors"
                         >
                             {permissionOptions.map((p) => (
-                                <option key={p} value={p}>{permissionLabels[p]}</option>
+                                <option key={p} value={p} className="bg-card text-text-default">
+                                    {permissionLabels[p]}</option>
                             ))}
                         </select>
                     </div>

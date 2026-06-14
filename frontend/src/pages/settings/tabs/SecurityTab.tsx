@@ -230,7 +230,7 @@ export const SecurityTab = () => {
                         </div>
                     )}
 
-                    <button type="submit" disabled={loading} className="w-full py-3 text-text-default font-semibold rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all" style={{background: 'var(--theme-primary)'}}>
+                    <button type="submit" disabled={loading} className="w-full py-3 !text-white font-semibold rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all" style={{background: 'var(--theme-primary)'}}>
                         {loading ? t('security.updating') : t('security.changePassword')}
                     </button>
                 </form>
