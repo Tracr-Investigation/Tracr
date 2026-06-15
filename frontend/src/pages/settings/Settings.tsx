@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Layout } from '../../components/Layout';
+import { usePageTitle } from '../../hooks/usePageTitle';
 import { Tabs, type TabItem } from '../../components/Tabs';
 import { SecurityTab } from './tabs/SecurityTab';
 import { LanguageTab } from './tabs/LanguageTab';
@@ -22,6 +23,7 @@ const PlaceholderTab = ({ title, description }: { title: string; description: st
 
 export const Settings = () => {
   const { t } = useTranslation();
+  usePageTitle(t('sidebar.settings'));
 
   const TABS: TabItem[] = [
     {

@@ -1,6 +1,7 @@
 import {useState, useEffect, useCallback} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {Layout} from '../../components/Layout';
+import {usePageTitle} from '../../hooks/usePageTitle';
 import {useNotifications} from '../../contexts/NotificationContext';
 import {useToast} from '../../contexts/ToastContext';
 import {api} from '../../services/api';
@@ -39,6 +40,7 @@ export const Notifications = () => {
     const {notifications, unreadCount, loading, markAsRead, markAllAsRead} = useNotifications();
     const {toast} = useToast();
     const navigate = useNavigate();
+    usePageTitle(t('sidebar.notifications'));
     const [invitations, setInvitations] = useState<PendingInvitation[]>([]);
     const [loadingInvitations, setLoadingInvitations] = useState(true);
     const [processingId, setProcessingId] = useState<number | null>(null);

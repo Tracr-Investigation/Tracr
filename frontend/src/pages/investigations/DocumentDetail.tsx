@@ -4,6 +4,7 @@ import debounce from 'lodash.debounce';
 import { ArrowLeft, Save, Loader2, Check, FileDown, History, ScanSearch } from 'lucide-react';
 
 import { Layout } from '../../components/Layout';
+import { usePageTitle } from '../../hooks/usePageTitle';
 import { DocumentEditor, type RemoteUser, type DocumentEditorHandle } from '../../components/editor/DocumentEditor';
 import { BackupPanel } from '../../components/editor/BackupPanel';
 import { IocPanel } from '../../components/osint/IocPanel';
@@ -200,6 +201,7 @@ export const DocumentDetail = () => {
   }
 
   const [document, setDocument] = useState<DocumentData | null>(null);
+  usePageTitle(document?.title);
   const [investigationTitle, setInvestigationTitle] = useState('');
   const [permission, setPermission] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);

@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { Home, ArrowLeft } from 'lucide-react';
+import { usePageTitle } from '../../hooks/usePageTitle';
 
 export const NotFound = () => {
   const navigate = useNavigate();
+  usePageTitle('Page introuvable');
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6" style={{background: 'var(--bg-surface)'}}>

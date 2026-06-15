@@ -8,6 +8,7 @@ import { useToast } from '../../contexts/ToastContext';
 import { toInvestigationSlug } from '../../utils/slug';
 import { KanbanBoard } from '../../components/tasks/KanbanBoard';
 import { CalendarView } from '../calendar/Calendar';
+import { usePageTitle } from '../../hooks/usePageTitle';
 import { TaskFormPanel, type TaskData, type TaskStatus } from '../../components/tasks/taskShared';
 
 type MyTasksTab = 'personal' | 'assigned' | 'calendar';
@@ -16,6 +17,7 @@ export const MyTasks = () => {
     const { t } = useTranslation();
     const { toast } = useToast();
     const navigate = useNavigate();
+    usePageTitle(t('sidebar.myTasks'));
     const [searchParams] = useSearchParams();
     const paramTab = searchParams.get('tab');
     const [tab, setTab] = useState<MyTasksTab>(

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
+import { usePageTitle } from '../../hooks/usePageTitle';
 import { PasswordStrength } from '../../components/PasswordStrength';
 import { isPasswordValid } from '../../utils/passwordValidation';
 import { useAuth } from '../../contexts/AuthContext';
@@ -36,6 +37,7 @@ const TracrLogo = () => (
 );
 
 export const Register = () => {
+    usePageTitle('Inscription');
     const [pseudo, setPseudo] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');

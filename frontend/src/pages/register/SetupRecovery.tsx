@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { api } from '../../services/api';
+import { usePageTitle } from '../../hooks/usePageTitle';
 import { useTranslation } from 'react-i18next';
 import { Copy, Check, AlertTriangle, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 
@@ -8,6 +9,7 @@ export const SetupRecovery = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
+    usePageTitle('Récupération du compte');
 
     const stateWords = (location.state as { words?: string[] } | null)?.words;
 

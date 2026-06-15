@@ -3,6 +3,7 @@ import {useNavigate} from 'react-router-dom';
 import {useTranslation} from 'react-i18next';
 import {Layout} from '../../components/Layout';
 import {StatusBadge} from '../../components/StatusBadge';
+import {usePageTitle} from '../../hooks/usePageTitle';
 import {useAuth} from '../../contexts/AuthContext';
 import {useNotifications} from '../../contexts/NotificationContext';
 import {useToast} from '../../contexts/ToastContext';
@@ -135,6 +136,7 @@ export const Home = () => {
     const {t} = useTranslation();
     const {toast} = useToast();
     const {notifications, markAsRead} = useNotifications();
+    usePageTitle(t('sidebar.dashboard'));
 
     const [recentInvestigations, setRecentInvestigations] = useState<InvestigationData[]>([]);
     const [allInvestigations, setAllInvestigations] = useState<InvestigationData[]>([]);

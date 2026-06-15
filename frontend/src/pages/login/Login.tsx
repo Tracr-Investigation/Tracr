@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { usePageTitle } from '../../hooks/usePageTitle';
 import { api } from '../../services/api';
 import { useTranslation } from 'react-i18next';
 import { PasswordStrength } from '../../components/PasswordStrength';
@@ -44,6 +45,7 @@ export const Login = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const { login } = useAuth();
+    usePageTitle('Connexion');
 
     const [panel, setPanel] = useState<Panel>('login');
 
