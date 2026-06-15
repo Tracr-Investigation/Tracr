@@ -1215,7 +1215,18 @@ export const api = {
         });
         const data = await response.json();
         if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching backups'));
-        return data as { backups: { id_backup: number; title: string; author_pseudo: string | null; created_at: string }[] };
+        return data as { backups: { id_backup: number; title: string; author_pseudo: string | null; kind: 'manual' | 'auto'; pinned: boolean; created_at: string }[] };
+    },
+
+    pinBackup: async (documentId: number, backupId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/documents/${documentId}/backups/${backupId}/pin`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Pin error'));
+        return data as { id_backup: number; pinned: boolean };
     },
 
     getBackup: async (documentId: number, backupId: number) => {

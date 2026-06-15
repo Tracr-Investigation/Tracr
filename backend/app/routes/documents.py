@@ -322,8 +322,38 @@ async def get_backup(
         "id_backup": backup.id_backup,
         "title": backup.title,
         "content_html": backup.content_html,
+        "kind": backup.kind,
+        "pinned": backup.pinned,
         "created_at": backup.created_at.isoformat() if backup.created_at else None,
     }
+
+
+@docs_router.post("/{document_id}/backups/{backup_id}/pin")
+async def toggle_pin_backup(
+    document_id: int,
+    backup_id: int,
+    request: Request,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    document, permission = _load_document_with_access(db, document_id, user.id_user)
+    if not document_service.can_write(permission):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    backup = document_service.get_backup(db, backup_id)
+    if not backup or backup.id_document != document.id_document:
+        raise HTTPException(status_code=404, detail="Backup not found")
+    try:
+        updated = document_service.toggle_pin(db, backup)
+    except document_service.PinLimitError:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Maximum {document_service.MAX_PINNED_BACKUPS} pinned backups reached",
+        )
+    ip = request.client.host if request.client else None
+    action = "backup_pin" if updated.pinned else "backup_unpin"
+    log_service.create_log(db, category="document", action=action,
+        id_user=user.id_user, detail=f"Document #{document_id} backup #{backup_id}", ip_address=ip)
+    return {"id_backup": updated.id_backup, "pinned": updated.pinned}
 
 
 @docs_router.post("/{document_id}/backups/{backup_id}/restore")
