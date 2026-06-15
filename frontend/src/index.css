@@ -4,9 +4,10 @@
 /* ─── Variables de fond/texte/bordure (runtime) ────────────── */
 
 :root {
-    /* Fond sombre par défaut */
-    --bg-surface:  #1a1a1a;
-    --bg-card:     #1e1e2e;
+    /* Fond sombre par défaut — surface et card nettement distinctes pour que
+       les blocs (y compris ceux en bg-card/30) ressortent du fond de page. */
+    --bg-surface:  #131318;
+    --bg-card:     #21212e;
     --bg-input:    rgba(255, 255, 255, 0.04);
     --bg-overlay:  rgba(0, 0, 0, 0.65);
 
@@ -15,9 +16,10 @@
     --text-muted:   #a78bfa;
     --text-dim:     rgba(167, 139, 250, 0.5);
 
-    /* Bordures (teintées accent par défaut) */
-    --border-default: rgba(139, 92, 246, 0.2);
-    --border-subtle:  rgba(139, 92, 246, 0.1);
+    /* Bordures (teintées accent par défaut) — opacité relevée pour rester
+       visibles sur fond sombre et délimiter clairement chaque bloc. */
+    --border-default: rgba(139, 92, 246, 0.32);
+    --border-subtle:  rgba(139, 92, 246, 0.2);
     --border-focus:   #8b5cf6;
     --border-error:   rgba(239, 68, 68, 0.35);
 
@@ -37,8 +39,8 @@
     --text-muted:   #64748b;
     --text-dim:     #94a3b8;
 
-    --border-default: #e2e8f0;
-    --border-subtle:  #f1f5f9;
+    --border-default: #cbd5e1;
+    --border-subtle:  #e2e8f0;
     --border-focus:   #8b5cf6;
     --border-error:   rgba(239, 68, 68, 0.4);
 }
@@ -54,8 +56,8 @@
 :root:not(.light).accent-emerald {
     --text-muted:     #34d399;
     --text-dim:       rgba(52, 211, 153, 0.5);
-    --border-default: rgba(16, 185, 129, 0.2);
-    --border-subtle:  rgba(16, 185, 129, 0.1);
+    --border-default: rgba(16, 185, 129, 0.32);
+    --border-subtle:  rgba(16, 185, 129, 0.2);
 }
 
 /* Bleu */
@@ -67,8 +69,8 @@
 :root:not(.light).accent-blue {
     --text-muted:     #60a5fa;
     --text-dim:       rgba(96, 165, 250, 0.5);
-    --border-default: rgba(59, 130, 246, 0.2);
-    --border-subtle:  rgba(59, 130, 246, 0.1);
+    --border-default: rgba(59, 130, 246, 0.32);
+    --border-subtle:  rgba(59, 130, 246, 0.2);
 }
 
 /* Rose */
@@ -80,8 +82,8 @@
 :root:not(.light).accent-rose {
     --text-muted:     #f472b6;
     --text-dim:       rgba(244, 114, 182, 0.5);
-    --border-default: rgba(236, 72, 153, 0.2);
-    --border-subtle:  rgba(236, 72, 153, 0.1);
+    --border-default: rgba(236, 72, 153, 0.32);
+    --border-subtle:  rgba(236, 72, 153, 0.2);
 }
 
 /* Ambre */
@@ -93,8 +95,8 @@
 :root:not(.light).accent-amber {
     --text-muted:     #fbbf24;
     --text-dim:       rgba(251, 191, 36, 0.5);
-    --border-default: rgba(245, 158, 11, 0.2);
-    --border-subtle:  rgba(245, 158, 11, 0.1);
+    --border-default: rgba(245, 158, 11, 0.32);
+    --border-subtle:  rgba(245, 158, 11, 0.2);
 }
 
 /* Cyan */
@@ -106,8 +108,8 @@
 :root:not(.light).accent-cyan {
     --text-muted:     #22d3ee;
     --text-dim:       rgba(34, 211, 238, 0.5);
-    --border-default: rgba(6, 182, 212, 0.2);
-    --border-subtle:  rgba(6, 182, 212, 0.1);
+    --border-default: rgba(6, 182, 212, 0.32);
+    --border-subtle:  rgba(6, 182, 212, 0.2);
 }
 
 /* ─── Design tokens Tailwind ──────────────────────────────── */
@@ -171,6 +173,20 @@
         font-family: "Inter", sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Le fond d'input par défaut est quasi transparent : le menu natif d'un
+       <select> hériterait alors d'un fond système blanc avec du texte blanc
+       (illisible en mode sombre). On force un fond solide et un texte lisible
+       sur le contrôle et ses options. */
+    select {
+        color: var(--text-default);
+    }
+
+    select option,
+    select optgroup {
+        background-color: var(--bg-card);
+        color: var(--text-default);
     }
 }
 

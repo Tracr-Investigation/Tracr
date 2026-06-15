@@ -3,6 +3,7 @@ import {useNavigate} from 'react-router-dom';
 import {useTranslation} from 'react-i18next';
 import {Layout} from '../../components/Layout';
 import {StatusBadge} from '../../components/StatusBadge';
+import {usePageTitle} from '../../hooks/usePageTitle';
 import {useToast} from '../../contexts/ToastContext';
 import {api} from '../../services/api';
 import {FileSearch, Plus, X, Calendar, Users, RotateCcw, Tag, Search, Filter, ChevronRight} from 'lucide-react';
@@ -218,6 +219,7 @@ export const Investigations = () => {
     const [filterCategoryId, setFilterCategoryId] = useState<number | null>(null);
     const {toast} = useToast();
     const navigate = useNavigate();
+    usePageTitle(t('sidebar.investigations'));
 
     const fetchInvestigations = useCallback(async () => {
         setLoading(true);

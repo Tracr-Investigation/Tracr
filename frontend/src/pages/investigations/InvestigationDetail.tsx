@@ -2,6 +2,7 @@ import {useState, useEffect, useCallback, useRef} from 'react';
 import {useParams, Link, useNavigate} from 'react-router-dom';
 import {Layout} from '../../components/Layout';
 import {StatusBadge} from '../../components/StatusBadge';
+import {usePageTitle} from '../../hooks/usePageTitle';
 import {Tabs} from '../../components/Tabs';
 import {useToast} from '../../contexts/ToastContext';
 import {useAuth} from '../../contexts/AuthContext';
@@ -770,6 +771,7 @@ export const InvestigationDetail = () => {
     const [openDropdown, setOpenDropdown] = useState(false);
     const {toast} = useToast();
     const {user: currentUser} = useAuth();
+    usePageTitle(investigation?.title);
 
     const fetchInvestigation = useCallback(async () => {
         if (!id) return;

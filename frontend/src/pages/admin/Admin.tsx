@@ -1,4 +1,5 @@
 import { Layout } from '../../components/Layout';
+import { usePageTitle } from '../../hooks/usePageTitle';
 import { Tabs, type TabItem } from '../../components/Tabs';
 import { UsersTab } from './tabs/UsersTab';
 import { LogsTab } from './tabs/LogsTab';
@@ -10,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 
 export const Admin = () => {
   const { t } = useTranslation();
+  usePageTitle(t('sidebar.administration'));
 
   const TABS: TabItem[] = [
     {

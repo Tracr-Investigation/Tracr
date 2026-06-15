@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Optional
 from zoneinfo import ZoneInfo
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from models.investigation import Investigation
@@ -53,6 +54,28 @@ def can_change_status(permission: Optional[str], id_user: int, task: Task) -> bo
     return permission == "owner" or task.created_by == id_user or task.assigned_to == id_user
 
 
+def _column_query(db: Session, id_investigation: Optional[int], created_by: Optional[int], status: str):
+    """Requête sur les tâches d'une même colonne Kanban (même scope + même statut).
+
+    Scope = une enquête (id_investigation) pour un board d'enquête, ou les tâches
+    personnelles d'un utilisateur (id_investigation NULL + created_by) pour un board perso.
+    """
+    q = db.query(Task).filter(Task.status == status)
+    if id_investigation is None:
+        q = q.filter(Task.id_investigation.is_(None), Task.created_by == created_by)
+    else:
+        q = q.filter(Task.id_investigation == id_investigation)
+    return q
+
+
+def _next_position(db: Session, id_investigation: Optional[int], created_by: Optional[int], status: str) -> int:
+    """Position pour ajouter une tâche en bas d'une colonne."""
+    max_pos = _column_query(db, id_investigation, created_by, status).with_entities(
+        func.max(Task.position)
+    ).scalar()
+    return (max_pos + 1) if max_pos is not None else 0
+
+
 def _task_to_dict(task: Task, db: Session) -> dict:
     """Convertit une tâche en dictionnaire enrichi."""
     creator = db.query(User).filter(User.id_user == task.created_by).first() if task.created_by else None
@@ -67,6 +90,7 @@ def _task_to_dict(task: Task, db: Session) -> dict:
         "status": task.status.value if hasattr(task.status, "value") else task.status,
         "priority": task.priority.value if hasattr(task.priority, "value") else task.priority,
         "is_private": task.is_private,
+        "position": task.position,
         "created_by": task.created_by,
         "created_by_pseudo": creator.pseudo if creator else None,
         "assigned_to": task.assigned_to,
@@ -115,7 +139,7 @@ def get_task_by_id(db: Session, id_task: int) -> Optional[Task]:
 
 def create_task(
     db: Session,
-    id_investigation: int,
+    id_investigation: Optional[int],
     id_user: int,
     title: str,
     description: Optional[str] = None,
@@ -125,6 +149,8 @@ def create_task(
     assigned_to: Optional[int] = None,
     due_date: Optional[datetime] = None,
 ) -> dict:
+    # id_investigation None => tâche personnelle (scope = créateur)
+    position = _next_position(db, id_investigation, id_user, status)
     task = Task(
         id_investigation=id_investigation,
         title=title,
@@ -132,6 +158,7 @@ def create_task(
         status=status,
         priority=priority,
         is_private=is_private,
+        position=position,
         created_by=id_user,
         assigned_to=assigned_to,
         due_date=due_date,
@@ -140,6 +167,46 @@ def create_task(
     db.commit()
     db.refresh(task)
     return _task_to_dict(task, db)
+
+
+def move_task(db: Session, task: Task, new_status: str, new_position: int) -> dict:
+    """Déplace une carte sur le Kanban : change de colonne (statut) et/ou de position,
+    puis renumérote la colonne cible de façon contiguë."""
+    old_status = task.status.value if hasattr(task.status, "value") else task.status
+
+    siblings = (
+        _column_query(db, task.id_investigation, task.created_by, new_status)
+        .filter(Task.id_task != task.id_task)
+        .order_by(Task.position.asc())
+        .all()
+    )
+
+    new_position = max(0, min(new_position, len(siblings)))
+    siblings.insert(new_position, task)
+    for idx, sibling in enumerate(siblings):
+        sibling.position = idx
+
+    now = datetime.now(ZoneInfo("Europe/Paris"))
+    if new_status != old_status:
+        task.status = new_status
+        task.completed_at = now if new_status == "termine" else None
+    task.updated_at = now
+
+    db.add_all(siblings)
+    db.commit()
+    db.refresh(task)
+    return _task_to_dict(task, db)
+
+
+def get_personal_tasks(db: Session, id_user: int) -> list[dict]:
+    """Tâches personnelles de l'utilisateur (hors enquête), ordonnées pour le Kanban."""
+    tasks = (
+        db.query(Task)
+        .filter(Task.id_investigation.is_(None), Task.created_by == id_user)
+        .order_by(Task.position.asc(), Task.created_at.desc())
+        .all()
+    )
+    return [_task_to_dict(t, db) for t in tasks]
 
 
 def update_task(
@@ -239,8 +306,17 @@ def create_response(db: Session, id_task: int, id_user: int, content: str) -> di
     }
 
 
-def get_my_tasks(db: Session, id_user: int, limit: int = 10) -> list[dict]:
-    """Retourne les tâches assignées à l'utilisateur sur toutes ses investigations (non terminées en priorité)."""
+def get_my_tasks(
+    db: Session,
+    id_user: int,
+    limit: Optional[int] = 10,
+    include_completed: bool = False,
+) -> list[dict]:
+    """Tâches assignées à l'utilisateur sur toutes ses enquêtes.
+
+    - limit=10 (défaut) : widget dashboard.
+    - limit=None + include_completed=True : vue Kanban « assignées à moi » (toutes colonnes).
+    """
     # Sous-requête : investigations où l'utilisateur est membre
     owned_ids = db.query(Investigation.id_investigation).filter(Investigation.owner_id == id_user)
     collab_ids = (
@@ -252,25 +328,27 @@ def get_my_tasks(db: Session, id_user: int, limit: int = 10) -> list[dict]:
     )
     accessible_query = owned_ids.union(collab_ids)
 
-    tasks = (
+    query = (
         db.query(Task, Investigation)
         .join(Investigation, Task.id_investigation == Investigation.id_investigation)
         .filter(
             Task.assigned_to == id_user,
-            Task.status != "termine",
             Task.id_investigation.in_(accessible_query),
             (Task.is_private == False) | (Task.created_by == id_user),
         )
-        .order_by(
-            Task.due_date.asc().nullslast(),
-            Task.created_at.desc(),
-        )
-        .limit(limit)
-        .all()
     )
+    if not include_completed:
+        query = query.filter(Task.status != "termine")
+
+    query = query.order_by(
+        Task.due_date.asc().nullslast(),
+        Task.created_at.desc(),
+    )
+    if limit is not None:
+        query = query.limit(limit)
 
     result = []
-    for task, investigation in tasks:
+    for task, investigation in query.all():
         d = _task_to_dict(task, db)
         d["investigation_title"] = investigation.title
         result.append(d)

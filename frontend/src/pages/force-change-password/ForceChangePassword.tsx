@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../services/api';
 import { PASSWORD_RULES, isPasswordValid } from '../../utils/passwordValidation';
+import { usePageTitle } from '../../hooks/usePageTitle';
 import { ShieldAlert, Check, X } from 'lucide-react';
 
 export const ForceChangePassword = () => {
+    usePageTitle('Changer le mot de passe');
     const [newPassword, setNewPassword] = useState('');
     const [confirm, setConfirm] = useState('');
     const [error, setError] = useState('');

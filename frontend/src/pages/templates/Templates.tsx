@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Layout } from '../../components/Layout';
+import { usePageTitle } from '../../hooks/usePageTitle';
 import { api, type TemplateCategoryData, type TemplateData } from '../../services/api';
 import { useToast } from '../../contexts/ToastContext';
 import {
@@ -375,6 +376,7 @@ const TemplateCard = ({ template, selected, onClick }: { template: TemplateData;
 
 export const Templates = () => {
   const { toast } = useToast();
+  usePageTitle('Modèles');
   const [templates, setTemplates] = useState<TemplateData[]>([]);
   const [categories, setCategories] = useState<TemplateCategoryData[]>([]);
   const [loading, setLoading] = useState(true);

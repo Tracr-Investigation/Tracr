@@ -804,7 +804,7 @@ export const api = {
             id_investigation: number;
             investigation_title: string;
             title: string;
-            status: 'todo' | 'en_cours' | 'termine';
+            status: 'todo' | 'en_cours' | 'bloque' | 'en_revue' | 'a_valider' | 'termine';
             priority: 'basse' | 'normale' | 'haute' | 'urgente';
             is_private: boolean;
             due_date: string | null;
@@ -904,6 +904,100 @@ export const api = {
         });
         const data = await response.json();
         if (!response.ok) throw new Error(parseApiError(data.detail, 'Error deleting response'));
+        return data;
+    },
+
+    // ── Kanban : déplacement d'une tâche d'enquête ──────────────────────────
+    moveTask: async (investigationId: number, taskId: number, body: { status: string; position: number }) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/tasks/${taskId}/move`, {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+            body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error moving task'));
+        return data;
+    },
+
+    // ── Tâches personnelles (hors enquête) ──────────────────────────────────
+    getPersonalTasks: async () => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/tasks/personal`, {
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching personal tasks'));
+        return data;
+    },
+
+    createPersonalTask: async (body: {
+        title: string;
+        description?: string | null;
+        status?: string;
+        priority?: string;
+        due_date?: string | null;
+    }) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/tasks/personal`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+            body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error creating personal task'));
+        return data;
+    },
+
+    updatePersonalTask: async (taskId: number, body: {
+        title?: string | null;
+        description?: string | null;
+        status?: string | null;
+        priority?: string | null;
+        due_date?: string | null;
+        clear_due_date?: boolean;
+    }) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/tasks/personal/${taskId}`, {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+            body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error updating personal task'));
+        return data;
+    },
+
+    movePersonalTask: async (taskId: number, body: { status: string; position: number }) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/tasks/personal/${taskId}/move`, {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+            body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error moving personal task'));
+        return data;
+    },
+
+    deletePersonalTask: async (taskId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/tasks/personal/${taskId}`, {
+            method: 'DELETE',
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error deleting personal task'));
+        return data;
+    },
+
+    getAssignedTasks: async () => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/tasks/assigned`, {
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching assigned tasks'));
         return data;
     },
 

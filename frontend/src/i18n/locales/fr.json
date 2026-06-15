@@ -2,6 +2,7 @@
   "sidebar": {
     "dashboard": "Tableau de bord",
     "investigations": "Enquêtes",
+    "myTasks": "Mes tâches",
     "calendar": "Calendrier",
     "templates": "Modèles",
     "settings": "Paramètres",
@@ -15,6 +16,23 @@
     "collapseShortcut": "Replier (Ctrl+B)",
     "expandShortcut": "Déplier (Ctrl+B)",
     "help": "Documentation"
+  },
+  "showcase": {
+    "tagline": "Plateforme d'investigation OSINT",
+    "tabs": {
+      "graph": "Graphe",
+      "sources": "Sources",
+      "documents": "Documents",
+      "timeline": "Chronologie",
+      "tasks": "Tâches"
+    },
+    "desc": {
+      "graph": "Cartographiez personnes, domaines, IP et comptes - et les liens entre eux.",
+      "sources": "Capturez une preuve avec l'extension navigateur, scellez-la dans l'enquête, puis insérez-la directement dans le rapport.",
+      "documents": "Rédigez les rapports d'enquête à plusieurs en temps réel, avec les éléments intégrés.",
+      "timeline": "Chaque action est enregistrée dans un journal d'activité complet et auditable.",
+      "tasks": "Planifiez et suivez le travail d'enquête avec priorités, assignations et échéances."
+    }
   },
   "home": {
     "title": "Tableau de bord",
@@ -232,7 +250,7 @@
     "priorityLabel": "Priorité",
     "statusLabel": "Statut",
     "assignedLabel": "Assigné à",
-    "assignedNobody": "— Personne —",
+    "assignedNobody": "- Personne -",
     "dueDateLabel": "Date d'échéance",
     "privateLabel": "Privée (visible uniquement par vous)",
     "sharedLabel": "Partagée (visible par tous les membres)",
@@ -259,8 +277,28 @@
     "status": {
       "todo": "À faire",
       "en_cours": "En cours",
+      "bloque": "Bloqué",
+      "en_revue": "En revue",
+      "a_valider": "À valider",
       "termine": "Terminé"
-    }
+    },
+    "viewList": "Liste",
+    "viewKanban": "Kanban",
+    "showAllColumns": "Tout afficher",
+    "showMainColumns": "Réduire",
+    "columnEmpty": "Vide",
+    "addCard": "Ajouter",
+    "movedError": "Erreur lors du déplacement",
+    "personalTitle": "Mes tâches",
+    "personalSubtitle": "Vos tâches personnelles et celles qui vous sont assignées",
+    "tabPersonal": "Personnelles",
+    "tabAssigned": "Assignées à moi",
+    "tabCalendar": "Calendrier",
+    "personalEmpty": "Aucune tâche personnelle",
+    "personalEmptyDesc": "Créez une tâche pour vous organiser, indépendamment des enquêtes.",
+    "assignedEmpty": "Aucune tâche assignée",
+    "assignedEmptyDesc": "Les tâches qui vous sont assignées sur vos enquêtes apparaîtront ici.",
+    "fromInvestigation": "Enquête"
   },
   "admin": {
     "title": "Administration",

@@ -9,7 +9,7 @@ import { useSidebarStore } from '../stores/sidebarStore';
 import {
     FileSearch, FileText, Settings, Shield, LogOut,
     ChevronsLeft, ChevronsRight, Menu, X, Bell,
-    LayoutDashboard, Calendar, Moon, Sun, BookOpen,
+    LayoutDashboard, Moon, Sun, BookOpen, ListChecks,
 } from 'lucide-react';
 
 // ── Tooltip (mode replié) ───────────────────────────────────────────────────────
@@ -157,7 +157,7 @@ export const Sidebar = () => {
     const mainItems: { icon: React.ElementType; label: string; path?: string; href?: string }[] = [
         { icon: LayoutDashboard, label: t('sidebar.dashboard'),      path: '/' },
         { icon: FileSearch,      label: t('sidebar.investigations'),  path: '/investigations' },
-        { icon: Calendar,        label: t('sidebar.calendar'),        path: '/calendar' },
+        { icon: ListChecks,      label: t('sidebar.myTasks'),         path: '/tasks' },
         { icon: FileText,        label: t('sidebar.templates'),       path: '/templates' },
         { icon: Settings,        label: t('sidebar.settings'),        path: '/settings' },
         ...(isAdmin ? [{ icon: Shield, label: t('sidebar.administration'), path: '/admin' }] : []),
