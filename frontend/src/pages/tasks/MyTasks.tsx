@@ -1,108 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Plus, X, Trash2, ListChecks } from 'lucide-react';
+import { Plus, Trash2, ListChecks } from 'lucide-react';
 import { Layout } from '../../components/Layout';
 import { api } from '../../services/api';
 import { useToast } from '../../contexts/ToastContext';
 import { toInvestigationSlug } from '../../utils/slug';
 import { KanbanBoard } from '../../components/tasks/KanbanBoard';
 import { CalendarView } from '../calendar/Calendar';
-import { TaskForm, type TaskData, type TaskStatus } from '../../components/tasks/taskShared';
+import { TaskFormPanel, type TaskData, type TaskStatus } from '../../components/tasks/taskShared';
 
 type MyTasksTab = 'personal' | 'assigned' | 'calendar';
-
-const PersonalTaskModal = ({
-    task,
-    defaultStatus,
-    onClose,
-    onSaved,
-}: {
-    task: TaskData | null;
-    defaultStatus: TaskStatus;
-    onClose: () => void;
-    onSaved: () => void;
-}) => {
-    const { t } = useTranslation();
-    const { toast } = useToast();
-    const [saving, setSaving] = useState(false);
-    const [deleting, setDeleting] = useState(false);
-
-    const handleSubmit = async (data: Record<string, unknown>) => {
-        setSaving(true);
-        try {
-            if (task) {
-                await api.updatePersonalTask(task.id_task, data as Parameters<typeof api.updatePersonalTask>[1]);
-                toast('success', t('tasks.updated'));
-            } else {
-                await api.createPersonalTask(data as Parameters<typeof api.createPersonalTask>[0]);
-                toast('success', t('tasks.created'));
-            }
-            onSaved();
-            onClose();
-        } catch (err) {
-            toast('error', err instanceof Error ? err.message : 'Error');
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const handleDelete = async () => {
-        if (!task) return;
-        setDeleting(true);
-        try {
-            await api.deletePersonalTask(task.id_task);
-            toast('success', t('tasks.deleted'));
-            onSaved();
-            onClose();
-        } catch (err) {
-            toast('error', err instanceof Error ? err.message : 'Error');
-        } finally {
-            setDeleting(false);
-        }
-    };
-
-    return (
-        <div className="fixed inset-0 bg-overlay flex items-center justify-center z-50 p-4">
-            <div className="bg-card/30 border border-border-subtle rounded-xl w-full max-w-lg">
-                <div className="flex items-center justify-between p-5 border-b border-border-subtle">
-                    <h3 className="text-text-default font-semibold flex items-center gap-2">
-                        <Plus size={16} className="text-primary" />
-                        {task ? task.title : t('tasks.newTask')}
-                    </h3>
-                    <div className="flex items-center gap-1">
-                        {task && (
-                            <button
-                                onClick={handleDelete}
-                                disabled={deleting}
-                                className="p-1.5 text-text-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all disabled:opacity-40"
-                            >
-                                <Trash2 size={15} />
-                            </button>
-                        )}
-                        <button
-                            onClick={onClose}
-                            className="p-1.5 text-text-muted hover:text-text-default hover:bg-primary/10 rounded-lg transition-all"
-                        >
-                            <X size={16} />
-                        </button>
-                    </div>
-                </div>
-                <div className="p-5">
-                    <TaskForm
-                        members={[]}
-                        personal
-                        task={task}
-                        defaultStatus={defaultStatus}
-                        onSubmit={handleSubmit}
-                        onCancel={onClose}
-                        loading={saving}
-                    />
-                </div>
-            </div>
-        </div>
-    );
-};
 
 export const MyTasks = () => {
     const { t } = useTranslation();
@@ -119,6 +27,8 @@ export const MyTasks = () => {
     const [modalOpen, setModalOpen] = useState(false);
     const [editTask, setEditTask] = useState<TaskData | null>(null);
     const [defaultStatus, setDefaultStatus] = useState<TaskStatus>('todo');
+    const [saving, setSaving] = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
     const fetchAll = useCallback(async () => {
         try {
@@ -156,6 +66,40 @@ export const MyTasks = () => {
     const openEdit = (task: TaskData) => {
         setEditTask(task);
         setModalOpen(true);
+    };
+
+    const handleSubmit = async (data: Record<string, unknown>) => {
+        setSaving(true);
+        try {
+            if (editTask) {
+                await api.updatePersonalTask(editTask.id_task, data as Parameters<typeof api.updatePersonalTask>[1]);
+                toast('success', t('tasks.updated'));
+            } else {
+                await api.createPersonalTask(data as Parameters<typeof api.createPersonalTask>[0]);
+                toast('success', t('tasks.created'));
+            }
+            setModalOpen(false);
+            fetchAll();
+        } catch (err) {
+            toast('error', err instanceof Error ? err.message : 'Error');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!editTask) return;
+        setDeleting(true);
+        try {
+            await api.deletePersonalTask(editTask.id_task);
+            toast('success', t('tasks.deleted'));
+            setModalOpen(false);
+            fetchAll();
+        } catch (err) {
+            toast('error', err instanceof Error ? err.message : 'Error');
+        } finally {
+            setDeleting(false);
+        }
     };
 
     return (
@@ -234,14 +178,26 @@ export const MyTasks = () => {
                 )}
             </div>
 
-            {modalOpen && (
-                <PersonalTaskModal
-                    task={editTask}
-                    defaultStatus={defaultStatus}
-                    onClose={() => setModalOpen(false)}
-                    onSaved={fetchAll}
-                />
-            )}
+            <TaskFormPanel
+                open={modalOpen}
+                heading={editTask ? editTask.title : t('tasks.newTask')}
+                headerAction={editTask ? (
+                    <button
+                        onClick={handleDelete}
+                        disabled={deleting}
+                        className="p-1.5 text-text-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all disabled:opacity-40"
+                    >
+                        <Trash2 size={15} />
+                    </button>
+                ) : undefined}
+                onClose={() => setModalOpen(false)}
+                members={[]}
+                personal
+                task={editTask}
+                defaultStatus={defaultStatus}
+                onSubmit={handleSubmit}
+                loading={saving}
+            />
         </Layout>
     );
 };

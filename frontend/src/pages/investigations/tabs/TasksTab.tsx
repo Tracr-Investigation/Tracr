@@ -29,6 +29,7 @@ import {
     PriorityBadge,
     TaskStatusBadge,
     TaskForm,
+    TaskFormPanel,
 } from '../../../components/tasks/taskShared';
 import {KanbanBoard} from '../../../components/tasks/KanbanBoard';
 
@@ -661,33 +662,15 @@ export const TasksTab = ({
                 </div>
             )}
 
-            {showCreateModal && (
-                <div className="fixed inset-0 bg-overlay flex items-center justify-center z-50 p-4">
-                    <div className="bg-card/30 border border-border-subtle rounded-xl w-full max-w-lg">
-                        <div className="flex items-center justify-between p-5 border-b border-border-subtle">
-                            <h3 className="text-text-default font-semibold flex items-center gap-2">
-                                <Plus size={16} className="text-primary"/>
-                                {t('tasks.newTask')}
-                            </h3>
-                            <button
-                                onClick={() => setShowCreateModal(false)}
-                                className="p-1.5 text-text-muted hover:text-text-default hover:bg-primary/10 rounded-lg transition-all"
-                            >
-                                <X size={16}/>
-                            </button>
-                        </div>
-                        <div className="p-5">
-                            <TaskForm
-                                members={members}
-                                defaultStatus={createDefaultStatus}
-                                onSubmit={handleCreate}
-                                onCancel={() => setShowCreateModal(false)}
-                                loading={creating}
-                            />
-                        </div>
-                    </div>
-                </div>
-            )}
+            <TaskFormPanel
+                open={showCreateModal}
+                heading={('tasks.newTask')}
+                onClose={() => setShowCreateModal(false)}
+                members={members}
+                defaultStatus={createDefaultStatus}
+                onSubmit={handleCreate}
+                loading={creating}
+            />
 
             {selectedTask && (
                 <TaskDetailModal

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Lock, Globe } from 'lucide-react';
+import { Lock, Globe, Plus, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export type TaskStatus = 'todo' | 'en_cours' | 'bloque' | 'en_revue' | 'a_valider' | 'termine';
@@ -260,5 +260,83 @@ export const TaskForm = ({
                 </button>
             </div>
         </form>
+    );
+};
+
+/**
+ * Panneau coulissant (slide-in depuis la droite) pour la création / édition de
+ * tâche, aligné sur le flux de création d'enquête (`CreatePanel`). Remplace les
+ * anciennes popups centrées. Toujours monté pour permettre la transition fluide ;
+ * le formulaire interne n'est monté que lorsque le panneau est ouvert afin de
+ * repartir d'un état vierge à chaque ouverture.
+ */
+export const TaskFormPanel = ({
+    open,
+    heading,
+    headerAction,
+    onClose,
+    members,
+    task,
+    personal = false,
+    defaultStatus,
+    onSubmit,
+    loading,
+}: {
+    open: boolean;
+    heading: string;
+    headerAction?: React.ReactNode;
+    onClose: () => void;
+    members: MemberOption[];
+    task?: TaskData | null;
+    personal?: boolean;
+    defaultStatus?: TaskStatus;
+    onSubmit: (data: Record<string, unknown>) => void;
+    loading: boolean;
+}) => {
+    return (
+        <>
+            {/* Backdrop */}
+            <div
+                className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 ${open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+                onClick={onClose}
+            />
+
+            {/* Panel */}
+            <div
+                className={`fixed top-0 right-0 h-screen w-full max-w-[480px] z-50 flex flex-col
+                    transition-transform duration-300 ease-in-out
+                    ${open ? 'translate-x-0' : 'translate-x-full'}`}
+                style={{ background: 'var(--color-card)', borderLeft: '1px solid var(--color-border-subtle)' }}
+            >
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-border-subtle shrink-0">
+                    <h2 className="text-lg font-bold text-text-default flex items-center gap-2 min-w-0">
+                        <Plus size={16} className="text-primary shrink-0" />
+                        <span className="truncate">{heading}</span>
+                    </h2>
+                    <div className="flex items-center gap-1 shrink-0">
+                        {headerAction}
+                        <button onClick={onClose} className="text-text-dim hover:text-text-default transition-colors">
+                            <X size={18} />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Body */}
+                <div className="flex-1 overflow-y-auto px-6 py-5">
+                    {open && (
+                        <TaskForm
+                            members={members}
+                            task={task}
+                            personal={personal}
+                            defaultStatus={defaultStatus}
+                            onSubmit={onSubmit}
+                            onCancel={onClose}
+                            loading={loading}
+                        />
+                    )}
+                </div>
+            </div>
+        </>
     );
 };
