@@ -16,6 +16,8 @@ from models.template import Template
 from models.entity import Entity
 from models.entity_relation import EntityRelation
 from models.source import InvestigationSource
+from models.selector import InvestigationSelector
+from models.selector_hit import SelectorHit
 __all__ = [
     "User", "Role", "UserRole", "Log",
     "Investigation", "InvestigationStatus", "Notification", "InvestigationCollaborator",
@@ -24,5 +26,7 @@ __all__ = [
     "Document", "DocumentComment", "Template",
     "Entity", "EntityRelation",
     "InvestigationSource",
+    "InvestigationSelector",
+    "SelectorHit",
 ]
 
