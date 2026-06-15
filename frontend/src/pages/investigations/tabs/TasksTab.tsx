@@ -664,7 +664,7 @@ export const TasksTab = ({
 
             <TaskFormPanel
                 open={showCreateModal}
-                heading={('tasks.newTask')}
+                heading={t('tasks.newTask')}
                 onClose={() => setShowCreateModal(false)}
                 members={members}
                 defaultStatus={createDefaultStatus}

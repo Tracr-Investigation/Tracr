@@ -29,7 +29,7 @@ export interface RelationData {
 
 export {API_URL};
 
-export type SourceType = 'page_screenshot' | 'page_mhtml' | 'media' | 'web_archive';
+export type SourceType = 'page_screenshot' | 'page_mhtml' | 'media' | 'web_archive' | 'manual_file';
 
 export interface SourceData {
     id_source: number;
@@ -44,9 +44,71 @@ export interface SourceData {
     content_hash: string;
     capture_group: string | null;
     page_metadata: Record<string, unknown> | null;
+    notes: string | null;
     view_sig: string;
     captured_at: string | null;
     created_at: string | null;
+}
+
+export interface SelectorData {
+    id_selector: number;
+    id_investigation: number;
+    created_by: number | null;
+    created_by_pseudo: string | null;
+    selector_type: string;
+    selector_type_label: string;
+    value: string;
+    normalized_value: string;
+    label: string | null;
+    notes: string | null;
+    created_at: string | null;
+}
+
+export interface SelectorTypeOption {
+    value: string;
+    label: string;
+}
+
+export interface HitSourceRef {
+    id_source: number;
+    title: string;
+    source_type: SourceType;
+    source_url: string;
+    occurrences: number;
+    snippet: string | null;
+}
+
+export interface SelectorHit {
+    selector: SelectorData;
+    hit_count: number;
+    source_count: number;
+    sources: HitSourceRef[];
+}
+
+export interface HitsResult {
+    total_sources: number;
+    analyzed_sources: number | null;
+    pending_ocr_sources: number | null;
+    selector_count: number;
+    computed_at: string | null;
+    stale?: boolean;
+    hits: SelectorHit[];
+}
+
+export interface SourceHitEntry {
+    selector: SelectorData;
+    occurrences: number;
+    snippet: string | null;
+}
+
+export interface SourceHitsResult {
+    id_source: number;
+    title: string;
+    text_status: string;
+    analyzed: boolean;
+    computed_at?: string | null;
+    selector_count?: number;
+    hits: SourceHitEntry[];
 }
 
 export interface TemplateCategoryData {
@@ -1377,6 +1439,40 @@ export const api = {
         return data;
     },
 
+    updateSource: async (id: number, body: { title?: string; notes?: string | null }) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/sources/${id}`, {
+            method: 'PATCH',
+            headers: {'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json'},
+            body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error updating source'));
+        return data as SourceData;
+    },
+
+    // Ajout manuel d'un fichier comme source (hors extension navigateur).
+    uploadSource: async (
+        investigationId: number,
+        params: { file: File; title: string; source_url?: string; notes?: string },
+    ) => {
+        const token = localStorage.getItem('token');
+        const fd = new FormData();
+        fd.append('file', params.file);
+        fd.append('title', params.title);
+        fd.append('source_type', 'manual_file');
+        if (params.source_url) fd.append('source_url', params.source_url);
+        if (params.notes) fd.append('notes', params.notes);
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/sources`, {
+            method: 'POST',
+            headers: {'Authorization': `Bearer ${token}`},
+            body: fd,
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error uploading source'));
+        return data as SourceData;
+    },
+
     // Recupere le binaire de la capture (preview + telechargement). Auth requise,
     // donc on passe par fetch + blob plutot qu'une URL <img src> directe.
     downloadSource: async (id: number) => {
@@ -1393,6 +1489,127 @@ export const api = {
         const filename = match ? decodeURIComponent(match[1]) : `source-${id}`;
         const blob = await response.blob();
         return { blob, filename };
+    },
+
+    // --- Sélecteurs (identifiants OSINT recherchés dans les sources) ---
+
+    listSelectorTypes: async () => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/selectors/types`, {
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching selector types'));
+        return data as { types: SelectorTypeOption[] };
+    },
+
+    listSelectors: async (investigationId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/selectors`, {
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching selectors'));
+        return data as { selectors: SelectorData[] };
+    },
+
+    createSelector: async (
+        investigationId: number,
+        body: { selector_type: string; value: string; label?: string | null; notes?: string | null },
+    ) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/selectors`, {
+            method: 'POST',
+            headers: {'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json'},
+            body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error creating selector'));
+        return data as SelectorData;
+    },
+
+    updateSelector: async (
+        id: number,
+        body: { selector_type?: string; value?: string; label?: string | null; notes?: string | null },
+    ) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/selectors/${id}`, {
+            method: 'PATCH',
+            headers: {'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json'},
+            body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error updating selector'));
+        return data as SelectorData;
+    },
+
+    deleteSelector: async (id: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/selectors/${id}`, {
+            method: 'DELETE',
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error deleting selector'));
+        return data;
+    },
+
+    // Correspondances déjà enregistrées (dernier scan) + date de dernière analyse.
+    getHits: async (investigationId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/hits`, {
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching hits'));
+        return data as HitsResult;
+    },
+
+    // (Re)lance l'analyse de toute l'enquête et enregistre les correspondances.
+    scanHits: async (investigationId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/hits/scan`, {
+            method: 'POST',
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error scanning hits'));
+        return data as HitsResult;
+    },
+
+    // Hits déjà enregistrés pour une source (sans recalcul).
+    getSourceHits: async (sourceId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/sources/${sourceId}/hits`, {
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching source hits'));
+        return data as SourceHitsResult;
+    },
+
+    // (Re)lance l'analyse d'une source contre les sélecteurs et enregistre les hits.
+    analyzeSource: async (sourceId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/sources/${sourceId}/analyze`, {
+            method: 'POST',
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error analyzing source'));
+        return data as SourceHitsResult;
+    },
+
+    // Lance l'OCR (Tesseract local) sur une source image puis ré-analyse.
+    ocrSource: async (sourceId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/sources/${sourceId}/ocr`, {
+            method: 'POST',
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error running OCR'));
+        return data as SourceHitsResult;
     },
 
     // --- Timeline ---

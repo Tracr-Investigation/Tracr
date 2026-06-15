@@ -19,6 +19,7 @@ import {
     Clock,
     UserPlus,
     ChevronDown,
+    ChevronUp,
     Tag,
     Plus,
     X,
@@ -28,10 +29,12 @@ import {
     Network,
     Map as MapIcon,
     Archive,
+    Crosshair,
 } from 'lucide-react';
 import {TasksTab} from './tabs/TasksTab';
 import {DocumentsTab} from './tabs/DocumentsTab';
 import {SourcesTab} from './tabs/SourcesTab';
+import {SelectorsTab} from './tabs/SelectorsTab';
 import {TimelineTab} from './tabs/TimelineTab';
 import {GraphTab} from './tabs/GraphTab';
 import {MapTab} from './tabs/MapTab';
@@ -769,6 +772,21 @@ export const InvestigationDetail = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [openDropdown, setOpenDropdown] = useState(false);
+    const [headerCollapsed, setHeaderCollapsed] = useState(
+        () => localStorage.getItem('investigationHeaderCollapsed') === '1',
+    );
+    // Source à ouvrir dans l'onglet Sources (déclenché depuis un hit de l'onglet Sélecteurs)
+    const [openSourceId, setOpenSourceId] = useState<number | null>(null);
+    const toggleHeader = () => {
+        setHeaderCollapsed((c) => {
+            localStorage.setItem('investigationHeaderCollapsed', c ? '0' : '1');
+            return !c;
+        });
+    };
+    const openSourceInTab = (sourceId: number) => {
+        setOpenSourceId(sourceId);
+        window.location.hash = 'sources';
+    };
     const {toast} = useToast();
     const {user: currentUser} = useAuth();
     usePageTitle(investigation?.title);
@@ -866,7 +884,16 @@ export const InvestigationDetail = () => {
                     <div>
                         {/* Header */}
                         <div className="flex items-start justify-between gap-4 mb-3">
-                            <h1 className="text-2xl font-bold text-text-default">{investigation.title}</h1>
+                            <div className="flex items-center gap-2 min-w-0">
+                                <button
+                                    onClick={toggleHeader}
+                                    className="text-text-dim hover:text-text-default transition-colors shrink-0 p-0.5 -ml-1"
+                                    title={headerCollapsed ? 'Déplier l\'en-tête' : 'Replier l\'en-tête'}
+                                >
+                                    {headerCollapsed ? <ChevronDown size={18}/> : <ChevronUp size={18}/>}
+                                </button>
+                                <h1 className="text-2xl font-bold text-text-default truncate">{investigation.title}</h1>
+                            </div>
                             <div className="relative shrink-0">
                                 {canChangeStatus ? (
                                     <button
@@ -889,36 +916,42 @@ export const InvestigationDetail = () => {
                             </div>
                         </div>
 
-                        {investigation.description && (
-                            <p className="text-text-muted text-sm mb-4">{investigation.description}</p>
-                        )}
+                        {!headerCollapsed && (
+                            <>
+                                {investigation.description && (
+                                    <p className="text-text-muted text-sm mb-4">{investigation.description}</p>
+                                )}
 
-                        <div className="mb-5">
-                            <CategoriesSection investigation={investigation} onRefresh={refreshInvestigation}/>
-                        </div>
+                                <div className="mb-5">
+                                    <CategoriesSection investigation={investigation} onRefresh={refreshInvestigation}/>
+                                </div>
 
-                        <div className="flex items-center gap-5 text-sm text-text-muted mb-8 flex-wrap">
-                            <span className="flex items-center gap-1.5">
-                                <User size={13} style={{color: 'var(--theme-primary)'}}/>
-                                {investigation.owner.pseudo}
-                            </span>
-                            <span className="w-px h-4 bg-card/30"/>
-                            <span className="flex items-center gap-1.5">
-                                <Calendar size={13} style={{color: 'var(--theme-primary)'}}/>
-                                {formatDate(investigation.created_at)}
-                            </span>
-                            {investigation.updated_at && investigation.updated_at !== investigation.created_at && (
-                                <>
+                                <div className="flex items-center gap-5 text-sm text-text-muted mb-8 flex-wrap">
+                                    <span className="flex items-center gap-1.5">
+                                        <User size={13} style={{color: 'var(--theme-primary)'}}/>
+                                        {investigation.owner.pseudo}
+                                    </span>
                                     <span className="w-px h-4 bg-card/30"/>
                                     <span className="flex items-center gap-1.5">
-                                        <LayersPlus size={13} style={{color: 'var(--theme-primary)'}}/>
-                                        {t('investigationDetail.updated')} {formatRelativeDate(investigation.updated_at)}
+                                        <Calendar size={13} style={{color: 'var(--theme-primary)'}}/>
+                                        {formatDate(investigation.created_at)}
                                     </span>
-                                </>
-                            )}
-                            <span className="w-px h-4 bg-card/30"/>
-                            <span className="font-mono text-text-dim">#{investigation.id_investigation}</span>
-                        </div>
+                                    {investigation.updated_at && investigation.updated_at !== investigation.created_at && (
+                                        <>
+                                            <span className="w-px h-4 bg-card/30"/>
+                                            <span className="flex items-center gap-1.5">
+                                                <LayersPlus size={13} style={{color: 'var(--theme-primary)'}}/>
+                                                {t('investigationDetail.updated')} {formatRelativeDate(investigation.updated_at)}
+                                            </span>
+                                        </>
+                                    )}
+                                    <span className="w-px h-4 bg-card/30"/>
+                                    <span className="font-mono text-text-dim">#{investigation.id_investigation}</span>
+                                </div>
+                            </>
+                        )}
+
+                        <div className={headerCollapsed ? 'mt-4' : ''} />
 
                         <Tabs
                             tabs={[
@@ -967,6 +1000,20 @@ export const InvestigationDetail = () => {
                                         <SourcesTab
                                             investigationId={investigation.id_investigation}
                                             userPermission={investigation.user_permission}
+                                            openSourceId={openSourceId}
+                                            onSourceOpened={() => setOpenSourceId(null)}
+                                        />
+                                    ),
+                                },
+                                {
+                                    id: 'selectors',
+                                    label: 'Sélecteurs',
+                                    icon: Crosshair,
+                                    content: (
+                                        <SelectorsTab
+                                            investigationId={investigation.id_investigation}
+                                            userPermission={investigation.user_permission}
+                                            onOpenSource={openSourceInTab}
                                         />
                                     ),
                                 },

@@ -14,11 +14,13 @@ from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import Response
+from pydantic import BaseModel
 from sqlmodel import Session
 
 from app.dependencies import get_db
 from config import settings
 from services import (
+    hit_service,
     investigation_service,
     log_service,
     source_service,
@@ -29,6 +31,11 @@ from utils.security import verify_token
 
 router = APIRouter(prefix="/investigations")
 sources_router = APIRouter(prefix="/sources")
+
+
+class SourceUpdate(BaseModel):
+    title: str | None = None
+    notes: str | None = None
 
 
 def get_current_user(payload: dict = Depends(verify_token), db: Session = Depends(get_db)):
@@ -82,11 +89,12 @@ async def create_source(
     request: Request,
     file: UploadFile = File(...),
     title: str = Form(...),
-    source_url: str = Form(...),
+    source_url: str = Form(""),
     source_type: str = Form(...),
     captured_at: str | None = Form(None),
     capture_group: str | None = Form(None),
     page_metadata: str | None = Form(None),
+    notes: str | None = Form(None),
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -136,6 +144,7 @@ async def create_source(
         captured_at=captured_dt,
         capture_group=capture_group,
         page_metadata=metadata_dict,
+        notes=notes,
     )
 
     ip = request.client.host if request.client else None
@@ -156,6 +165,95 @@ async def get_source(
 ):
     source, _ = _load_source_with_access(db, source_id, user.id_user)
     return source_service.source_detail(db, source)
+
+
+@sources_router.patch("/{source_id}")
+async def update_source(
+    source_id: int,
+    body: SourceUpdate,
+    request: Request,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    source, permission = _load_source_with_access(db, source_id, user.id_user)
+    if not source_service.can_write(permission):
+        raise HTTPException(status_code=403, detail="Insufficient permissions to edit this source")
+    if body.title is not None and not body.title.strip():
+        raise HTTPException(status_code=422, detail="Title cannot be empty")
+
+    source = source_service.update_source(db, source, title=body.title, notes=body.notes)
+
+    ip = request.client.host if request.client else None
+    log_service.create_log(
+        db, category="source", action="update",
+        id_user=user.id_user, id_investigation=source.id_investigation,
+        detail=f"Source #{source_id} updated",
+        ip_address=ip,
+    )
+    return source_service.source_detail(db, source)
+
+
+@sources_router.get("/{source_id}/hits")
+async def get_source_hits(
+    source_id: int,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Hits deja enregistres pour cette source (sans recalcul)."""
+    source, _ = _load_source_with_access(db, source_id, user.id_user)
+    return hit_service.get_source_hits(db, source)
+
+
+@sources_router.post("/{source_id}/analyze")
+async def analyze_source(
+    source_id: int,
+    request: Request,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """(Re)lance l'analyse de cette source contre les selecteurs de l'enquete et
+    enregistre les hits."""
+    source, permission = _load_source_with_access(db, source_id, user.id_user)
+    if not source_service.can_write(permission):
+        raise HTTPException(status_code=403, detail="Insufficient permissions to analyze this source")
+    result = hit_service.compute_hits_for_source(db, source)
+
+    ip = request.client.host if request.client else None
+    log_service.create_log(
+        db, category="source", action="analyze",
+        id_user=user.id_user, id_investigation=source.id_investigation,
+        detail=f"Source #{source_id}: {len(result['hits'])} hit(s)",
+        ip_address=ip,
+    )
+    return result
+
+
+@sources_router.post("/{source_id}/ocr")
+async def ocr_source(
+    source_id: int,
+    request: Request,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Lance l'OCR (Tesseract local) sur une source image, puis ré-analyse la
+    source contre les sélecteurs. Renvoie les hits mis à jour."""
+    source, permission = _load_source_with_access(db, source_id, user.id_user)
+    if not source_service.can_write(permission):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    if not source_service.can_ocr(source):
+        raise HTTPException(status_code=422, detail="OCR only applies to images")
+
+    source = source_service.run_ocr(db, source)
+    result = hit_service.compute_hits_for_source(db, source)
+
+    ip = request.client.host if request.client else None
+    log_service.create_log(
+        db, category="source", action="ocr",
+        id_user=user.id_user, id_investigation=source.id_investigation,
+        detail=f"Source #{source_id}: OCR -> {source.text_status}, {len(result['hits'])} hit(s)",
+        ip_address=ip,
+    )
+    return result
 
 
 @sources_router.get("/{source_id}/download")

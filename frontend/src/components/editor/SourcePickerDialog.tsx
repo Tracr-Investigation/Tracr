@@ -1,5 +1,5 @@
 import { useEffect, useState, createElement } from 'react';
-import { X, Archive, Camera, FileCode, Film, Image as ImageIcon, History, FileQuestion } from 'lucide-react';
+import { X, Archive, Camera, FileCode, Film, Image as ImageIcon, History, FileQuestion, Paperclip } from 'lucide-react';
 import type { Editor } from '@tiptap/react';
 import { api, API_URL, type SourceData, type SourceType } from '../../services/api';
 
@@ -15,6 +15,7 @@ const TYPE_ICON: Record<SourceType, typeof Camera> = {
   page_mhtml: FileCode,
   media: ImageIcon,
   web_archive: History,
+  manual_file: Paperclip,
 };
 
 function iconFor(s: SourceData): typeof Camera {
