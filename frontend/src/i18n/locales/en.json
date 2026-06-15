@@ -2,6 +2,7 @@
   "sidebar": {
     "dashboard": "Dashboard",
     "investigations": "Investigations",
+    "myTasks": "My tasks",
     "calendar": "Calendar",
     "templates": "Templates",
     "settings": "Settings",
@@ -259,8 +260,28 @@
     "status": {
       "todo": "To do",
       "en_cours": "In progress",
+      "bloque": "Blocked",
+      "en_revue": "In review",
+      "a_valider": "To validate",
       "termine": "Done"
-    }
+    },
+    "viewList": "List",
+    "viewKanban": "Kanban",
+    "showAllColumns": "Show all",
+    "showMainColumns": "Collapse",
+    "columnEmpty": "Empty",
+    "addCard": "Add",
+    "movedError": "Error while moving the task",
+    "personalTitle": "My tasks",
+    "personalSubtitle": "Your personal tasks and the ones assigned to you",
+    "tabPersonal": "Personal",
+    "tabAssigned": "Assigned to me",
+    "tabCalendar": "Calendar",
+    "personalEmpty": "No personal task",
+    "personalEmptyDesc": "Create a task to organize yourself, independently of investigations.",
+    "assignedEmpty": "No assigned task",
+    "assignedEmptyDesc": "Tasks assigned to you across your investigations will appear here.",
+    "fromInvestigation": "Investigation"
   },
   "admin": {
     "title": "Administration",

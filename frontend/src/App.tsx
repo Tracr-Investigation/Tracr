@@ -10,13 +10,13 @@ import { Register } from './pages/register/Register';
 import { SetupRecovery } from './pages/register/SetupRecovery';
 import { Home } from './pages/home/Home';
 import { Investigations } from './pages/investigations/Investigations';
+import { MyTasks } from './pages/tasks/MyTasks';
 import { InvestigationDetail } from './pages/investigations/InvestigationDetail';
 import { DocumentDetail } from './pages/investigations/DocumentDetail';
 import { Templates } from './pages/templates/Templates';
 import { Settings } from './pages/settings/Settings';
 import { Admin } from './pages/admin/Admin';
 import { Notifications } from './pages/notifications/Notifications';
-import { Calendar } from './pages/calendar/Calendar';
 import { ForceChangePassword } from './pages/force-change-password/ForceChangePassword';
 import { NotFound } from './pages/not-found/NotFound';
 import { IdleScreen } from './components/IdleScreen';
@@ -72,6 +72,14 @@ function App() {
             }
           />
           <Route
+            path="/tasks"
+            element={
+              <ProtectedRoute>
+                <MyTasks />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/investigations/:slug"
             element={
               <ProtectedRoute>
@@ -108,14 +116,6 @@ function App() {
             element={
               <ProtectedRoute>
                 <Notifications />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/calendar"
-            element={
-              <ProtectedRoute>
-                <Calendar />
               </ProtectedRoute>
             }
           />

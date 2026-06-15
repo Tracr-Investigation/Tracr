@@ -11,6 +11,9 @@ import enum
 class TaskStatus(str, enum.Enum):
     todo = "todo"
     en_cours = "en_cours"
+    bloque = "bloque"
+    en_revue = "en_revue"
+    a_valider = "a_valider"
     termine = "termine"
 
 
@@ -25,11 +28,13 @@ class Task(SQLModel, table=True):
     __tablename__ = "tasks"
 
     id_task: Optional[int] = Field(default=None, primary_key=True)
-    id_investigation: int = Field(
+    # NULL = tâche personnelle (rattachée à son créateur, hors enquête)
+    id_investigation: Optional[int] = Field(
+        default=None,
         sa_column=Column(
             Integer,
             ForeignKey("investigations.id_investigation", ondelete="CASCADE"),
-            nullable=False,
+            nullable=True,
             index=True,
         ),
     )
@@ -57,6 +62,11 @@ class Task(SQLModel, table=True):
     is_private: bool = Field(
         default=False,
         sa_column=Column(Boolean, nullable=False, default=False),
+    )
+    # Ordre vertical de la tâche au sein de sa colonne (statut) sur le Kanban
+    position: int = Field(
+        default=0,
+        sa_column=Column(Integer, nullable=False, default=0, server_default="0"),
     )
     created_by: Optional[int] = Field(
         default=None,

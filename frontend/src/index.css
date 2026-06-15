@@ -172,6 +172,20 @@
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
     }
+
+    /* Le fond d'input par défaut est quasi transparent : le menu natif d'un
+       <select> hériterait alors d'un fond système blanc avec du texte blanc
+       (illisible en mode sombre). On force un fond solide et un texte lisible
+       sur le contrôle et ses options. */
+    select {
+        color: var(--text-default);
+    }
+
+    select option,
+    select optgroup {
+        background-color: var(--bg-card);
+        color: var(--text-default);
+    }
 }
 
 /* ─── Animations ──────────────────────────────────────────── */

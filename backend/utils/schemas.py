@@ -87,11 +87,16 @@ class InvestigationTransferRequest(BaseModel):
     new_owner_pseudo: str = Field(min_length=1, max_length=50)
 
 
+# Statuts Kanban (colonnes) — doit rester aligné avec l'enum TaskStatus
+TASK_STATUS_PATTERN = "^(todo|en_cours|bloque|en_revue|a_valider|termine)$"
+TASK_PRIORITY_PATTERN = "^(basse|normale|haute|urgente)$"
+
+
 class TaskCreateRequest(BaseModel):
     title: str = Field(min_length=1, max_length=255)
     description: Optional[str] = Field(default=None, max_length=2000)
-    status: str = Field(default="todo", pattern="^(todo|en_cours|termine)$")
-    priority: str = Field(default="normale", pattern="^(basse|normale|haute|urgente)$")
+    status: str = Field(default="todo", pattern=TASK_STATUS_PATTERN)
+    priority: str = Field(default="normale", pattern=TASK_PRIORITY_PATTERN)
     is_private: bool = Field(default=False)
     assigned_to: Optional[int] = Field(default=None)
     due_date: Optional[datetime] = Field(default=None)
@@ -100,11 +105,34 @@ class TaskCreateRequest(BaseModel):
 class TaskUpdateRequest(BaseModel):
     title: Optional[str] = Field(default=None, min_length=1, max_length=255)
     description: Optional[str] = Field(default=None, max_length=2000)
-    status: Optional[str] = Field(default=None, pattern="^(todo|en_cours|termine)$")
-    priority: Optional[str] = Field(default=None, pattern="^(basse|normale|haute|urgente)$")
+    status: Optional[str] = Field(default=None, pattern=TASK_STATUS_PATTERN)
+    priority: Optional[str] = Field(default=None, pattern=TASK_PRIORITY_PATTERN)
     is_private: Optional[bool] = Field(default=None)
     assigned_to: Optional[int] = Field(default=None)
     clear_assigned: bool = Field(default=False)
+    due_date: Optional[datetime] = Field(default=None)
+    clear_due_date: bool = Field(default=False)
+
+
+class TaskMoveRequest(BaseModel):
+    """Déplacement d'une carte sur le Kanban : nouvelle colonne (statut) + position."""
+    status: str = Field(pattern=TASK_STATUS_PATTERN)
+    position: int = Field(ge=0)
+
+
+class PersonalTaskCreateRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=255)
+    description: Optional[str] = Field(default=None, max_length=2000)
+    status: str = Field(default="todo", pattern=TASK_STATUS_PATTERN)
+    priority: str = Field(default="normale", pattern=TASK_PRIORITY_PATTERN)
+    due_date: Optional[datetime] = Field(default=None)
+
+
+class PersonalTaskUpdateRequest(BaseModel):
+    title: Optional[str] = Field(default=None, min_length=1, max_length=255)
+    description: Optional[str] = Field(default=None, max_length=2000)
+    status: Optional[str] = Field(default=None, pattern=TASK_STATUS_PATTERN)
+    priority: Optional[str] = Field(default=None, pattern=TASK_PRIORITY_PATTERN)
     due_date: Optional[datetime] = Field(default=None)
     clear_due_date: bool = Field(default=False)
 

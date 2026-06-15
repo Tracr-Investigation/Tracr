@@ -424,7 +424,7 @@ export const Home = () => {
                                 {t('home.myTasks')}
                             </h2>
                             <button
-                                onClick={() => navigate('/calendar')}
+                                onClick={() => navigate('/tasks?tab=calendar')}
                                 className="flex items-center gap-1 text-xs text-text-dim hover:text-text-default transition-colors"
                             >
                                 <Calendar size={11}/>
@@ -447,11 +447,6 @@ export const Home = () => {
                                         const PRIORITY_DOT: Record<string, string> = {
                                             basse: '#6b7280', normale: '#3b82f6', haute: '#f97316', urgente: '#ef4444',
                                         };
-                                        const STATUS_LABEL: Record<string, string> = {
-                                            todo: t('home.taskStatus.todo'),
-                                            en_cours: t('home.taskStatus.en_cours'),
-                                            termine: t('home.taskStatus.termine'),
-                                        };
                                         return (
                                             <button
                                                 key={task.id_task}
@@ -470,7 +465,7 @@ export const Home = () => {
                                                 <div className="flex items-center justify-between gap-2 pl-3.5">
                                                     <span className="text-[11px] text-text-dim truncate">{task.investigation_title}</span>
                                                     <div className="flex items-center gap-1.5 shrink-0">
-                                                        <span className="text-[10px] text-text-dim">{STATUS_LABEL[task.status]}</span>
+                                                        <span className="text-[10px] text-text-dim">{t(`tasks.status.${task.status}`)}</span>
                                                         {task.due_date && (
                                                             <span className={`inline-flex items-center gap-0.5 text-[10px] ${isOverdue ? 'text-red-400' : 'text-text-dim'}`}>
                                                                 {isOverdue ? <AlertCircle size={10}/> : <Calendar size={10}/>}

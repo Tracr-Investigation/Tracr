@@ -2,6 +2,7 @@
   "sidebar": {
     "dashboard": "Tableau de bord",
     "investigations": "Enquêtes",
+    "myTasks": "Mes tâches",
     "calendar": "Calendrier",
     "templates": "Modèles",
     "settings": "Paramètres",
@@ -259,8 +260,28 @@
     "status": {
       "todo": "À faire",
       "en_cours": "En cours",
+      "bloque": "Bloqué",
+      "en_revue": "En revue",
+      "a_valider": "À valider",
       "termine": "Terminé"
-    }
+    },
+    "viewList": "Liste",
+    "viewKanban": "Kanban",
+    "showAllColumns": "Tout afficher",
+    "showMainColumns": "Réduire",
+    "columnEmpty": "Vide",
+    "addCard": "Ajouter",
+    "movedError": "Erreur lors du déplacement",
+    "personalTitle": "Mes tâches",
+    "personalSubtitle": "Vos tâches personnelles et celles qui vous sont assignées",
+    "tabPersonal": "Personnelles",
+    "tabAssigned": "Assignées à moi",
+    "tabCalendar": "Calendrier",
+    "personalEmpty": "Aucune tâche personnelle",
+    "personalEmptyDesc": "Créez une tâche pour vous organiser, indépendamment des enquêtes.",
+    "assignedEmpty": "Aucune tâche assignée",
+    "assignedEmptyDesc": "Les tâches qui vous sont assignées sur vos enquêtes apparaîtront ici.",
+    "fromInvestigation": "Enquête"
   },
   "admin": {
     "title": "Administration",

@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, AlertCircle } from 'lucide-react';
-import { Layout } from '../../components/Layout';
 import { api } from '../../services/api';
 import { toInvestigationSlug } from '../../utils/slug';
 
@@ -11,7 +10,7 @@ type Task = {
     id_investigation: number;
     investigation_title: string;
     title: string;
-    status: 'todo' | 'en_cours' | 'termine';
+    status: 'todo' | 'en_cours' | 'bloque' | 'en_revue' | 'a_valider' | 'termine';
     priority: 'basse' | 'normale' | 'haute' | 'urgente';
     is_private: boolean;
     due_date: string | null;
@@ -55,7 +54,7 @@ function toDateKey(date: Date): string {
     return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
 }
 
-export const Calendar = () => {
+export const CalendarView = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
     const today = new Date();
@@ -121,35 +120,24 @@ export const Calendar = () => {
         date.getMonth() === currentMonth && date.getFullYear() === currentYear;
 
     return (
-        <Layout>
-            <div className="px-6 pt-6 pb-8">
-                {/* Header */}
-                <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
-                    <div>
-                        <h1 className="text-2xl font-bold text-text-default mb-1 flex items-center gap-2.5">
-                            <CalendarIcon size={20} style={{color: 'var(--theme-primary)'}}/>
-                            {t('calendar.title')}
-                        </h1>
-                        <p className="text-text-muted text-sm">{t('calendar.subtitle')}</p>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={goToToday}
-                            className="px-3 py-1.5 text-sm bg-input-bg border border-border text-text-muted hover:text-text-default hover:border-border rounded-xl transition-all"
-                        >
-                            {t('calendar.today')}
-                        </button>
-                        <button onClick={goToPrevMonth} className="p-2 hover:bg-primary/10 rounded-xl text-text-muted hover:text-text-default transition-all">
-                            <ChevronLeft size={18}/>
-                        </button>
-                        <span className="text-text-default font-semibold min-w-[160px] text-center">
-                            {MONTHS[currentMonth]} {currentYear}
-                        </span>
-                        <button onClick={goToNextMonth} className="p-2 hover:bg-primary/10 rounded-xl text-text-muted hover:text-text-default transition-all">
-                            <ChevronRight size={18}/>
-                        </button>
-                    </div>
+        <div>
+                {/* Navigation mensuelle */}
+                <div className="mb-4 flex items-center justify-end flex-wrap gap-2">
+                    <button
+                        onClick={goToToday}
+                        className="px-3 py-1.5 text-sm bg-input-bg border border-border text-text-muted hover:text-text-default hover:border-border rounded-xl transition-all"
+                    >
+                        {t('calendar.today')}
+                    </button>
+                    <button onClick={goToPrevMonth} className="p-2 hover:bg-primary/10 rounded-xl text-text-muted hover:text-text-default transition-all">
+                        <ChevronLeft size={18}/>
+                    </button>
+                    <span className="text-text-default font-semibold min-w-[160px] text-center">
+                        {MONTHS[currentMonth]} {currentYear}
+                    </span>
+                    <button onClick={goToNextMonth} className="p-2 hover:bg-primary/10 rounded-xl text-text-muted hover:text-text-default transition-all">
+                        <ChevronRight size={18}/>
+                    </button>
                 </div>
 
                 <div className={`flex gap-4 ${selectedDay ? 'flex-col lg:flex-row' : ''}`}>
@@ -294,7 +282,6 @@ export const Calendar = () => {
                         <span className="text-xs text-text-dim">{t('calendar.overdue')}</span>
                     </div>
                 </div>
-            </div>
-        </Layout>
+        </div>
     );
 };
