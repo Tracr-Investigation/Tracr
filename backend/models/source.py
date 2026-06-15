@@ -46,6 +46,22 @@ class InvestigationSource(SQLModel, table=True):
         default=None,
         sa_column=Column(JSON, nullable=True),
     )
+    # Notes libres de l'enqueteur sur la source (contexte, observations)
+    notes: Optional[str] = Field(
+        default=None,
+        sa_column=Column(Text, nullable=True),
+    )
+    # Texte extrait de la capture (HTML/MHTML/txt), confronte aux selecteurs.
+    extracted_text: Optional[str] = Field(
+        default=None,
+        sa_column=Column(Text, nullable=True),
+    )
+    # extracted = texte dispo ; pending_ocr = image sans texte (OCR a venir) ;
+    # none = non analysable (video...) ou couvert par une autre capture du groupe.
+    text_status: str = Field(
+        default="none",
+        sa_column=Column(String(20), nullable=False, server_default="none"),
+    )
     # Horodatage cote client (instant de la capture)
     captured_at: datetime = Field(
         sa_column=Column(DateTime(timezone=True), nullable=False),
