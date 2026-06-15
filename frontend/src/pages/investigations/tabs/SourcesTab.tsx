@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback, useMemo, createElement } from 'react'
 import {
   Archive, Camera, FileCode, Film, Image as ImageIcon, FileQuestion,
   Download, Trash2, Eye, X, ExternalLink, ShieldCheck, Copy, Check, Clock, Filter, History,
+  Upload, Paperclip, StickyNote, Loader2, Save, Search, ScanSearch, Target, Crosshair, ScanText,
 } from 'lucide-react';
-import { api, type SourceData, type SourceType } from '../../../services/api';
+import { api, type SourceData, type SourceType, type SourceHitsResult } from '../../../services/api';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { formatRelativeDate } from '../../../utils/date';
@@ -13,6 +14,9 @@ import { ExtensionInstallCard } from './ExtensionInstallCard';
 interface Props {
   investigationId: number;
   userPermission: string | null;
+  /** Source à ouvrir automatiquement (depuis un hit de l'onglet Sélecteurs). */
+  openSourceId?: number | null;
+  onSourceOpened?: () => void;
 }
 
 const getErrorMessage = (err: unknown, fallback: string): string =>
@@ -29,6 +33,7 @@ const TYPE_META: Record<SourceType, { label: string; icon: typeof Camera }> = {
   page_mhtml: { label: 'Page (MHTML)', icon: FileCode },
   media: { label: 'Média', icon: ImageIcon },
   web_archive: { label: 'Page archivée', icon: History },
+  manual_file: { label: 'Fichier manuel', icon: Paperclip },
 };
 
 type TypeFilter = 'all' | SourceType;
@@ -38,6 +43,7 @@ const TYPE_FILTERS: { id: TypeFilter; label: string }[] = [
   { id: 'page_mhtml', label: 'Pages MHTML' },
   { id: 'web_archive', label: 'Archives' },
   { id: 'media', label: 'Médias' },
+  { id: 'manual_file', label: 'Fichiers' },
 ];
 
 function iconForSource(source: SourceData): typeof Camera {
@@ -202,16 +208,82 @@ const SourceCard = ({
 // ── Preview panel ─────────────────────────────────────────────────────────────
 
 const SourcePreviewPanel = ({
-  source, open, onClose, onDownload,
+  source, open, onClose, onDownload, canEdit, onUpdated,
 }: {
   source: SourceData | null;
   open: boolean;
   onClose: () => void;
   onDownload: (s: SourceData) => void;
+  canEdit: boolean;
+  onUpdated: (s: SourceData) => void;
 }) => {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [notes, setNotes] = useState('');
+  const [savingNotes, setSavingNotes] = useState(false);
+  const [sourceHits, setSourceHits] = useState<SourceHitsResult | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [ocring, setOcring] = useState(false);
+  const { toast } = useToast();
+
+  const isImageSource = source?.mime_type.startsWith('image/') ?? false;
+
+  const runOcr = async () => {
+    if (!source || ocring) return;
+    setOcring(true);
+    try {
+      const res = await api.ocrSource(source.id_source);
+      setSourceHits(res);
+      toast('success', res.analyzed
+        ? `OCR terminé — ${res.hits.length} sélecteur(s) détecté(s)`
+        : 'OCR terminé — aucun texte reconnu sur l\'image');
+    } catch (err) {
+      toast('error', err instanceof Error ? err.message : 'OCR impossible');
+    } finally {
+      setOcring(false);
+    }
+  };
+
+  useEffect(() => { setNotes(source?.notes ?? ''); }, [source]);
+
+  // Charge les hits déjà enregistrés à l'ouverture du panneau.
+  useEffect(() => {
+    setSourceHits(null);
+    if (!open || !source) return;
+    let active = true;
+    api.getSourceHits(source.id_source)
+      .then((res) => active && setSourceHits(res))
+      .catch(() => { /* pas bloquant */ });
+    return () => { active = false; };
+  }, [open, source]);
+
+  const analyze = async () => {
+    if (!source || analyzing) return;
+    setAnalyzing(true);
+    try {
+      const res = await api.analyzeSource(source.id_source);
+      setSourceHits(res);
+      toast('success', res.hits.length > 0
+        ? `${res.hits.length} sélecteur(s) détecté(s)`
+        : 'Analyse terminée — aucun sélecteur détecté');
+    } catch (err) {
+      toast('error', err instanceof Error ? err.message : 'Analyse impossible');
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const notesDirty = (source?.notes ?? '') !== notes.trim();
+  const saveNotes = async () => {
+    if (!source || savingNotes) return;
+    setSavingNotes(true);
+    try {
+      const updated = await api.updateSource(source.id_source, { notes: notes.trim() || null });
+      onUpdated(updated);
+    } catch { /* toast géré en amont via onUpdated path si besoin */ }
+    finally { setSavingNotes(false); }
+  };
 
   const isImage = source?.mime_type.startsWith('image/') ?? false;
   const isVideo = source?.mime_type.startsWith('video/') ?? false;
@@ -316,6 +388,107 @@ const SourcePreviewPanel = ({
               )}
             </dl>
           )}
+
+          {source && (
+            <div className="mt-5">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[11px] font-semibold text-text-default/50 uppercase tracking-wider inline-flex items-center gap-1.5">
+                  <StickyNote size={12} /> Notes
+                </span>
+                {canEdit && notesDirty && (
+                  <button
+                    onClick={saveNotes}
+                    disabled={savingNotes}
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--theme-primary)] hover:opacity-80 disabled:opacity-50"
+                  >
+                    {savingNotes ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />} Enregistrer
+                  </button>
+                )}
+              </div>
+              {canEdit ? (
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={4}
+                  placeholder="Ajouter des notes sur cette source…"
+                  className="w-full bg-input-bg border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-default placeholder:text-text-dim focus:outline-none focus:border-[var(--theme-primary)] resize-y"
+                />
+              ) : source.notes ? (
+                <p className="text-sm text-text-muted whitespace-pre-wrap">{source.notes}</p>
+              ) : (
+                <p className="text-sm text-text-dim italic">Aucune note.</p>
+              )}
+            </div>
+          )}
+
+          {source && (
+            <div className="mt-5">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-semibold text-text-default/50 uppercase tracking-wider inline-flex items-center gap-1.5">
+                  <Crosshair size={12} /> Sélecteurs détectés
+                  {sourceHits && sourceHits.hits.length > 0 && (
+                    <span className="text-[var(--theme-primary)]">({sourceHits.hits.length})</span>
+                  )}
+                </span>
+                {canEdit && (
+                  <div className="flex items-center gap-1.5">
+                    {isImageSource && (
+                      <button
+                        onClick={runOcr}
+                        disabled={ocring || analyzing}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-text-default border border-border-subtle bg-input-bg transition-all hover:border-[var(--theme-primary)] disabled:opacity-50"
+                        title="Reconnaître le texte de l'image (OCR local) puis analyser"
+                      >
+                        {ocring ? <Loader2 size={12} className="animate-spin" /> : <ScanText size={12} />}
+                        OCR
+                      </button>
+                    )}
+                    <button
+                      onClick={analyze}
+                      disabled={analyzing || ocring}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
+                      style={{ background: 'var(--theme-primary)' }}
+                      title="Confronter cette source aux sélecteurs de l'enquête"
+                    >
+                      {analyzing ? <Loader2 size={12} className="animate-spin" /> : <ScanSearch size={12} />}
+                      Analyser
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {sourceHits === null ? (
+                <p className="text-sm text-text-dim">Lancez l'analyse pour confronter cette source aux sélecteurs.</p>
+              ) : !sourceHits.analyzed ? (
+                <p className="text-sm text-text-dim italic">
+                  {sourceHits.text_status === 'pending_ocr'
+                    ? 'Image sans texte natif — lancez l\'OCR pour reconnaître le texte.'
+                    : 'Aucun texte exploitable pour cette source.'}
+                </p>
+              ) : sourceHits.hits.length === 0 ? (
+                <p className="text-sm text-text-dim">Aucun sélecteur détecté dans cette source.</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {sourceHits.hits.map((h) => (
+                    <div key={h.selector.id_selector} className="rounded-lg border border-[var(--theme-primary)]/30 bg-[var(--theme-primary)]/5 px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-text-dim px-1.5 py-0.5 rounded bg-input-bg border border-border-subtle shrink-0">
+                          {h.selector.selector_type_label}
+                        </span>
+                        <span className="font-mono text-sm text-text-default break-all min-w-0 flex-1">{h.selector.value}</span>
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--theme-primary)] shrink-0">
+                          <Target size={12} /> {h.occurrences}
+                        </span>
+                      </div>
+                      {h.snippet && (
+                        <p className="mt-1 text-text-dim font-mono text-[11px] bg-input-bg rounded px-2 py-1 break-words">{h.snippet}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {source && (
@@ -344,15 +517,31 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
 // ── Barre de filtres ──────────────────────────────────────────────────────────
 
 const FilterBar = ({
-  typeFilter, setTypeFilter, dateFrom, setDateFrom, dateTo, setDateTo, counts,
+  typeFilter, setTypeFilter, dateFrom, setDateFrom, dateTo, setDateTo, counts, search, setSearch,
 }: {
   typeFilter: TypeFilter;
   setTypeFilter: (t: TypeFilter) => void;
   dateFrom: string; setDateFrom: (v: string) => void;
   dateTo: string; setDateTo: (v: string) => void;
   counts: Record<TypeFilter, number>;
+  search: string; setSearch: (v: string) => void;
 }) => (
   <div className="flex flex-wrap items-center gap-2 mb-4">
+    <div className="relative w-full sm:w-56">
+      <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-dim" />
+      <input
+        type="text"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Rechercher (nom, notes…)"
+        className="w-full bg-input-bg border border-border-subtle rounded-lg pl-7 pr-7 py-1.5 text-xs text-text-default placeholder:text-text-dim focus:outline-none focus:border-[var(--theme-primary)]"
+      />
+      {search && (
+        <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-text-dim hover:text-text-default">
+          <X size={12} />
+        </button>
+      )}
+    </div>
     <div className="flex items-center gap-1">
       {TYPE_FILTERS.map((f) => (
         <button
@@ -396,21 +585,150 @@ const FilterBar = ({
   </div>
 );
 
+// ── Dialog d'ajout manuel d'un fichier ────────────────────────────────────────
+
+const UploadDialog = ({
+  open, onClose, onUpload,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onUpload: (params: { file: File; title: string; source_url?: string; notes?: string }) => Promise<void>;
+}) => {
+  const [file, setFile] = useState<File | null>(null);
+  const [title, setTitle] = useState('');
+  const [sourceUrl, setSourceUrl] = useState('');
+  const [notes, setNotes] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!open) { setFile(null); setTitle(''); setSourceUrl(''); setNotes(''); setSaving(false); }
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [open, onClose]);
+
+  const pickFile = (f: File | null) => {
+    setFile(f);
+    if (f && !title.trim()) setTitle(f.name);
+  };
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!file || !title.trim() || saving) return;
+    setSaving(true);
+    try {
+      await onUpload({
+        file,
+        title: title.trim(),
+        source_url: sourceUrl.trim() || undefined,
+        notes: notes.trim() || undefined,
+      });
+      onClose();
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <>
+      {open && <div className="fixed inset-0 bg-black/40 z-[45] lg:hidden" onClick={onClose} />}
+      <form
+        onSubmit={submit}
+        className={`fixed top-0 right-0 h-screen w-full max-w-[440px] z-50 flex flex-col
+          transition-transform duration-300 ease-in-out ${open ? 'translate-x-0' : 'translate-x-full'}`}
+        style={{ background: 'var(--color-card)', borderLeft: '1px solid var(--color-border-subtle)' }}
+      >
+        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-border-subtle shrink-0">
+          <h2 className="text-base font-bold text-text-default flex items-center gap-2.5">
+            <Upload size={16} className="text-primary" />
+            Ajouter un fichier
+          </h2>
+          <button type="button" onClick={onClose} className="text-text-dim hover:text-text-default transition-colors p-1">
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-6 py-5">
+          <label className="block mb-4">
+            <span className="text-xs font-semibold text-text-default/60 uppercase tracking-wider">Fichier</span>
+            <input
+              type="file"
+              onChange={(e) => pickFile(e.target.files?.[0] ?? null)}
+              className="mt-1 block w-full text-sm text-text-muted file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border file:border-border-subtle file:bg-input-bg file:text-sm file:font-semibold file:text-text-default file:cursor-pointer hover:file:border-[var(--theme-primary)]"
+            />
+          </label>
+
+          <label className="block mb-4">
+            <span className="text-xs font-semibold text-text-default/60 uppercase tracking-wider">Titre</span>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              maxLength={255}
+              placeholder="Nom de la preuve"
+              className="mt-1 w-full bg-input-bg border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-default placeholder:text-text-dim focus:outline-none focus:border-[var(--theme-primary)]"
+            />
+          </label>
+
+          <label className="block mb-4">
+            <span className="text-xs font-semibold text-text-default/60 uppercase tracking-wider">URL d'origine (optionnel)</span>
+            <input
+              type="url"
+              value={sourceUrl}
+              onChange={(e) => setSourceUrl(e.target.value)}
+              placeholder="https://…"
+              className="mt-1 w-full bg-input-bg border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-default placeholder:text-text-dim focus:outline-none focus:border-[var(--theme-primary)]"
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-xs font-semibold text-text-default/60 uppercase tracking-wider">Notes (optionnel)</span>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={3}
+              className="mt-1 w-full bg-input-bg border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-default placeholder:text-text-dim focus:outline-none focus:border-[var(--theme-primary)] resize-y"
+            />
+          </label>
+        </div>
+
+        <div className="px-6 py-4 border-t border-border-subtle shrink-0">
+          <button
+            type="submit"
+            disabled={!file || !title.trim() || saving}
+            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{ background: 'var(--theme-primary)' }}
+          >
+            {saving ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />} Ajouter la source
+          </button>
+        </div>
+      </form>
+    </>
+  );
+};
+
 // ── Tab ───────────────────────────────────────────────────────────────────────
 
-export const SourcesTab = ({ investigationId, userPermission }: Props) => {
+export const SourcesTab = ({ investigationId, userPermission, openSourceId, onSourceOpened }: Props) => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [sources, setSources] = useState<SourceData[]>([]);
   const [loading, setLoading] = useState(true);
   const [previewSource, setPreviewSource] = useState<SourceData | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false);
 
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [search, setSearch] = useState('');
 
   const currentUserId = user?.id_user ?? null;
+  const writable = userPermission === 'owner' || userPermission === 'manager' || userPermission === 'editeur';
 
   const fetchSources = useCallback(async () => {
     setLoading(true);
@@ -426,26 +744,47 @@ export const SourcesTab = ({ investigationId, userPermission }: Props) => {
 
   useEffect(() => { fetchSources(); }, [fetchSources]);
 
+  // Ouverture automatique d'une source demandée depuis un hit (onglet Sélecteurs).
+  useEffect(() => {
+    if (!openSourceId) return;
+    let active = true;
+    api.getSource(openSourceId)
+      .then((src) => {
+        if (!active) return;
+        setPreviewSource(src);
+        setPreviewOpen(true);
+      })
+      .catch((err) => toast('error', getErrorMessage(err, 'Source introuvable')))
+      .finally(() => active && onSourceOpened?.());
+    return () => { active = false; };
+  }, [openSourceId, onSourceOpened, toast]);
+
   const counts = useMemo<Record<TypeFilter, number>>(() => ({
     all: sources.length,
     page_screenshot: sources.filter((s) => s.source_type === 'page_screenshot').length,
     page_mhtml: sources.filter((s) => s.source_type === 'page_mhtml').length,
     web_archive: sources.filter((s) => s.source_type === 'web_archive').length,
     media: sources.filter((s) => s.source_type === 'media').length,
+    manual_file: sources.filter((s) => s.source_type === 'manual_file').length,
   }), [sources]);
 
   const filtered = useMemo(() => {
     const from = dateFrom ? new Date(`${dateFrom}T00:00:00`).getTime() : -Infinity;
     const to = dateTo ? new Date(`${dateTo}T23:59:59`).getTime() : Infinity;
+    const q = search.trim().toLowerCase();
     return sources.filter((s) => {
       if (typeFilter !== 'all' && s.source_type !== typeFilter) return false;
+      if (q) {
+        const haystack = `${s.title} ${s.notes ?? ''} ${s.source_url}`.toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
       if (s.captured_at) {
         const t = new Date(s.captured_at).getTime();
         if (t < from || t > to) return false;
       }
       return true;
     });
-  }, [sources, typeFilter, dateFrom, dateTo]);
+  }, [sources, typeFilter, dateFrom, dateTo, search]);
 
   const handleDownload = useCallback(async (source: SourceData) => {
     try {
@@ -473,6 +812,23 @@ export const SourcesTab = ({ investigationId, userPermission }: Props) => {
     setPreviewOpen(true);
   };
 
+  const handleUpload = useCallback(async (params: { file: File; title: string; source_url?: string; notes?: string }) => {
+    try {
+      const created = await api.uploadSource(investigationId, params);
+      setSources((prev) => [created, ...prev]);
+      toast('success', 'Fichier ajouté');
+    } catch (err) {
+      toast('error', getErrorMessage(err, 'Envoi impossible'));
+      throw err;
+    }
+  }, [investigationId, toast]);
+
+  const handleUpdated = useCallback((updated: SourceData) => {
+    setSources((prev) => prev.map((s) => (s.id_source === updated.id_source ? updated : s)));
+    setPreviewSource((prev) => (prev && prev.id_source === updated.id_source ? updated : prev));
+    toast('success', 'Source mise à jour');
+  }, [toast]);
+
   return (
     <div className="border-t border-border-subtle pt-6">
       <div className="flex items-center justify-between mb-3">
@@ -481,6 +837,15 @@ export const SourcesTab = ({ investigationId, userPermission }: Props) => {
           Sources
           <span className="text-text-dim font-normal text-sm">({filtered.length}{filtered.length !== sources.length ? `/${sources.length}` : ''})</span>
         </h3>
+        {writable && (
+          <button
+            onClick={() => setUploadOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-sm font-semibold transition-all hover:opacity-90"
+            style={{ background: 'var(--theme-primary)' }}
+          >
+            <Upload size={14} /> Ajouter un fichier
+          </button>
+        )}
       </div>
 
       <p className="text-xs text-text-dim mb-4 max-w-2xl">
@@ -496,6 +861,7 @@ export const SourcesTab = ({ investigationId, userPermission }: Props) => {
           dateFrom={dateFrom} setDateFrom={setDateFrom}
           dateTo={dateTo} setDateTo={setDateTo}
           counts={counts}
+          search={search} setSearch={setSearch}
         />
       )}
 
@@ -529,6 +895,14 @@ export const SourcesTab = ({ investigationId, userPermission }: Props) => {
         open={previewOpen}
         onClose={() => setPreviewOpen(false)}
         onDownload={handleDownload}
+        canEdit={writable}
+        onUpdated={handleUpdated}
+      />
+
+      <UploadDialog
+        open={uploadOpen}
+        onClose={() => setUploadOpen(false)}
+        onUpload={handleUpload}
       />
     </div>
   );
