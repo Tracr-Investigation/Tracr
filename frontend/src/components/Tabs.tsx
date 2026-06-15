@@ -16,7 +16,10 @@ interface TabsProps {
 const getHashTab = (): string | null => {
   if (typeof window === 'undefined') return null;
   const hash = window.location.hash.replace(/^#/, '');
-  return hash || null;
+  // Supporte les hash imbriqués `parent/sub` : seul le segment parent pilote
+  // l'onglet de premier niveau (le sous-onglet est géré par <SubTabs>).
+  const top = hash.split('/')[0];
+  return top || null;
 };
 
 export const Tabs = ({ tabs, defaultTab }: TabsProps) => {

@@ -118,6 +118,9 @@
     "tabs": {
       "details": "Détails",
       "tasks": "Tâches",
+      "evidence": "Preuves",
+      "analysis": "Analyse",
+      "management": "Gestion",
       "collaborators": "Collaborateurs",
       "graph": "Graphe",
       "timeline": "Chronologie",

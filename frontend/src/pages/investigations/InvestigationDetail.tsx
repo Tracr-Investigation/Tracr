@@ -4,6 +4,7 @@ import {Layout} from '../../components/Layout';
 import {StatusBadge} from '../../components/StatusBadge';
 import {usePageTitle} from '../../hooks/usePageTitle';
 import {Tabs} from '../../components/Tabs';
+import {SubTabs} from '../../components/SubTabs';
 import {useToast} from '../../contexts/ToastContext';
 import {useAuth} from '../../contexts/AuthContext';
 import {api} from '../../services/api';
@@ -785,11 +786,29 @@ export const InvestigationDetail = () => {
     };
     const openSourceInTab = (sourceId: number) => {
         setOpenSourceId(sourceId);
-        window.location.hash = 'sources';
+        window.location.hash = 'preuves/sources';
     };
     const {toast} = useToast();
     const {user: currentUser} = useAuth();
     usePageTitle(investigation?.title);
+
+    // Compat : réécrit les anciens hash plats (#sources, #graph…) vers la
+    // nouvelle hiérarchie d'onglets groupés (#preuves/sources, #analyse/graph…).
+    useEffect(() => {
+        const LEGACY_HASHES: Record<string, string> = {
+            sources: 'preuves/sources',
+            selectors: 'preuves/selectors',
+            graph: 'analyse/graph',
+            map: 'analyse/map',
+            timeline: 'analyse/timeline',
+            collaborators: 'gestion/collaborators',
+            settings: 'gestion/settings',
+        };
+        const current = window.location.hash.replace(/^#/, '');
+        if (LEGACY_HASHES[current]) {
+            window.location.hash = LEGACY_HASHES[current];
+        }
+    }, []);
 
     const fetchInvestigation = useCallback(async () => {
         if (!id) return;
@@ -981,6 +1000,85 @@ export const InvestigationDetail = () => {
                                     ),
                                 },
                                 {
+                                    // Groupe « Preuves » : bibliothèque de sources + sélecteurs/hits,
+                                    // qui sont fonctionnellement couplés (un hit ouvre sa source).
+                                    id: 'preuves',
+                                    label: t('investigationDetail.tabs.evidence'),
+                                    icon: Archive,
+                                    content: (
+                                        <SubTabs
+                                            parentId="preuves"
+                                            tabs={[
+                                                {
+                                                    id: 'sources',
+                                                    label: 'Sources',
+                                                    icon: Archive,
+                                                    content: (
+                                                        <SourcesTab
+                                                            investigationId={investigation.id_investigation}
+                                                            userPermission={investigation.user_permission}
+                                                            openSourceId={openSourceId}
+                                                            onSourceOpened={() => setOpenSourceId(null)}
+                                                        />
+                                                    ),
+                                                },
+                                                {
+                                                    id: 'selectors',
+                                                    label: 'Sélecteurs',
+                                                    icon: Crosshair,
+                                                    content: (
+                                                        <SelectorsTab
+                                                            investigationId={investigation.id_investigation}
+                                                            userPermission={investigation.user_permission}
+                                                            onOpenSource={openSourceInTab}
+                                                        />
+                                                    ),
+                                                },
+                                            ]}
+                                        />
+                                    ),
+                                },
+                                {
+                                    // Groupe « Analyse » : trois lentilles sur la même donnée d'enquête.
+                                    id: 'analyse',
+                                    label: t('investigationDetail.tabs.analysis'),
+                                    icon: Network,
+                                    content: (
+                                        <SubTabs
+                                            parentId="analyse"
+                                            tabs={[
+                                                {
+                                                    id: 'graph',
+                                                    label: t('investigationDetail.tabs.graph'),
+                                                    icon: Network,
+                                                    content: (
+                                                        <GraphTab
+                                                            investigationId={investigation.id_investigation}
+                                                            userPermission={investigation.user_permission}
+                                                        />
+                                                    ),
+                                                },
+                                                {
+                                                    id: 'map',
+                                                    label: t('investigationDetail.tabs.map'),
+                                                    icon: MapIcon,
+                                                    content: (
+                                                        <MapTab investigationId={investigation.id_investigation}/>
+                                                    ),
+                                                },
+                                                {
+                                                    id: 'timeline',
+                                                    label: t('investigationDetail.tabs.timeline'),
+                                                    icon: History,
+                                                    content: (
+                                                        <TimelineTab investigationId={investigation.id_investigation}/>
+                                                    ),
+                                                },
+                                            ]}
+                                        />
+                                    ),
+                                },
+                                {
                                     id: 'documents',
                                     label: 'Documents',
                                     icon: FileText,
@@ -993,84 +1091,45 @@ export const InvestigationDetail = () => {
                                     ),
                                 },
                                 {
-                                    id: 'sources',
-                                    label: 'Sources',
-                                    icon: Archive,
-                                    content: (
-                                        <SourcesTab
-                                            investigationId={investigation.id_investigation}
-                                            userPermission={investigation.user_permission}
-                                            openSourceId={openSourceId}
-                                            onSourceOpened={() => setOpenSourceId(null)}
-                                        />
-                                    ),
-                                },
-                                {
-                                    id: 'selectors',
-                                    label: 'Sélecteurs',
-                                    icon: Crosshair,
-                                    content: (
-                                        <SelectorsTab
-                                            investigationId={investigation.id_investigation}
-                                            userPermission={investigation.user_permission}
-                                            onOpenSource={openSourceInTab}
-                                        />
-                                    ),
-                                },
-                                {
-                                    id: 'collaborators',
-                                    label: t('investigationDetail.tabs.collaborators'),
-                                    icon: Users,
-                                    content: (
-                                        <CollaboratorsTab
-                                            investigation={investigation}
-                                            onRefresh={refreshInvestigation}
-                                        />
-                                    ),
-                                },
-                                {
-                                    id: 'graph',
-                                    label: t('investigationDetail.tabs.graph'),
-                                    icon: Network,
-                                    content: (
-                                        <GraphTab
-                                            investigationId={investigation.id_investigation}
-                                            userPermission={investigation.user_permission}
-                                        />
-                                    ),
-                                },
-                                {
-                                    id: 'timeline',
-                                    label: t('investigationDetail.tabs.timeline'),
-                                    icon: History,
-                                    content: (
-                                        <TimelineTab investigationId={investigation.id_investigation}/>
-                                    ),
-                                },
-                                {
-                                    id: 'map',
-                                    label: t('investigationDetail.tabs.map'),
-                                    icon: MapIcon,
-                                    content: (
-                                        <MapTab investigationId={investigation.id_investigation}/>
-                                    ),
-                                },
-                                ...(investigation.user_permission === 'owner' ? [{
-                                    id: 'settings',
-                                    label: t('investigationDetail.tabs.settings'),
+                                    // Groupe « Gestion » : collaborateurs (tous) + paramètres (owner).
+                                    id: 'gestion',
+                                    label: t('investigationDetail.tabs.management'),
                                     icon: Settings,
                                     content: (
-                                        <SettingsTab
-                                            investigation={investigation}
-                                            onRefresh={refreshInvestigation}
-                                            onNavigateAway={() => navigate('/investigations')}
-                                            onSlugUpdate={(newTitle: string) => {
-                                                const newSlug = toInvestigationSlug(newTitle, investigation.id_investigation);
-                                                navigate(`/investigations/${newSlug}`, {replace: true});
-                                            }}
+                                        <SubTabs
+                                            parentId="gestion"
+                                            tabs={[
+                                                {
+                                                    id: 'collaborators',
+                                                    label: t('investigationDetail.tabs.collaborators'),
+                                                    icon: Users,
+                                                    content: (
+                                                        <CollaboratorsTab
+                                                            investigation={investigation}
+                                                            onRefresh={refreshInvestigation}
+                                                        />
+                                                    ),
+                                                },
+                                                ...(investigation.user_permission === 'owner' ? [{
+                                                    id: 'settings',
+                                                    label: t('investigationDetail.tabs.settings'),
+                                                    icon: Settings,
+                                                    content: (
+                                                        <SettingsTab
+                                                            investigation={investigation}
+                                                            onRefresh={refreshInvestigation}
+                                                            onNavigateAway={() => navigate('/investigations')}
+                                                            onSlugUpdate={(newTitle: string) => {
+                                                                const newSlug = toInvestigationSlug(newTitle, investigation.id_investigation);
+                                                                navigate(`/investigations/${newSlug}`, {replace: true});
+                                                            }}
+                                                        />
+                                                    ),
+                                                }] : []),
+                                            ]}
                                         />
                                     ),
-                                }] : []),
+                                },
                             ]}
                             defaultTab="details"
                         />

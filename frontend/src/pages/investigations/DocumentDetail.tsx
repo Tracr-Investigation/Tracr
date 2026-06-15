@@ -433,7 +433,7 @@ export const DocumentDetail = () => {
               currentUserPseudo={currentUserPseudo}
               onContentChange={handleContentChange}
               onRemoteUsersChange={setRemoteUsers}
-              onEntityMentionClick={() => navigate(`${backLink}#graph`)}
+              onEntityMentionClick={() => navigate(`${backLink}#analyse/graph`)}
             />
           </div>
 
