@@ -17,6 +17,23 @@
     "expandShortcut": "Expand (Ctrl+B)",
     "help": "Documentation"
   },
+  "showcase": {
+    "tagline": "OSINT Investigation Platform",
+    "tabs": {
+      "graph": "Graph",
+      "sources": "Sources",
+      "documents": "Documents",
+      "timeline": "Timeline",
+      "tasks": "Tasks"
+    },
+    "desc": {
+      "graph": "Map people, domains, IPs and accounts - and the links between them.",
+      "sources": "Capture evidence with the browser extension, seal it into the case, then drop it straight into your report.",
+      "documents": "Write investigation reports together in real time, with findings embedded inline.",
+      "timeline": "Every action is recorded in a complete, auditable activity trail.",
+      "tasks": "Plan and track investigative work with priorities, assignees and due dates."
+    }
+  },
   "home": {
     "title": "Dashboard",
     "welcome": "Welcome back,",
@@ -233,7 +250,7 @@
     "priorityLabel": "Priority",
     "statusLabel": "Status",
     "assignedLabel": "Assigned to",
-    "assignedNobody": "— Nobody —",
+    "assignedNobody": "- Nobody -",
     "dueDateLabel": "Due date",
     "privateLabel": "Private (visible only to you)",
     "sharedLabel": "Shared (visible to all members)",
@@ -479,7 +496,7 @@
     "title": "Save your recovery code",
     "subtitle": "Before accessing the app, write down your recovery phrase.",
     "wordsTitle": "Your recovery phrase",
-    "wordsDesc": "These 12 words let you reset your password without email. Write them down in a safe place — they won't be shown again.",
+    "wordsDesc": "These 12 words let you reset your password without email. Write them down in a safe place - they won't be shown again.",
     "warning": "Never share this phrase. It gives full access to your account.",
     "copy": "Copy",
     "copied": "Copied!",

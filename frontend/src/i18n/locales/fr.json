@@ -17,6 +17,23 @@
     "expandShortcut": "Déplier (Ctrl+B)",
     "help": "Documentation"
   },
+  "showcase": {
+    "tagline": "Plateforme d'investigation OSINT",
+    "tabs": {
+      "graph": "Graphe",
+      "sources": "Sources",
+      "documents": "Documents",
+      "timeline": "Chronologie",
+      "tasks": "Tâches"
+    },
+    "desc": {
+      "graph": "Cartographiez personnes, domaines, IP et comptes - et les liens entre eux.",
+      "sources": "Capturez une preuve avec l'extension navigateur, scellez-la dans l'enquête, puis insérez-la directement dans le rapport.",
+      "documents": "Rédigez les rapports d'enquête à plusieurs en temps réel, avec les éléments intégrés.",
+      "timeline": "Chaque action est enregistrée dans un journal d'activité complet et auditable.",
+      "tasks": "Planifiez et suivez le travail d'enquête avec priorités, assignations et échéances."
+    }
+  },
   "home": {
     "title": "Tableau de bord",
     "welcome": "Bon retour,",
@@ -233,7 +250,7 @@
     "priorityLabel": "Priorité",
     "statusLabel": "Statut",
     "assignedLabel": "Assigné à",
-    "assignedNobody": "— Personne —",
+    "assignedNobody": "- Personne -",
     "dueDateLabel": "Date d'échéance",
     "privateLabel": "Privée (visible uniquement par vous)",
     "sharedLabel": "Partagée (visible par tous les membres)",
