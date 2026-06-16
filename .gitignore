@@ -41,7 +41,5 @@ security-reports/
 # Add manually
 
 
-/CLAUDE.md
 /notesave.md
-/.claude/
 /backend/.cache/

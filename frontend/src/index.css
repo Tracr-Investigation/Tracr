@@ -124,7 +124,9 @@
 
     /* Héritage — conservés pour la compatibilité */
     --color-dark:   #1a1a1a;
-    --color-accent: #ffffff;
+    /* `accent` = texte proéminent : suit le thème (blanc en sombre, encre en clair)
+       pour que `text-accent` reste lisible en mode clair comme en mode sombre. */
+    --color-accent: var(--text-default);
 
     /* Fonds sémantiques */
     --color-surface:  var(--bg-surface);

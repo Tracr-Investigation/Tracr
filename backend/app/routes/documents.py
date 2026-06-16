@@ -188,6 +188,8 @@ async def export_document(
     document_id: int,
     format: str,
     request: Request,
+    tlp: str | None = None,
+    pap: str | None = None,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -196,8 +198,16 @@ async def export_document(
 
     document, _ = _load_document_with_access(db, document_id, user.id_user)
 
+    from services import investigation_service
+    inv = investigation_service.get_investigation_by_id(db, document.id_investigation)
+    investigation_title = inv.title if inv else ""
+
     try:
-        data, filename = export_service.render_pdf(document, db)
+        data, filename = export_service.render_pdf(
+            document, db,
+            tlp=tlp, pap=pap,
+            investigation_title=investigation_title,
+        )
         media_type = "application/pdf"
     except Exception:
         raise HTTPException(status_code=500, detail="Export failed")

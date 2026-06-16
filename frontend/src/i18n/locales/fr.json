@@ -209,6 +209,14 @@
       "removed": "Catégorie retirée"
     },
     "settings": {
+      "coverLabel": "Couverture",
+      "coverHint": "Image affichée en page de garde des exports PDF (PNG, JPEG, WebP ou GIF, 8 Mo max).",
+      "coverDefault": "Couverture par défaut",
+      "coverUpload": "Ajouter une image",
+      "coverChange": "Changer l'image",
+      "coverRemove": "Retirer",
+      "coverUpdated": "Couverture mise à jour",
+      "coverRemoved": "Couverture retirée",
       "titleLabel": "Titre",
       "descLabel": "Description",
       "descPlaceholder": "Aucune description",

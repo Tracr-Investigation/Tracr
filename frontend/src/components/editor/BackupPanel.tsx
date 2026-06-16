@@ -153,7 +153,7 @@ export const BackupPanel = ({ documentId, currentHtml, onClose, onRestored }: Pr
   };
 
   return (
-    <div className="w-80 flex-shrink-0 border-l border-primary/20 bg-[#12122a] flex flex-col h-full">
+    <div className="w-80 flex-shrink-0 border-l border-primary/20 bg-card flex flex-col h-full">
       {/* Header */}
       <div className="flex items-center gap-2 px-3 py-3 border-b border-primary/20">
         {selected ? (

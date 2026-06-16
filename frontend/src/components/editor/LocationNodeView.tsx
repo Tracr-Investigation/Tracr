@@ -70,7 +70,7 @@ export const LocationNodeView = ({
       </div>
 
       <div
-        className="rounded-xl border border-primary/25 overflow-hidden shadow-lg bg-[#12122a]"
+        className="rounded-xl border border-primary/25 overflow-hidden shadow-lg bg-card"
         contentEditable={false}
         onContextMenu={handleContextMenu}
       >
@@ -114,7 +114,7 @@ export const LocationNodeView = ({
         </MapContainer>
 
         {/* Footer */}
-        <div className="flex items-center gap-2 px-3.5 py-2 bg-[#0f0f1e]/60 border-t border-primary/10">
+        <div className="flex items-center gap-2 px-3.5 py-2 bg-surface/60 border-t border-primary/10">
           <span className="text-xs text-secondary font-mono">
             {lat.toFixed(5)}°N
           </span>
@@ -128,7 +128,7 @@ export const LocationNodeView = ({
       {menu && (
         <div
           ref={menuRef}
-          className="fixed z-50 bg-[#12122a] border border-primary/30 rounded-lg shadow-xl py-1 min-w-[140px]"
+          className="fixed z-50 bg-card border border-primary/30 rounded-lg shadow-xl py-1 min-w-[140px]"
           style={{ top: menu.y, left: menu.x }}
         >
           <button
