@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactNode } from 'react';
+import { useState, useEffect, Fragment, type ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 
 export interface TabItem {
@@ -78,8 +78,7 @@ export const Tabs = ({ tabs, defaultTab }: TabsProps) => {
           })}
         </nav>
       </div>
-
-      {current?.content}
+      {current && <Fragment key={current.id}>{current.content}</Fragment>}
     </div>
   );
 };
