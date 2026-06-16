@@ -1,4 +1,4 @@
-# Extension Tracr — Archivage de sources
+# Extension Tracr - Archivage de sources
 
 Extension navigateur (Manifest V3, Chrome / Edge / Brave) pour capturer des
 **preuves OSINT** horodatées et les envoyer dans une enquête Tracr.
@@ -7,12 +7,12 @@ Extension navigateur (Manifest V3, Chrome / Edge / Brave) pour capturer des
 
 - **Connexion** avec ton compte Tracr (pseudo / mot de passe → JWT stocké localement).
 - **Capture d'écran**, 3 modes :
-  - **Page entière** — défilement + assemblage automatique (toute la hauteur).
-  - **Visible** — uniquement la zone affichée (rapide).
-  - **Sélection** — dessine un rectangle sur la page pour ne capturer qu'une zone.
+  - **Page entière** - défilement + assemblage automatique (toute la hauteur).
+  - **Visible** - uniquement la zone affichée (rapide).
+  - **Sélection** - dessine un rectangle sur la page pour ne capturer qu'une zone.
 - **Archivage MHTML** de la page (DOM + ressources, texte sélectionnable).
 - **Page entière + MHTML** en un clic (liés par un même `capture_group`).
-- **Page autonome (HTML)** — un seul fichier HTML avec tout le CSS inliné et les
+- **Page autonome (HTML)** - un seul fichier HTML avec tout le CSS inliné et les
   URLs absolutisées (style SingleFile). S'affiche directement dans l'onglet Sources
   du site (iframe sandbox), sans moteur de rejeu.
 - **Clic droit sur une image / vidéo** → « Tracr : archiver ce média ».
@@ -47,7 +47,7 @@ Remove-Item -Recurse -Force $stage
 ## Configuration
 
 Au premier lancement, renseigne l'URL du serveur (défaut `http://localhost:8000`)
-puis connecte-toi. Le serveur doit autoriser l'origine de l'extension — c'est déjà
+puis connecte-toi. Le serveur doit autoriser l'origine de l'extension - c'est déjà
 le cas côté backend via `allow_origin_regex` (`chrome-extension://...`).
 
 ## Utilisation
@@ -71,7 +71,7 @@ Les sources apparaissent dans l'onglet **Sources** de l'enquête sur le site.
 - Le **MHTML** est un instantané d'**une** page (re-rendu fidèle à l'ouverture),
   pas un site navigable type Wayback Machine.
 - Le CSS dynamique que le MHTML rate (`adoptedStyleSheets`, `<style>` remplis par
-  `insertRule`) est ré-injecté avant capture — ciblé, sans fetch réseau, pour rester
+  `insertRule`) est ré-injecté avant capture - ciblé, sans fetch réseau, pour rester
   rapide. Les `<style>`/`<link>` classiques sont déjà gérés nativement par MHTML.
   Reste non couvert : le **Shadow DOM** (encapsulé, non sérialisé par MHTML).
 
