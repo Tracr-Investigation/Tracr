@@ -132,6 +132,24 @@ def update_investigation(
     return investigation
 
 
+def set_cover(db: Session, investigation: Investigation, storage_key: str) -> Investigation:
+    """Associe une cle d'objet (image de couverture) a l'enquete."""
+    investigation.cover_storage_key = storage_key
+    db.add(investigation)
+    db.commit()
+    db.refresh(investigation)
+    return investigation
+
+
+def clear_cover(db: Session, investigation: Investigation) -> Investigation:
+    """Retire la reference de couverture (l'export retombe sur la couverture par defaut)."""
+    investigation.cover_storage_key = None
+    db.add(investigation)
+    db.commit()
+    db.refresh(investigation)
+    return investigation
+
+
 def transfer_ownership(db: Session, investigation: Investigation, new_owner_id: int) -> Investigation:
     from datetime import datetime
     from zoneinfo import ZoneInfo
@@ -219,6 +237,7 @@ def get_investigation_detail(db: Session, investigation_id: int, current_user_id
         },
         "collaborators": collaborators,
         "user_permission": user_permission,
+        "has_cover": inv.cover_storage_key is not None,
         "created_at": inv.created_at.isoformat() if inv.created_at else None,
         "updated_at": inv.updated_at.isoformat() if inv.updated_at else None,
         "closed_at": inv.closed_at.isoformat() if inv.closed_at else None,

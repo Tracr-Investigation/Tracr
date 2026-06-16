@@ -209,6 +209,14 @@
       "removed": "Category removed"
     },
     "settings": {
+      "coverLabel": "Cover",
+      "coverHint": "Image shown on the cover page of PDF exports (PNG, JPEG, WebP or GIF, 8 MB max).",
+      "coverDefault": "Default cover",
+      "coverUpload": "Add an image",
+      "coverChange": "Change image",
+      "coverRemove": "Remove",
+      "coverUpdated": "Cover updated",
+      "coverRemoved": "Cover removed",
       "titleLabel": "Title",
       "descLabel": "Description",
       "descPlaceholder": "No description",

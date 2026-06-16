@@ -77,6 +77,7 @@ fastapi_app.add_middleware(
     allow_origin_regex=r"^(chrome-extension|moz-extension)://.*$",
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["Content-Disposition"],
 )
 
 

@@ -1237,9 +1237,16 @@ export const api = {
         return data;
     },
 
-    exportDocument: async (id: number, format: 'pdf') => {
+    exportDocument: async (
+        id: number,
+        format: 'pdf',
+        marking?: { tlp?: string; pap?: string },
+    ) => {
         const token = localStorage.getItem('token');
-        const response = await fetch(`${API_URL}/documents/${id}/export?format=${format}`, {
+        const params = new URLSearchParams({format});
+        if (marking?.tlp) params.set('tlp', marking.tlp);
+        if (marking?.pap) params.set('pap', marking.pap);
+        const response = await fetch(`${API_URL}/documents/${id}/export?${params.toString()}`, {
             headers: {'Authorization': `Bearer ${token}`},
         });
         if (!response.ok) {
@@ -1251,6 +1258,43 @@ export const api = {
         const filename = match ? decodeURIComponent(match[1]) : `document.${format}`;
         const blob = await response.blob();
         return { blob, filename };
+    },
+
+    // Image de couverture de l'enquete (page de garde des exports PDF).
+    uploadInvestigationCover: async (investigationId: number, file: File) => {
+        const token = localStorage.getItem('token');
+        const fd = new FormData();
+        fd.append('file', file);
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/cover`, {
+            method: 'POST',
+            headers: {'Authorization': `Bearer ${token}`},
+            body: fd,
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error uploading cover'));
+        return data as { has_cover: boolean };
+    },
+
+    deleteInvestigationCover: async (investigationId: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/cover`, {
+            method: 'DELETE',
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error removing cover'));
+        return data as { has_cover: boolean };
+    },
+
+    // Recupere l'image de couverture sous forme d'object URL (ou null si absente).
+    getInvestigationCoverUrl: async (investigationId: number): Promise<string | null> => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/investigations/${investigationId}/cover`, {
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        if (!response.ok) return null;
+        const blob = await response.blob();
+        return URL.createObjectURL(blob);
     },
 
     listDocumentComments: async (documentId: number) => {

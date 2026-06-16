@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from sqlalchemy import Column, DateTime, ForeignKey, Integer
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
 from sqlmodel import Field, SQLModel
 from zoneinfo import ZoneInfo
 
@@ -28,4 +28,10 @@ class Investigation(SQLModel, table=True):
     closed_at: Optional[datetime] = Field(
         default=None,
         sa_column=Column(DateTime(timezone=True), nullable=True),
+    )
+    # Cle de l'objet MinIO de l'image de couverture (page de garde des exports PDF).
+    # NULL => une couverture par defaut est utilisee a l'export.
+    cover_storage_key: Optional[str] = Field(
+        default=None,
+        sa_column=Column(String(512), nullable=True),
     )

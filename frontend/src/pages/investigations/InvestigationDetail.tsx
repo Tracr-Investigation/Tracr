@@ -31,6 +31,8 @@ import {
     Map as MapIcon,
     Archive,
     Crosshair,
+    ImagePlus,
+    Loader2,
 } from 'lucide-react';
 import {TasksTab} from './tabs/TasksTab';
 import {DocumentsTab} from './tabs/DocumentsTab';
@@ -92,6 +94,7 @@ interface InvestigationDetailData {
     owner: OwnerData;
     collaborators: CollaboratorData[];
     user_permission: string | null;
+    has_cover?: boolean;
     created_at: string | null;
     updated_at: string | null;
     closed_at: string | null;
@@ -538,8 +541,59 @@ const SettingsTab = ({
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [deleting, setDeleting] = useState(false);
+    const coverInputRef = useRef<HTMLInputElement>(null);
+    const [coverUrl, setCoverUrl] = useState<string | null>(null);
+    const [hasCover, setHasCover] = useState(!!investigation.has_cover);
+    const [coverLoading, setCoverLoading] = useState(false);
 
     const hasChanges = title !== investigation.title || description !== (investigation.description || '');
+
+    // Charge un apercu de la couverture existante (object URL revoque au demontage).
+    useEffect(() => {
+        if (!investigation.has_cover) return;
+        let active = true;
+        let created: string | null = null;
+        api.getInvestigationCoverUrl(investigation.id_investigation).then((url) => {
+            if (url && active) { created = url; setCoverUrl(url); }
+            else if (url) URL.revokeObjectURL(url);
+        });
+        return () => { active = false; if (created) URL.revokeObjectURL(created); };
+    }, [investigation.id_investigation, investigation.has_cover]);
+
+    const handleCoverSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (coverInputRef.current) coverInputRef.current.value = '';
+        if (!file) return;
+        setCoverLoading(true);
+        try {
+            await api.uploadInvestigationCover(investigation.id_investigation, file);
+            if (coverUrl) URL.revokeObjectURL(coverUrl);
+            setCoverUrl(URL.createObjectURL(file));
+            setHasCover(true);
+            toast('success', t('investigationDetail.settings.coverUpdated'));
+            onRefresh();
+        } catch (err) {
+            toast('error', err instanceof Error ? err.message : 'Erreur');
+        } finally {
+            setCoverLoading(false);
+        }
+    };
+
+    const handleCoverRemove = async () => {
+        setCoverLoading(true);
+        try {
+            await api.deleteInvestigationCover(investigation.id_investigation);
+            if (coverUrl) URL.revokeObjectURL(coverUrl);
+            setCoverUrl(null);
+            setHasCover(false);
+            toast('success', t('investigationDetail.settings.coverRemoved'));
+            onRefresh();
+        } catch (err) {
+            toast('error', err instanceof Error ? err.message : 'Erreur');
+        } finally {
+            setCoverLoading(false);
+        }
+    };
 
     useEffect(() => {
         const handleClick = (e: MouseEvent) => {
@@ -615,6 +669,52 @@ const SettingsTab = ({
 
     return (
         <div className="max-w-2xl space-y-1 divide-y divide-white/6">
+            <div className="flex items-start gap-4 py-3">
+                <label className="text-sm text-text-muted w-24 shrink-0 pt-1.5">{t('investigationDetail.settings.coverLabel')}</label>
+                <div className="flex-1">
+                    <div className="flex items-start gap-3">
+                        <div className="w-28 h-20 rounded-lg overflow-hidden border border-border bg-input-bg shrink-0 flex items-center justify-center">
+                            {coverUrl ? (
+                                <img src={coverUrl} alt="" className="w-full h-full object-cover"/>
+                            ) : (
+                                <span className="text-[10px] text-text-dim text-center px-1.5 leading-tight">
+                                    {t('investigationDetail.settings.coverDefault')}
+                                </span>
+                            )}
+                        </div>
+                        <div className="space-y-2">
+                            <p className="text-xs text-text-dim">{t('investigationDetail.settings.coverHint')}</p>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => coverInputRef.current?.click()}
+                                    disabled={coverLoading}
+                                    className="px-3 py-1.5 rounded-xl text-xs font-medium border border-border text-text-default hover:border-[var(--theme-primary)] transition-all disabled:opacity-40 inline-flex items-center gap-1.5"
+                                >
+                                    {coverLoading ? <Loader2 size={13} className="animate-spin"/> : <ImagePlus size={13}/>}
+                                    {hasCover ? t('investigationDetail.settings.coverChange') : t('investigationDetail.settings.coverUpload')}
+                                </button>
+                                {hasCover && (
+                                    <button
+                                        onClick={handleCoverRemove}
+                                        disabled={coverLoading}
+                                        className="px-3 py-1.5 rounded-xl text-xs text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-40"
+                                    >
+                                        {t('investigationDetail.settings.coverRemove')}
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                    <input
+                        ref={coverInputRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,image/gif"
+                        className="hidden"
+                        onChange={handleCoverSelect}
+                    />
+                </div>
+            </div>
+
             <div className="flex items-center gap-4 py-3">
                 <label className="text-sm text-text-muted w-24 shrink-0">{t('investigationDetail.settings.titleLabel')}</label>
                 <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className={inputClass}/>
