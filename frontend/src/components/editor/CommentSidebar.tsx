@@ -190,7 +190,7 @@ export const CommentSidebar = forwardRef<CommentSidebarHandle, Props>((props, re
   const canDeleteComment = (c: DocumentComment) => isOwner || c.author_id === currentUserId;
 
   return (
-    <aside className="w-80 bg-[#1a1a2e] border-l border-primary/20 flex flex-col flex-shrink-0">
+    <aside className="w-80 bg-card border-l border-primary/20 flex flex-col flex-shrink-0">
       <div className="flex items-center justify-between p-4 border-b border-primary/20">
         <h3 className="text-sm font-semibold text-accent">Commentaires ({active.length})</h3>
         <button onClick={onPanelClose} className="text-secondary hover:text-accent transition-colors">
