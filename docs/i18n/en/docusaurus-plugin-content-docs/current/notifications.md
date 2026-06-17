@@ -33,9 +33,9 @@ When you receive an invitation to join an investigation, two buttons appear:
 
 ## Mark as read
 
-- **One notification**: click on the notification to open it — it is automatically marked as read.
+- **One notification**: click on the notification to open it - it is automatically marked as read.
 - **All notifications**: click **Mark all as read** at the top of the page.
 
 ## Real-time notifications
 
-Tracr receives notifications instantly via a persistent connection. You do not need to refresh the page — the badge updates automatically as soon as an event concerns you.
+Tracr receives notifications instantly via a persistent connection. You do not need to refresh the page - the badge updates automatically as soon as an event concerns you.

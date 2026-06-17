@@ -1,4 +1,4 @@
-"""MFA TOTP (RFC 6238) — 100 % hors-ligne, aucune dependance externe.
+"""MFA TOTP (RFC 6238) - 100 % hors-ligne, aucune dependance externe.
 
 Le secret est partage une seule fois (QR code) puis le code a 6 chiffres est
 calcule localement par l'app d'authentification a partir du secret + l'heure.

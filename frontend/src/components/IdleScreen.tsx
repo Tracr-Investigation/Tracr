@@ -146,7 +146,7 @@ export const IdleScreen = () => {
                     animation: 'idlePulse 2s ease-in-out infinite',
                 }} />
                 <span style={{ fontSize: '13px', color: 'var(--text-default)', fontWeight: 600 }}>
-                    {user?.pseudo ?? '—'}
+                    {user?.pseudo ?? '-'}
                 </span>
                 {user?.role && (
                     <span style={{

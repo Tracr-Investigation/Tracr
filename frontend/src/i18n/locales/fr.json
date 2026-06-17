@@ -517,7 +517,7 @@
     "verify": "Vérifier",
     "back": "Retour",
     "sectionTitle": "Double authentification",
-    "sectionSubtitle": "Obligatoire — code TOTP d'une application d'authentification à chaque connexion.",
+    "sectionSubtitle": "Obligatoire - code TOTP d'une application d'authentification à chaque connexion.",
     "active": "Active",
     "reconfigure": "Reconfigurer",
     "reconfigureTitle": "Reconfigurer la 2FA",

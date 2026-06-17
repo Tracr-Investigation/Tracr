@@ -1,6 +1,6 @@
 # Tracr
  
-Application full-stack de gestion d'enquêtes et d'investigations — backend FastAPI, frontend React TypeScript, collaboration temps réel via Yjs.
+Application full-stack de gestion d'enquêtes et d'investigations - backend FastAPI, frontend React TypeScript, collaboration temps réel via Yjs.
  
 ## Prérequis
  
@@ -225,7 +225,7 @@ Les captures d'écran des tests failed sont dans `e2e/cypress/screenshots/`.
 | **Backend** | FastAPI, SQLModel, Alembic, Uvicorn, python-socketio |
 | **Base de données** | PostgreSQL 16 |
 | **Stockage objet** | MinIO (captures de sources OSINT) |
-| **Extension** | Manifest V3 (`extension/`) — capture de sources, voir [extension/README.md](extension/README.md) |
+| **Extension** | Manifest V3 (`extension/`) - capture de sources, voir [extension/README.md](extension/README.md) |
 | **Cache** | Redis 7 |
 | **Authentification** | JWT (python-jose), bcrypt (passlib) |
 | **Collaboration** | y-websocket (CRDT temps réel) |

@@ -197,7 +197,7 @@ export const Sidebar = () => {
                     ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                 `}
             >
-                {/* Header — le logo garde toujours sa taille */}
+                {/* Header - le logo garde toujours sa taille */}
                 <div
                     className={`
                         flex items-center h-14 px-3 border-b border-border shrink-0
@@ -299,7 +299,7 @@ export const Sidebar = () => {
                         </button>
                     </Tooltip>
 
-                    {/* Toggle déplier / replier — en bas, séparé */}
+                    {/* Toggle déplier / replier - en bas, séparé */}
                     <div className="mt-1 pt-2 border-t border-border/60">
                         <Tooltip label={collapsed ? t('sidebar.expandShortcut') : t('sidebar.collapseShortcut')} show={effectiveCollapsed}>
                             <button

@@ -2,7 +2,7 @@ import {ExternalLink} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 
 // Pivots d'enrichissement OSINT : deep-links vers des outils publics, adaptés
-// au type d'entité. Aucun appel réseau côté Tracr — uniquement des liens
+// au type d'entité. Aucun appel réseau côté Tracr - uniquement des liens
 // ouverts dans un nouvel onglet (clic explicite de l'utilisateur).
 
 interface Pivot {

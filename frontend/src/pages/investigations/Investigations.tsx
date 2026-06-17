@@ -464,7 +464,7 @@ export const Investigations = () => {
                 )}
             </div>
 
-            {/* Create panel — always mounted for smooth slide transition */}
+            {/* Create panel - always mounted for smooth slide transition */}
             <CreatePanel
                 open={showCreate}
                 onClose={() => setShowCreate(false)}

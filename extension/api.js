@@ -1,4 +1,4 @@
-/* api.js — couche partagée popup + service worker.
+/* api.js - couche partagée popup + service worker.
  * Expose self.TracrAPI. Chargé via <script src> (popup) et importScripts (background).
  */
 (function (root) {

@@ -2,7 +2,7 @@ rules:
   - id: tracr-no-print-in-backend
     languages: [python]
     message: >
-      print() oublié côté backend — utiliser le logger
+      print() oublié côté backend - utiliser le logger
       (logging.getLogger(__name__).info/.debug/.error).
       Les print() ne respectent pas le format de log et ne sont pas
       filtrables par niveau

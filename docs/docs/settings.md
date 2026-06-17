@@ -19,7 +19,7 @@ Les codes de récupération permettent de regagner l'accès à votre compte si v
 
 1. Cliquez sur **Générer les codes de récupération**.
 2. Confirmez avec votre mot de passe actuel.
-3. Notez les codes affichés — ils ne sont visibles qu'une seule fois.
+3. Notez les codes affichés - ils ne sont visibles qu'une seule fois.
 4. Cochez la case de confirmation et validez.
 
 :::warning

@@ -163,7 +163,7 @@ def _wrap_html(
 ) -> str:
     """Enveloppe le contenu dans un HTML print-ready (couverture + sommaire + contenu).
 
-    `markings` est une liste de triplets (texte, couleur_vive, couleur_pied) — 0, 1
+    `markings` est une liste de triplets (texte, couleur_vive, couleur_pied) - 0, 1
     ou 2 elements (TLP et/ou PAP).
 
     `content_html` doit DEJA etre assaini ET porter les ancres `id` des titres

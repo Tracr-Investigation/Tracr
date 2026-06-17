@@ -4,7 +4,7 @@
 /* ─── Variables de fond/texte/bordure (runtime) ────────────── */
 
 :root {
-    /* Fond sombre par défaut — surface et card nettement distinctes pour que
+    /* Fond sombre par défaut - surface et card nettement distinctes pour que
        les blocs (y compris ceux en bg-card/30) ressortent du fond de page. */
     --bg-surface:  #131318;
     --bg-card:     #21212e;
@@ -16,7 +16,7 @@
     --text-muted:   #a78bfa;
     --text-dim:     rgba(167, 139, 250, 0.5);
 
-    /* Bordures (teintées accent par défaut) — opacité relevée pour rester
+    /* Bordures (teintées accent par défaut) - opacité relevée pour rester
        visibles sur fond sombre et délimiter clairement chaque bloc. */
     --border-default: rgba(139, 92, 246, 0.32);
     --border-subtle:  rgba(139, 92, 246, 0.2);
@@ -122,7 +122,7 @@
     --font-weight-semibold: 600;
     --font-weight-bold:     700;
 
-    /* Héritage — conservés pour la compatibilité */
+    /* Héritage - conservés pour la compatibilité */
     --color-dark:   #1a1a1a;
     /* `accent` = texte proéminent : suit le thème (blanc en sombre, encre en clair)
        pour que `text-accent` reste lisible en mode clair comme en mode sombre. */

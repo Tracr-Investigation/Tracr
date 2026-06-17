@@ -205,7 +205,7 @@ const EntityPanel = ({
 
                 <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto flex flex-col min-h-0">
                     <div className="px-6 py-5 space-y-5 flex-1">
-                        {/* Type selector — new entity only */}
+                        {/* Type selector - new entity only */}
                         {!entity && (
                             <div>
                                 <label className="block text-xs font-semibold text-text-default/50 uppercase tracking-wider mb-2">
@@ -278,7 +278,7 @@ const EntityPanel = ({
                             />
                         </div>
 
-                        {/* Pivots OSINT — entité existante uniquement */}
+                        {/* Pivots OSINT - entité existante uniquement */}
                         {entity && (
                             <div>
                                 <label className="block text-xs font-semibold text-text-default/50 uppercase tracking-wider mb-2">

@@ -36,7 +36,7 @@ Il aura accès à tous les onglets de l'enquête dès maintenant.
 2. Donnez-lui un titre.
 3. Commencez à rédiger dans l'éditeur.
 
-Si votre collègue ouvre le même document, vous verrez son curseur apparaître en couleur — la collaboration temps réel est active.
+Si votre collègue ouvre le même document, vous verrez son curseur apparaître en couleur - la collaboration temps réel est active.
 
 ## 5. Ajouter des entités
 

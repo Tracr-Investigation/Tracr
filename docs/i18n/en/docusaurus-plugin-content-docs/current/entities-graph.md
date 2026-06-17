@@ -27,7 +27,7 @@ In the **Graph** tab:
 
 ## Create a relationship
 
-1. Hover over the edge of an entity — a connection handle appears.
+1. Hover over the edge of an entity - a connection handle appears.
 2. Drag the handle to another entity.
 3. Give the relationship a label (e.g. "is linked to", "owns", "sends to").
 

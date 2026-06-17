@@ -216,7 +216,7 @@ export const TemplateCategoriesTab = () => {
     };
 
     const formatDate = (dateStr: string | null) => {
-        if (!dateStr) return '—';
+        if (!dateStr) return '-';
         return new Date(dateStr).toLocaleDateString('fr-FR', {
             day: '2-digit', month: '2-digit', year: 'numeric',
             hour: '2-digit', minute: '2-digit',
@@ -270,13 +270,13 @@ export const TemplateCategoriesTab = () => {
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
                                                 <span className="w-4 h-4 rounded-full border border-border" style={{backgroundColor: c.color || '#f59e0b'}}/>
-                                                <span className="text-text-muted text-sm font-mono">{c.color || '—'}</span>
+                                                <span className="text-text-muted text-sm font-mono">{c.color || '-'}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2 text-text-muted text-sm">
                                                 <IconComp size={14}/>
-                                                {c.icon || '—'}
+                                                {c.icon || '-'}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-text-muted text-sm">{formatDate(c.created_at)}</td>

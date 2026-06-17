@@ -249,7 +249,7 @@ export const BackupPanel = ({ documentId, currentHtml, onClose, onRestored }: Pr
         )}
       </div>
 
-      {/* Footer — bouton créer */}
+      {/* Footer - bouton créer */}
       {!selected && (
         <div className="px-3 py-3 border-t border-primary/20">
           <button

@@ -11,7 +11,7 @@ An investigation is the main container in Tracr. It groups together documents, t
 
 1. From the **Dashboard** or the **Investigations** page, click **New investigation**.
 2. Enter the name, description (optional), and select a status.
-3. Confirm — you are automatically added as the owner.
+3. Confirm - you are automatically added as the owner.
 
 ## Statuses
 

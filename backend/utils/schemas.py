@@ -87,7 +87,7 @@ class InvestigationTransferRequest(BaseModel):
     new_owner_pseudo: str = Field(min_length=1, max_length=50)
 
 
-# Statuts Kanban (colonnes) — doit rester aligné avec l'enum TaskStatus
+# Statuts Kanban (colonnes) - doit rester aligné avec l'enum TaskStatus
 TASK_STATUS_PATTERN = "^(todo|en_cours|bloque|en_revue|a_valider|termine)$"
 TASK_PRIORITY_PATTERN = "^(basse|normale|haute|urgente)$"
 

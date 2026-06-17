@@ -1,4 +1,4 @@
-/* background.js — service worker MV3.
+/* background.js - service worker MV3.
  * Menu contextuel « Tracr : archiver ce média » sur images et vidéos.
  * Utilise la dernière enquête sélectionnée dans le popup.
  */

@@ -245,7 +245,7 @@ export const Home = () => {
     const statusBreakdown = useMemo<BreakdownItem[]>(() => {
         const map = new Map<string, BreakdownItem>();
         for (const inv of allInvestigations) {
-            const key = inv.status?.name ?? '—';
+            const key = inv.status?.name ?? '-';
             const existing = map.get(key);
             if (existing) existing.count += 1;
             else map.set(key, {key, label: key, count: 1, color: inv.status?.color || '#8b5cf6'});

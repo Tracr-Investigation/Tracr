@@ -517,7 +517,7 @@
     "verify": "Verify",
     "back": "Back",
     "sectionTitle": "Two-factor authentication",
-    "sectionSubtitle": "Required — TOTP code from an authenticator app at each login.",
+    "sectionSubtitle": "Required - TOTP code from an authenticator app at each login.",
     "active": "Active",
     "reconfigure": "Reconfigure",
     "reconfigureTitle": "Reconfigure 2FA",

@@ -12,7 +12,7 @@ The **Administration** panel is only accessible to users with the **Administrato
 ### Create a user
 1. Administration → Users → **New user**.
 2. Enter the username, email, and role.
-3. A temporary password is generated — the user will need to change it on their first login.
+3. A temporary password is generated - the user will need to change it on their first login.
 
 ### Edit a user
 Click on a user to edit their username, role, or force a password change.

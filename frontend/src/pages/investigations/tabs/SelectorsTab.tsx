@@ -99,7 +99,7 @@ const AddSelectorForm = ({
             type="text"
             value={label}
             onChange={(e) => setLabel(e.target.value)}
-            placeholder="Libellé (optionnel) — ex. « compte principal »"
+            placeholder="Libellé (optionnel) - ex. « compte principal »"
             className="sm:w-56 shrink-0 bg-input-bg border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-default placeholder:text-text-dim focus:outline-none focus:border-[var(--theme-primary)]"
           />
           <input

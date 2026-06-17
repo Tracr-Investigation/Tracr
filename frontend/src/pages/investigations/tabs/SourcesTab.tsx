@@ -180,7 +180,7 @@ const SourceCard = ({
 
       <div className="flex items-center gap-1.5 text-xs text-text-dim mb-2">
         <Clock size={11} className="shrink-0" />
-        <span>{source.captured_at ? formatRelativeDate(source.captured_at) : '—'}</span>
+        <span>{source.captured_at ? formatRelativeDate(source.captured_at) : '-'}</span>
         <span className="text-text-dim/50">·</span>
         <span>{formatBytes(source.size_bytes)}</span>
       </div>
@@ -236,8 +236,8 @@ const SourcePreviewPanel = ({
       const res = await api.ocrSource(source.id_source);
       setSourceHits(res);
       toast('success', res.analyzed
-        ? `OCR terminé — ${res.hits.length} sélecteur(s) détecté(s)`
-        : 'OCR terminé — aucun texte reconnu sur l\'image');
+        ? `OCR terminé - ${res.hits.length} sélecteur(s) détecté(s)`
+        : 'OCR terminé - aucun texte reconnu sur l\'image');
     } catch (err) {
       toast('error', err instanceof Error ? err.message : 'OCR impossible');
     } finally {
@@ -266,7 +266,7 @@ const SourcePreviewPanel = ({
       setSourceHits(res);
       toast('success', res.hits.length > 0
         ? `${res.hits.length} sélecteur(s) détecté(s)`
-        : 'Analyse terminée — aucun sélecteur détecté');
+        : 'Analyse terminée - aucun sélecteur détecté');
     } catch (err) {
       toast('error', err instanceof Error ? err.message : 'Analyse impossible');
     } finally {
@@ -370,7 +370,7 @@ const SourcePreviewPanel = ({
               </Field>
               <Field label="Type">{TYPE_META[source.source_type]?.label ?? source.source_type} · {source.mime_type}</Field>
               <Field label="Capturé le">
-                {source.captured_at ? new Date(source.captured_at).toLocaleString('fr-FR') : '—'}
+                {source.captured_at ? new Date(source.captured_at).toLocaleString('fr-FR') : '-'}
                 {source.created_by_pseudo && <span className="text-text-dim"> · par {source.created_by_pseudo}</span>}
               </Field>
               <Field label="Taille">{formatBytes(source.size_bytes)}</Field>
@@ -462,7 +462,7 @@ const SourcePreviewPanel = ({
               ) : !sourceHits.analyzed ? (
                 <p className="text-sm text-text-dim italic">
                   {sourceHits.text_status === 'pending_ocr'
-                    ? 'Image sans texte natif — lancez l\'OCR pour reconnaître le texte.'
+                    ? 'Image sans texte natif - lancez l\'OCR pour reconnaître le texte.'
                     : 'Aucun texte exploitable pour cette source.'}
                 </p>
               ) : sourceHits.hits.length === 0 ? (

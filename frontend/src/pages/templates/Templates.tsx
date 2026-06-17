@@ -172,7 +172,7 @@ const FormPanel = ({ template, categories, open, onClose, onSave }: FormPanelPro
               <input type="checkbox" checked={isPublic} onChange={e => setIsPublic(e.target.checked)} className="rounded accent-[var(--theme-primary)]" />
               <span className="text-sm text-text-default inline-flex items-center gap-2">
                 {isPublic ? <Globe size={14} className="text-[var(--theme-primary)]" /> : <Lock size={14} className="text-text-dim" />}
-                {isPublic ? 'Public — visible par tous les utilisateurs' : 'Privé — visible uniquement par vous'}
+                {isPublic ? 'Public - visible par tous les utilisateurs' : 'Privé - visible uniquement par vous'}
               </span>
             </label>
 

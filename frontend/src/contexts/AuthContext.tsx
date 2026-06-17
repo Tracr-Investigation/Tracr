@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           }
           break;
         } catch {
-          // Network error — backend not ready yet
+          // Network error - backend not ready yet
           if (attempt < delays.length) {
             await new Promise((r) => setTimeout(r, delays[attempt]));
           }

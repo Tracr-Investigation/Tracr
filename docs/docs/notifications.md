@@ -33,9 +33,9 @@ Quand vous recevez une invitation à rejoindre une enquête, deux boutons appara
 
 ## Marquer comme lu
 
-- **Une notification** : cliquez sur la notification pour l'ouvrir — elle est automatiquement marquée comme lue.
+- **Une notification** : cliquez sur la notification pour l'ouvrir - elle est automatiquement marquée comme lue.
 - **Toutes les notifications** : cliquez sur **Tout marquer comme lu** en haut de la page.
 
 ## Notifications en temps réel
 
-Tracr reçoit les notifications instantanément via une connexion persistante. Vous n'avez pas besoin de rafraîchir la page — le badge se met à jour automatiquement dès qu'un événement vous concerne.
+Tracr reçoit les notifications instantanément via une connexion persistante. Vous n'avez pas besoin de rafraîchir la page - le badge se met à jour automatiquement dès qu'un événement vous concerne.

@@ -1,4 +1,4 @@
-/* popup.js — UI de l'extension : connexion, sélection d'enquête, captures. */
+/* popup.js - UI de l'extension : connexion, sélection d'enquête, captures. */
 const { store, login, listInvestigations, uploadSource } = self.TracrAPI;
 
 const $ = (id) => document.getElementById(id);
@@ -76,7 +76,7 @@ async function handleLogout() {
 // ── Mode capture ─────────────────────────────────────────────────────────────
 
 async function enterCaptureMode() {
-  els.whoPseudo.textContent = cfg.pseudo || '—';
+  els.whoPseudo.textContent = cfg.pseudo || '-';
   els.titleInput.value = activeTab?.title || 'Capture';
   els.metaHost.textContent = hostOf(activeTab?.url);
   els.metaTime.textContent = new Date().toLocaleTimeString('fr-FR');

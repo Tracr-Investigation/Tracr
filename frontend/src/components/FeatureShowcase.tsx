@@ -6,7 +6,7 @@ import { FileText, CheckSquare, Users, Settings, Network, Globe, Lock } from 'lu
 
 const NW = 105, NH = 32;
 
-// 9 nodes — realistic OSINT investigation map
+// 9 nodes - realistic OSINT investigation map
 const GN = [
     { x: 225, y: 145, type: 'person',       color: '#f59e0b', label: 'Alice Smith',    value: '@alice_s' },
     { x: 420, y: 100, type: 'person',       color: '#f59e0b', label: 'Bob Chen',       value: ''        },
@@ -182,7 +182,7 @@ const TL_EVENTS = [
     { category: 'entity',        action: 'Entity created',              pseudo: 'bob',   time: '1h ago',  detail: 'Alice Smith (person)' },
     { category: 'entity',        action: 'Link created',                pseudo: 'bob',   time: '1h ago',  detail: 'Alice Smith → malware-c2.net' },
     { category: 'task',          action: 'Task created',                pseudo: 'alice', time: '2h ago',  detail: 'Identify threat actors' },
-    { category: 'collaboration', action: 'Collaborator invited',        pseudo: 'alice', time: '3h ago',  detail: 'bob — Editor' },
+    { category: 'collaboration', action: 'Collaborator invited',        pseudo: 'alice', time: '3h ago',  detail: 'bob - Editor' },
     { category: 'document',      action: 'Exported to PDF',             pseudo: 'alice', time: '5h ago',  detail: null },
     { category: 'task',          action: 'Task updated',                pseudo: 'bob',   time: '6h ago',  detail: 'Status → In progress' },
     { category: 'investigation', action: 'Status changed',              pseudo: 'alice', time: '1d ago',  detail: 'Open → In progress' },
@@ -235,10 +235,10 @@ const P_LABEL: Record<string, string> = { urgente: 'Urgent', haute: 'High', norm
 
 const TASKS = [
     { label: 'Analyze network logs',            priority: 'haute',   done: false, av: 'A', due: 'Today' },
-    { label: 'Document initial findings',       priority: 'normale', done: true,  av: 'B', due: '—'    },
+    { label: 'Document initial findings',       priority: 'normale', done: true,  av: 'B', due: '-'    },
     { label: 'Identify threat actors',          priority: 'urgente', done: false, av: '',  due: '2d'    },
     { label: 'Map C2 infrastructure',           priority: 'haute',   done: false, av: 'B', due: '3d'   },
-    { label: 'Interview key witnesses',         priority: 'normale', done: true,  av: 'A', due: '—'    },
+    { label: 'Interview key witnesses',         priority: 'normale', done: true,  av: 'A', due: '-'    },
     { label: 'Cross-reference IP addresses',    priority: 'haute',   done: false, av: '',  due: '4d'   },
     { label: 'Prepare final report',            priority: 'basse',   done: false, av: 'A', due: '7d'   },
 ];
@@ -297,7 +297,7 @@ function DocumentPreview() {
     return (
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <div className="px-3 py-1.5 border-b border-border flex items-center gap-1 shrink-0 bg-card">
-                {['B','I','U','|','H₁','H₂','|','≡','•','—'].map((b, i) => (
+                {['B','I','U','|','H₁','H₂','|','≡','•','-'].map((b, i) => (
                     <span key={i} className={`px-1.5 py-0.5 rounded text-[10px] ${b === '|' ? 'text-border mx-0.5' : 'text-text-dim hover:text-text-muted'}`}
                         style={{ fontWeight: b === 'B' ? 700 : 400, fontStyle: b === 'I' ? 'italic' : 'normal' }}>
                         {b}
@@ -482,7 +482,7 @@ function SourceCapturePreview() {
                     </div>
 
                     <div style={{ flex: 1, padding: '9px 10px', display: 'flex', flexDirection: 'column', gap: '5px', overflow: 'hidden' }}>
-                        {/* Étape 1 — ajoutée aux sources */}
+                        {/* Étape 1 - ajoutée aux sources */}
                         <div style={{ fontSize: '7.5px', color: '#6a6a6a', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Sources</div>
                         <div className="srccap-card" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', background: 'color-mix(in srgb, var(--theme-primary) 9%, #161616)', border: '1px solid color-mix(in srgb, var(--theme-primary) 38%, transparent)', borderRadius: '8px' }}>
                             <div style={{ width: '20px', height: '20px', borderRadius: '5px', overflow: 'hidden', flexShrink: 0, background: 'linear-gradient(135deg, #2a2333, #1a1a22)', border: '1px solid #2e2e2e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -498,7 +498,7 @@ function SourceCapturePreview() {
                             </span>
                         </div>
 
-                        {/* Flèche — insertion dans le rapport */}
+                        {/* Flèche - insertion dans le rapport */}
                         <div className="srccap-arrow" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', padding: '1px 0' }}>
                             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--theme-primary)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M 7 7 L 12 12 L 17 7" />
@@ -507,7 +507,7 @@ function SourceCapturePreview() {
                             <span style={{ fontSize: '7.5px', fontWeight: 600, color: 'var(--theme-primary)' }}>added to report</span>
                         </div>
 
-                        {/* Étape 2 — documentation / rapport */}
+                        {/* Étape 2 - documentation / rapport */}
                         <div style={{ flex: 1, minHeight: 0, background: '#141414', border: '1px solid #262626', borderRadius: '8px', padding: '8px 9px', overflow: 'hidden' }}>
                             <div style={{ fontSize: '7px', color: '#555', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '5px' }}>Report · Operation Shadow Net</div>
                             <div style={{ width: '85%', height: '4px', borderRadius: '2px', background: '#2a2a2a', marginBottom: '4px' }} />
@@ -518,7 +518,7 @@ function SourceCapturePreview() {
                                     <Globe size={10} style={{ color: 'var(--theme-secondary)' }} />
                                 </div>
                                 <figcaption style={{ minWidth: 0 }}>
-                                    <div style={{ fontSize: '7.5px', fontWeight: 600, color: 'var(--text-default)' }}>Fig. 1 — capture.png</div>
+                                    <div style={{ fontSize: '7.5px', fontWeight: 600, color: 'var(--text-default)' }}>Fig. 1 - capture.png</div>
                                     <div style={{ fontSize: '6.5px', color: '#777', fontFamily: "'IBM Plex Mono',monospace", overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>source · malware-c2.net</div>
                                 </figcaption>
                             </figure>

@@ -243,7 +243,7 @@ def verify_mfa_login(user: User, code: str) -> bool:
 
 
 def disable_mfa(db: Session, user: User) -> None:
-    """Desactive le MFA (l'utilisateur devra le re-enroler — MFA obligatoire)."""
+    """Desactive le MFA (l'utilisateur devra le re-enroler - MFA obligatoire)."""
     user.mfa_secret = None
     user.mfa_enabled = False
     db.add(user)

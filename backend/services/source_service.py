@@ -44,7 +44,7 @@ def _now() -> datetime:
 
 def view_signature(source: InvestigationSource) -> str:
     """Signature HMAC stable (sans expiration) autorisant la lecture d'UNE source
-    via une URL http — pour embarquer images/captures dans un document (le
+    via une URL http - pour embarquer images/captures dans un document (le
     sanitizer bloque data:/blob:). Ne révèle pas le JWT de l'utilisateur."""
     msg = f"{source.id_source}:{source.content_hash}".encode()
     return hmac.new(settings.SECRET_KEY.encode(), msg, hashlib.sha256).hexdigest()[:32]

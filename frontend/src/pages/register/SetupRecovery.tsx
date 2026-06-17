@@ -95,7 +95,7 @@ export const SetupRecovery = () => {
                             }}>
                                 <AlertTriangle size={15} style={{ color: '#f59e0b', marginTop: '1px', flexShrink: 0 }} />
                                 <span style={{ fontSize: '12px', color: '#f59e0b', lineHeight: 1.5 }}>
-                                    La page a été rechargée — votre phrase précédente n'est plus affichable.
+                                    La page a été rechargée - votre phrase précédente n'est plus affichable.
                                     Entrez votre mot de passe pour en générer une nouvelle.
                                 </span>
                             </div>
@@ -225,7 +225,7 @@ export const SetupRecovery = () => {
                                 </span>
                             </label>
 
-                            {/* CTA — disabled tant que la checkbox n'est pas cochée */}
+                            {/* CTA - disabled tant que la checkbox n'est pas cochée */}
                             <button
                                 type="button"
                                 disabled={!confirmed}

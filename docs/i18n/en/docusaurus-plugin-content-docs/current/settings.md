@@ -19,7 +19,7 @@ Recovery codes allow you to regain access to your account if you forget your pas
 
 1. Click **Generate recovery codes**.
 2. Confirm with your current password.
-3. Note the displayed codes — they are only visible once.
+3. Note the displayed codes - they are only visible once.
 4. Check the confirmation box and confirm.
 
 :::warning

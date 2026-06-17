@@ -36,7 +36,7 @@ They will have access to all tabs of the investigation immediately.
 2. Give it a title.
 3. Start writing in the editor.
 
-If your colleague opens the same document, you will see their cursor appear in color — real-time collaboration is active.
+If your colleague opens the same document, you will see their cursor appear in color - real-time collaboration is active.
 
 ## 5. Add entities
 
