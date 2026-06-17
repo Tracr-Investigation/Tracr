@@ -72,10 +72,28 @@
     "overdue": "En retard",
     "close": "Fermer",
     "more": "+{{count}} de plus",
-    "days": ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
+    "days": [
+      "Dim",
+      "Lun",
+      "Mar",
+      "Mer",
+      "Jeu",
+      "Ven",
+      "Sam"
+    ],
     "months": [
-      "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
-      "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
+      "Janvier",
+      "Février",
+      "Mars",
+      "Avril",
+      "Mai",
+      "Juin",
+      "Juillet",
+      "Août",
+      "Septembre",
+      "Octobre",
+      "Novembre",
+      "Décembre"
     ],
     "priority": {
       "basse": "Basse",
@@ -107,7 +125,9 @@
       "descPlaceholder": "Décrivez l'enquête...",
       "cancel": "Annuler",
       "creating": "Création...",
-      "create": "Créer"
+      "create": "Créer",
+      "objectivesLabel": "Objectifs (optionnels)",
+      "objectivesPlaceholder": "Quels sont les objectifs de cette enquête ?"
     }
   },
   "investigationDetail": {
@@ -239,8 +259,12 @@
       "deleting": "Suppression...",
       "updated": "Enquête mise à jour",
       "transferred": "Propriété transférée à {{pseudo}}",
-      "deleted": "Enquête supprimée"
-    }
+      "deleted": "Enquête supprimée",
+      "objectivesLabel": "Objectifs",
+      "objectivesPlaceholder": "Objectifs de l'enquête (repris en tête de l'export PDF)"
+    },
+    "objectivesTitle": "Objectifs",
+    "noObjectives": "Aucun objectif défini"
   },
   "tasks": {
     "filterAll": "Toutes",
@@ -505,7 +529,7 @@
   },
   "mfa": {
     "setupTitle": "Configurer la double authentification",
-    "setupSubtitle": "Obligatoire pour sécuriser votre compte",
+    "setupSubtitle": "Recommandé pour sécuriser votre compte",
     "step1": "Installez une application d'authentification (Google Authenticator, Aegis, …).",
     "step2": "Scannez le QR code ci-dessous.",
     "step3": "Saisissez le code à 6 chiffres pour confirmer.",
@@ -517,13 +541,15 @@
     "verify": "Vérifier",
     "back": "Retour",
     "sectionTitle": "Double authentification",
-    "sectionSubtitle": "Obligatoire - code TOTP d'une application d'authentification à chaque connexion.",
+    "sectionSubtitle": "Recommandé - code TOTP d'une application d'authentification à chaque connexion.",
     "active": "Active",
     "reconfigure": "Reconfigurer",
     "reconfigureTitle": "Reconfigurer la 2FA",
     "reconfigureSubtitle": "Confirmez votre mot de passe, puis scannez un nouveau QR code.",
     "continue": "Continuer",
-    "qrAlt": "QR code TOTP"
+    "qrAlt": "QR code TOTP",
+    "inactive": "Inactive",
+    "enable": "Activer"
   },
   "setupRecovery": {
     "title": "Sauvegarde de votre code de récupération",

@@ -540,7 +540,7 @@ export const api = {
         return data;
     },
 
-    createInvestigation: async (title: string, description: string | null) => {
+    createInvestigation: async (title: string, description: string | null, objectives: string | null = null) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations`, {
             method: 'POST',
@@ -548,7 +548,7 @@ export const api = {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
             },
-            body: JSON.stringify({title, description}),
+            body: JSON.stringify({title, description, objectives}),
         });
 
         const data = await response.json();
@@ -560,11 +560,12 @@ export const api = {
         return data;
     },
 
-    updateInvestigation: async (id: number, title: string | null, description: string | null) => {
+    updateInvestigation: async (id: number, title: string | null, description: string | null, objectives: string | null = null) => {
         const token = localStorage.getItem('token');
         const body: Record<string, string | null> = {};
         if (title !== null) body.title = title;
         if (description !== null) body.description = description;
+        if (objectives !== null) body.objectives = objectives;
         const response = await fetch(`${API_URL}/investigations/${id}`, {
             method: 'PATCH',
             headers: {

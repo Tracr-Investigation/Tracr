@@ -201,12 +201,14 @@ async def export_document(
     from services import investigation_service
     inv = investigation_service.get_investigation_by_id(db, document.id_investigation)
     investigation_title = inv.title if inv else ""
+    investigation_objectives = inv.objectives if inv else None
 
     try:
         data, filename = export_service.render_pdf(
             document, db,
             tlp=tlp, pap=pap,
             investigation_title=investigation_title,
+            investigation_objectives=investigation_objectives,
         )
         media_type = "application/pdf"
     except Exception:

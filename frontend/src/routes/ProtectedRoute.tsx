@@ -2,7 +2,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, loading, user } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -21,12 +21,9 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   if (recoveryPending && location.pathname !== '/setup-recovery') {
     return <Navigate to="/setup-recovery" replace />;
   }
-
-  // MFA obligatoire : tant que l'utilisateur n'a pas enrole le TOTP, on le force
-  // vers l'ecran d'enrolement (apres l'eventuelle config de la phrase de recuperation).
-  if (user?.mfa_enabled === false && location.pathname !== '/setup-mfa') {
-    return <Navigate to="/setup-mfa" replace />;
-  }
+  // Le MFA n'est pas obligatoire : on ne force plus l'enrolement. Tant qu'il n'est
+  // pas active, un « ! » est affiche sur l'entree Reglages de la sidebar (cf. Sidebar).
+  // L'ecran /setup-mfa reste accessible volontairement depuis les reglages.
 
   return <>{children}</>;
 };

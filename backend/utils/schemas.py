@@ -35,6 +35,7 @@ class DeleteAccountRequest(BaseModel):
 class InvestigationCreateRequest(BaseModel):
     title: str = Field(min_length=1, max_length=255)
     description: str | None = Field(default=None, max_length=2000)
+    objectives: str | None = Field(default=None, max_length=5000)
 
 
 class StatusCreateRequest(BaseModel):
@@ -81,6 +82,7 @@ class CollaboratorUpdateRequest(BaseModel):
 class InvestigationUpdateRequest(BaseModel):
     title: str | None = Field(default=None, min_length=1, max_length=255)
     description: str | None = Field(default=None, max_length=2000)
+    objectives: str | None = Field(default=None, max_length=5000)
 
 
 class InvestigationTransferRequest(BaseModel):

@@ -68,7 +68,7 @@ export const Register = () => {
         setLoading(true);
         try {
             const data = await api.register(pseudo, password);
-            login({ id_user: data.id_user, pseudo: data.pseudo, role: data.role, language: data.language ?? 'en' }, data.token);
+            login({ id_user: data.id_user, pseudo: data.pseudo, role: data.role, language: data.language ?? 'en', mfa_enabled: data.mfa_enabled ?? false }, data.token);
             sessionStorage.setItem('recovery_pending', '1');
             navigate('/setup-recovery', { state: { words: data.recovery_words } });
         } catch (err: unknown) {

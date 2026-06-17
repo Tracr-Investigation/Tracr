@@ -90,6 +90,7 @@ const CreatePanel = ({open, onClose, onSave}: {open: boolean; onClose: () => voi
     const {toast} = useToast();
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
+    const [objectives, setObjectives] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -97,6 +98,7 @@ const CreatePanel = ({open, onClose, onSave}: {open: boolean; onClose: () => voi
         if (!open) {
             setTitle('');
             setDescription('');
+            setObjectives('');
             setError('');
             setLoading(false);
         }
@@ -107,7 +109,7 @@ const CreatePanel = ({open, onClose, onSave}: {open: boolean; onClose: () => voi
         setLoading(true);
         setError('');
         try {
-            await api.createInvestigation(title, description || null);
+            await api.createInvestigation(title, description || null, objectives || null);
             toast('success', t('investigations.created'));
             onSave();
         } catch (err) {
@@ -172,9 +174,23 @@ const CreatePanel = ({open, onClose, onSave}: {open: boolean; onClose: () => voi
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                                 maxLength={2000}
-                                rows={5}
+                                rows={4}
                                 className="w-full bg-input-bg border border-border-subtle rounded-xl px-4 py-2.5 text-text-default placeholder-text-muted focus:outline-none focus:border-[var(--theme-primary)] transition-colors resize-none"
                                 placeholder={t('investigations.modal.descPlaceholder')}
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-semibold text-text-default/50 uppercase tracking-wider mb-2">
+                                {t('investigations.modal.objectivesLabel')}
+                            </label>
+                            <textarea
+                                value={objectives}
+                                onChange={(e) => setObjectives(e.target.value)}
+                                maxLength={5000}
+                                rows={5}
+                                className="w-full bg-input-bg border border-border-subtle rounded-xl px-4 py-2.5 text-text-default placeholder-text-muted focus:outline-none focus:border-[var(--theme-primary)] transition-colors resize-none"
+                                placeholder={t('investigations.modal.objectivesPlaceholder')}
                             />
                         </div>
 

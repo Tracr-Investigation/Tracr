@@ -89,6 +89,7 @@ interface InvestigationDetailData {
     id_investigation: number;
     title: string;
     description: string | null;
+    objectives: string | null;
     status: StatusData;
     categories?: CategoryData[];
     owner: OwnerData;
@@ -529,6 +530,7 @@ const SettingsTab = ({
     const {toast} = useToast();
     const [title, setTitle] = useState(investigation.title);
     const [description, setDescription] = useState(investigation.description || '');
+    const [objectives, setObjectives] = useState(investigation.objectives || '');
     const [saving, setSaving] = useState(false);
     const [transferQuery, setTransferQuery] = useState('');
     const [transferResults, setTransferResults] = useState<UserSearchResult[]>([]);
@@ -546,7 +548,9 @@ const SettingsTab = ({
     const [hasCover, setHasCover] = useState(!!investigation.has_cover);
     const [coverLoading, setCoverLoading] = useState(false);
 
-    const hasChanges = title !== investigation.title || description !== (investigation.description || '');
+    const hasChanges = title !== investigation.title
+        || description !== (investigation.description || '')
+        || objectives !== (investigation.objectives || '');
 
     // Charge un apercu de la couverture existante (object URL revoque au demontage).
     useEffect(() => {
@@ -608,7 +612,8 @@ const SettingsTab = ({
         try {
             const newTitle = title !== investigation.title ? title : null;
             const newDesc = description !== (investigation.description || '') ? description : null;
-            await api.updateInvestigation(investigation.id_investigation, newTitle, newDesc);
+            const newObjectives = objectives !== (investigation.objectives || '') ? objectives : null;
+            await api.updateInvestigation(investigation.id_investigation, newTitle, newDesc, newObjectives);
             toast('success', t('investigationDetail.settings.updated'));
             if (newTitle) onSlugUpdate(newTitle);
             onRefresh();
@@ -728,6 +733,18 @@ const SettingsTab = ({
                     rows={2}
                     className={`${inputClass} resize-none`}
                     placeholder={t('investigationDetail.settings.descPlaceholder')}
+                />
+            </div>
+
+            <div className="flex items-start gap-4 py-3">
+                <label className="text-sm text-text-muted w-24 shrink-0 pt-1.5">{t('investigationDetail.settings.objectivesLabel')}</label>
+                <textarea
+                    value={objectives}
+                    onChange={(e) => setObjectives(e.target.value)}
+                    rows={5}
+                    maxLength={5000}
+                    className={`${inputClass} resize-none`}
+                    placeholder={t('investigationDetail.settings.objectivesPlaceholder')}
                 />
             </div>
 
@@ -1079,12 +1096,27 @@ export const InvestigationDetail = () => {
                                     label: t('investigationDetail.tabs.details'),
                                     icon: FileText,
                                     content: (
-                                        <div className="pt-5">
-                                            {investigation.description ? (
-                                                <p className="text-text-muted">{investigation.description}</p>
-                                            ) : (
-                                                <p className="text-text-dim italic">{t('investigationDetail.noDescription')}</p>
-                                            )}
+                                        <div className="pt-5 space-y-6">
+                                            <div>
+                                                <h3 className="text-xs font-semibold uppercase tracking-wider text-text-dim mb-2">
+                                                    {t('investigationDetail.settings.descLabel')}
+                                                </h3>
+                                                {investigation.description ? (
+                                                    <p className="text-text-muted">{investigation.description}</p>
+                                                ) : (
+                                                    <p className="text-text-dim italic">{t('investigationDetail.noDescription')}</p>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <h3 className="text-xs font-semibold uppercase tracking-wider text-text-dim mb-2">
+                                                    {t('investigationDetail.objectivesTitle')}
+                                                </h3>
+                                                {investigation.objectives ? (
+                                                    <p className="text-text-muted whitespace-pre-line">{investigation.objectives}</p>
+                                                ) : (
+                                                    <p className="text-text-dim italic">{t('investigationDetail.noObjectives')}</p>
+                                                )}
+                                            </div>
                                         </div>
                                     ),
                                 },

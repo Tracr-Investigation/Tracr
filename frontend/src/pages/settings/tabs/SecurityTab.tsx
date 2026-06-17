@@ -309,16 +309,32 @@ export const SecurityTab = () => {
                 <div className="h-px bg-primary/10"/>
 
                 <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20">
-                        {t('mfa.active')}
-                    </span>
-                    <button
-                        onClick={() => { setMfaPassword(''); setMfaError(''); setShowMfaModal(true); }}
-                        className="px-4 py-2 text-sm font-medium rounded-xl transition-all"
-                        style={{background: 'color-mix(in srgb, var(--theme-primary) 12%, transparent)', border: '1px solid color-mix(in srgb, var(--theme-primary) 25%, transparent)', color: 'var(--theme-primary)'}}
-                    >
-                        {t('mfa.reconfigure')}
-                    </button>
+                    {user?.mfa_enabled ? (
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20">
+                            {t('mfa.active')}
+                        </span>
+                    ) : (
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                            {t('mfa.inactive')}
+                        </span>
+                    )}
+                    {user?.mfa_enabled ? (
+                        <button
+                            onClick={() => { setMfaPassword(''); setMfaError(''); setShowMfaModal(true); }}
+                            className="px-4 py-2 text-sm font-medium rounded-xl transition-all"
+                            style={{background: 'color-mix(in srgb, var(--theme-primary) 12%, transparent)', border: '1px solid color-mix(in srgb, var(--theme-primary) 25%, transparent)', color: 'var(--theme-primary)'}}
+                        >
+                            {t('mfa.reconfigure')}
+                        </button>
+                    ) : (
+                        <button
+                            onClick={() => navigate('/setup-mfa')}
+                            className="px-4 py-2 text-sm font-medium rounded-xl transition-all"
+                            style={{background: 'color-mix(in srgb, var(--theme-primary) 12%, transparent)', border: '1px solid color-mix(in srgb, var(--theme-primary) 25%, transparent)', color: 'var(--theme-primary)'}}
+                        >
+                            {t('mfa.enable')}
+                        </button>
+                    )}
                 </div>
             </div>
 

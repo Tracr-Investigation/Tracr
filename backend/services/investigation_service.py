@@ -87,11 +87,13 @@ def count_investigations_for_user(db: Session, user_id: int) -> int:
 
 
 def create_investigation(
-    db: Session, title: str, owner_id: int, description: Optional[str] = None
+    db: Session, title: str, owner_id: int, description: Optional[str] = None,
+    objectives: Optional[str] = None,
 ) -> Investigation:
     investigation = Investigation(
         title=title,
         description=description,
+        objectives=objectives,
         id_status=DEFAULT_STATUS_ID,
         owner_id=owner_id,
     )
@@ -116,7 +118,8 @@ def update_investigation_status(
 
 
 def update_investigation(
-    db: Session, investigation: Investigation, title: Optional[str] = None, description: Optional[str] = None
+    db: Session, investigation: Investigation, title: Optional[str] = None,
+    description: Optional[str] = None, objectives: Optional[str] = None,
 ) -> Investigation:
     from datetime import datetime
     from zoneinfo import ZoneInfo
@@ -125,6 +128,8 @@ def update_investigation(
         investigation.title = title
     if description is not None:
         investigation.description = description
+    if objectives is not None:
+        investigation.objectives = objectives
     investigation.updated_at = datetime.now(ZoneInfo("Europe/Paris"))
     db.add(investigation)
     db.commit()
@@ -222,6 +227,7 @@ def get_investigation_detail(db: Session, investigation_id: int, current_user_id
         "id_investigation": inv.id_investigation,
         "title": inv.title,
         "description": inv.description,
+        "objectives": inv.objectives,
         "status": {
             "id_status": status.id_status,
             "name": status.name,

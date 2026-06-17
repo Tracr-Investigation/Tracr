@@ -153,11 +153,30 @@ def _build_toc(content_html: str) -> Tuple[str, str]:
     return toc_html, anchored
 
 
+def _objectives_section(objectives: Optional[str]) -> str:
+    """Bloc « Objectifs de l'enquete » insere juste apres le sommaire.
+
+    Le texte est libre (saisie utilisateur) : on l'echappe et on convertit les
+    sauts de ligne en <br>. Vide si aucun objectif n'est renseigne.
+    """
+    text = (objectives or "").strip()
+    if not text:
+        return ""
+    body = "<br>".join(_escape(line) for line in text.split("\n"))
+    return (
+        '<section class="objectives">'
+        '<h2 class="objectives-title">Objectifs de l\'enquête</h2>'
+        f'<div class="objectives-body">{body}</div>'
+        "</section>"
+    )
+
+
 def _wrap_html(
     title: str,
     investigation_title: str,
     content_html: str,
     toc_html: str,
+    objectives_html: str,
     cover_uri: str,
     markings: list,
 ) -> str:
@@ -305,6 +324,14 @@ def _wrap_html(
         }}
         .toc-l2 {{ margin-left: 1.3em; font-size: 10.5pt; }}
         .toc-l3 {{ margin-left: 2.6em; font-size: 10pt; color: #444; }}
+
+        /* Objectifs de l'enquete (apres le sommaire, sur sa propre page) */
+        .objectives {{ page-break-after: always; }}
+        .objectives-title {{
+            font-size: 18pt; border-bottom: 2px solid #ddd;
+            padding-bottom: 0.3em; margin-bottom: 1em;
+        }}
+        .objectives-body {{ font-size: 11pt; line-height: 1.6; color: #1a1a1a; }}
     </style>
 </head>
 <body>
@@ -319,6 +346,7 @@ def _wrap_html(
         </div>
     </div>
     {toc_html}
+    {objectives_html}
     <h1 class="doc-title">{_escape(title)}</h1>
     {content_html}
 </body>
@@ -404,6 +432,7 @@ def render_pdf(
     tlp: Optional[str] = None,
     pap: Optional[str] = None,
     investigation_title: str = "",
+    investigation_objectives: Optional[str] = None,
 ) -> Tuple[bytes, str]:
     """Retourne (bytes PDF, filename).
 
@@ -419,12 +448,14 @@ def render_pdf(
     # Assainir AVANT d'injecter les ancres : nh3 retirerait les `id` sinon.
     sanitized = sanitize_editor_html(document.content_html or "")
     toc_html, anchored_content = _build_toc(sanitized)
+    objectives_html = _objectives_section(investigation_objectives)
 
     html_str = _wrap_html(
         document.title,
         investigation_title,
         anchored_content,
         toc_html,
+        objectives_html,
         cover_uri,
         markings,
     )

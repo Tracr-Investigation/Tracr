@@ -72,10 +72,28 @@
     "overdue": "Overdue",
     "close": "Close",
     "more": "+{{count}} more",
-    "days": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "days": [
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat"
+    ],
     "months": [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December"
     ],
     "priority": {
       "basse": "Low",
@@ -107,7 +125,9 @@
       "descPlaceholder": "Describe the investigation...",
       "cancel": "Cancel",
       "creating": "Creating...",
-      "create": "Create"
+      "create": "Create",
+      "objectivesLabel": "Objectives (optional)",
+      "objectivesPlaceholder": "What are the objectives of this investigation?"
     }
   },
   "investigationDetail": {
@@ -239,8 +259,12 @@
       "deleting": "Deleting...",
       "updated": "Investigation updated",
       "transferred": "Ownership transferred to {{pseudo}}",
-      "deleted": "Investigation deleted"
-    }
+      "deleted": "Investigation deleted",
+      "objectivesLabel": "Objectives",
+      "objectivesPlaceholder": "Investigation objectives (shown at the top of the PDF export)"
+    },
+    "objectivesTitle": "Objectives",
+    "noObjectives": "No objectives set"
   },
   "tasks": {
     "filterAll": "All",
@@ -505,7 +529,7 @@
   },
   "mfa": {
     "setupTitle": "Set up two-factor auth",
-    "setupSubtitle": "Required to secure your account",
+    "setupSubtitle": "Recommended to secure your account",
     "step1": "Install an authenticator app (Google Authenticator, Aegis, …).",
     "step2": "Scan the QR code below.",
     "step3": "Enter the 6-digit code to confirm.",
@@ -517,13 +541,15 @@
     "verify": "Verify",
     "back": "Back",
     "sectionTitle": "Two-factor authentication",
-    "sectionSubtitle": "Required - TOTP code from an authenticator app at each login.",
+    "sectionSubtitle": "Recommended - TOTP code from an authenticator app at each login.",
     "active": "Active",
     "reconfigure": "Reconfigure",
     "reconfigureTitle": "Reconfigure 2FA",
     "reconfigureSubtitle": "Confirm your password, then scan a new QR code.",
     "continue": "Continue",
-    "qrAlt": "TOTP QR code"
+    "qrAlt": "TOTP QR code",
+    "inactive": "Inactive",
+    "enable": "Enable"
   },
   "setupRecovery": {
     "title": "Save your recovery code",

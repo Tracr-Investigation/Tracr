@@ -42,7 +42,8 @@ async def create_investigation(
 ):
     ip = request.client.host if request.client else None
     investigation = investigation_service.create_investigation(
-        db, title=body.title, owner_id=user.id_user, description=body.description
+        db, title=body.title, owner_id=user.id_user, description=body.description,
+        objectives=body.objectives,
     )
     log_service.create_log(
         db,
@@ -57,6 +58,7 @@ async def create_investigation(
         "id_investigation": investigation.id_investigation,
         "title": investigation.title,
         "description": investigation.description,
+        "objectives": investigation.objectives,
     }
 
 
@@ -267,11 +269,12 @@ async def update_investigation(
     if investigation.owner_id != user.id_user:
         raise HTTPException(status_code=403, detail="Only the owner can update this investigation")
 
-    if body.title is None and body.description is None:
-        raise HTTPException(status_code=422, detail="At least one field (title or description) is required")
+    if body.title is None and body.description is None and body.objectives is None:
+        raise HTTPException(status_code=422, detail="At least one field (title, description or objectives) is required")
 
     updated = investigation_service.update_investigation(
-        db, investigation, title=body.title, description=body.description
+        db, investigation, title=body.title, description=body.description,
+        objectives=body.objectives,
     )
 
     ip = request.client.host if request.client else None
@@ -289,6 +292,7 @@ async def update_investigation(
         "id_investigation": updated.id_investigation,
         "title": updated.title,
         "description": updated.description,
+        "objectives": updated.objectives,
     }
 
 
