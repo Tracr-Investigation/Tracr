@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../../../services/api';
 import { StatusBadge } from '../../../components/StatusBadge';
-import { CircleDot, Plus, Pencil, Trash2, X } from 'lucide-react';
+import { SidePanel } from '../../../components/SidePanel';
+import { CircleDot, Plus, Pencil, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface StatusData {
@@ -17,12 +18,22 @@ interface ModalProps {
   onSave: () => void;
 }
 
-const StatusFormModal = ({ status, onClose, onSave }: ModalProps) => {
+const StatusFormPanel = ({ open, status, onClose, onSave }: ModalProps & { open: boolean }) => {
   const { t } = useTranslation();
-  const [name, setName] = useState(status?.name || '');
-  const [color, setColor] = useState(status?.color || '#8b5cf6');
+  const [name, setName] = useState('');
+  const [color, setColor] = useState('#8b5cf6');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // (Re)initialise les champs a chaque ouverture, selon le statut a editer.
+  useEffect(() => {
+    if (open) {
+      setName(status?.name || '');
+      setColor(status?.color || '#8b5cf6');
+      setError('');
+      setLoading(false);
+    }
+  }, [open, status]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,19 +51,12 @@ const StatusFormModal = ({ status, onClose, onSave }: ModalProps) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-overlay flex items-center justify-center z-50" onClick={onClose}>
-      <div className="bg-card/30 border border-border-subtle rounded-xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-text-default">
-            {status ? t('admin.statuses.editTitle') : t('admin.statuses.newTitle')}
-          </h3>
-          <button onClick={onClose} className="text-text-muted hover:text-text-default transition-colors"><X size={20} /></button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <SidePanel open={open} onClose={onClose} title={status ? t('admin.statuses.editTitle') : t('admin.statuses.newTitle')}>
+      <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto flex flex-col min-h-0">
+        <div className="px-6 py-5 space-y-5 flex-1">
           <div>
             <label className="block text-sm text-text-muted mb-1.5">{t('admin.statuses.nameLabel')}</label>
-            <input type="text" value={name} onChange={(e) => setName(e.target.value)} required maxLength={50}
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} required maxLength={50} autoFocus={open}
               className="w-full px-4 py-3 bg-input-bg border border-border rounded-xl text-text-default placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-border-focus transition-all"
               placeholder={t('admin.statuses.namePlaceholder')}
             />
@@ -79,18 +83,18 @@ const StatusFormModal = ({ status, onClose, onSave }: ModalProps) => {
           </div>
 
           {error && <p className="text-red-400 text-sm">{error}</p>}
+        </div>
 
-          <div className="flex justify-end gap-3 pt-2">
-            <button type="button" onClick={onClose} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-card/30 border border-border-subtle text-text-muted hover:bg-primary/10 hover:text-text-default transition-all">
-              {t('admin.statuses.cancel')}
-            </button>
-            <button type="submit" disabled={loading || !name.trim()} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-text-default border border-primary/30 hover:bg-primary/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
-              {loading ? t('admin.statuses.saving') : status ? t('admin.statuses.update') : t('admin.statuses.create')}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div className="flex justify-end gap-3 px-6 py-4 border-t border-border-subtle shrink-0">
+          <button type="button" onClick={onClose} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-card/30 border border-border-subtle text-text-muted hover:bg-primary/10 hover:text-text-default transition-all">
+            {t('admin.statuses.cancel')}
+          </button>
+          <button type="submit" disabled={loading || !name.trim()} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-text-default border border-primary/30 hover:bg-primary/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+            {loading ? t('admin.statuses.saving') : status ? t('admin.statuses.update') : t('admin.statuses.create')}
+          </button>
+        </div>
+      </form>
+    </SidePanel>
   );
 };
 
@@ -135,9 +139,12 @@ export const StatusesTab = () => {
   const [statuses, setStatuses] = useState<StatusData[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [showCreate, setShowCreate] = useState(false);
-  const [editStatus, setEditStatus] = useState<StatusData | undefined>(undefined);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [panelStatus, setPanelStatus] = useState<StatusData | undefined>(undefined);
   const [deleteStatus, setDeleteStatus] = useState<StatusData | undefined>(undefined);
+
+  const openCreate = () => { setPanelStatus(undefined); setPanelOpen(true); };
+  const openEdit = (s: StatusData) => { setPanelStatus(s); setPanelOpen(true); };
 
   const fetchStatuses = useCallback(async () => {
     setLoading(true);
@@ -155,8 +162,7 @@ export const StatusesTab = () => {
   useEffect(() => { fetchStatuses(); }, [fetchStatuses]);
 
   const handleSave = () => {
-    setShowCreate(false);
-    setEditStatus(undefined);
+    setPanelOpen(false);
     setDeleteStatus(undefined);
     fetchStatuses();
   };
@@ -182,7 +188,7 @@ export const StatusesTab = () => {
           </div>
         </div>
 
-        <button onClick={() => setShowCreate(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-text-default border border-primary/30 hover:bg-primary/30 transition-all">
+        <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-text-default border border-primary/30 hover:bg-primary/30 transition-all">
           <Plus size={16} />
           {t('admin.statuses.newStatus')}
         </button>
@@ -219,7 +225,7 @@ export const StatusesTab = () => {
                     <td className="px-6 py-4 text-text-muted text-sm">{formatDate(s.created_at)}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => setEditStatus(s)} className="p-2 rounded-lg bg-card/30 border border-border-subtle text-text-muted hover:bg-primary/20 hover:text-text-default transition-all" title={t('admin.statuses.editTooltip')}>
+                        <button onClick={() => openEdit(s)} className="p-2 rounded-lg bg-card/30 border border-border-subtle text-text-muted hover:bg-primary/20 hover:text-text-default transition-all" title={t('admin.statuses.editTooltip')}>
                           <Pencil size={14} />
                         </button>
                         <button onClick={() => setDeleteStatus(s)} className="p-2 rounded-lg bg-card border border-red-500/20 text-text-muted hover:bg-red-500/20 hover:text-red-400 transition-all" title={t('admin.statuses.deleteTooltip')}>
@@ -235,8 +241,7 @@ export const StatusesTab = () => {
         </div>
       </div>
 
-      {showCreate && <StatusFormModal onClose={() => setShowCreate(false)} onSave={handleSave} />}
-      {editStatus && <StatusFormModal status={editStatus} onClose={() => setEditStatus(undefined)} onSave={handleSave} />}
+      <StatusFormPanel open={panelOpen} status={panelStatus} onClose={() => setPanelOpen(false)} onSave={handleSave} />
       {deleteStatus && <DeleteModal status={deleteStatus} onClose={() => setDeleteStatus(undefined)} onSave={handleSave} />}
     </div>
   );
