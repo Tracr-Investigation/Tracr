@@ -157,6 +157,53 @@ export const api = {
         return data;
     },
 
+    // Etape 2 du login quand le MFA est actif : verifie le code TOTP.
+    loginMfa: async (mfaToken: string, code: string) => {
+        const response = await fetch(`${API_URL}/login/mfa`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({mfa_token: mfaToken, code}),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'MFA error'));
+        return data;
+    },
+
+    mfaSetup: async () => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/me/mfa/setup`, {
+            method: 'POST',
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'MFA setup error'));
+        return data as { secret: string; otpauth_uri: string; qr: string };
+    },
+
+    mfaEnable: async (code: string) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/me/mfa/enable`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+            body: JSON.stringify({code}),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'MFA enable error'));
+        return data as { mfa_enabled: boolean };
+    },
+
+    mfaDisable: async (password: string) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/me/mfa/disable`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`},
+            body: JSON.stringify({password}),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'MFA disable error'));
+        return data as { mfa_enabled: boolean };
+    },
+
     register: async (pseudo: string, password: string) => {
         const response = await fetch(`${API_URL}/register`, {
             method: 'POST',

@@ -3,11 +3,28 @@ from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session
 
 from services import user_service, log_service
-from utils.security import verify_token, create_token
-from utils.schemas import LoginRequest, RegisterRequest, ChangePasswordRequest, DeleteAccountRequest, UpdateLanguageRequest, ForceChangePasswordRequest, GenerateRecoveryRequest, RecoverPasswordRequest
+from utils.security import verify_token, create_token, create_mfa_challenge_token, verify_mfa_challenge_token
+from utils.schemas import LoginRequest, RegisterRequest, ChangePasswordRequest, DeleteAccountRequest, UpdateLanguageRequest, ForceChangePasswordRequest, GenerateRecoveryRequest, RecoverPasswordRequest, MfaEnableRequest, MfaDisableRequest, MfaLoginRequest
 from app.dependencies import get_db, limiter
 
 router = APIRouter()
+
+
+def _login_success(db: Session, user, ip: str | None) -> dict:
+    """Emet le jeton d'acces complet (mot de passe + MFA valides)."""
+    token = create_token(user.id_user)
+    user_service.update_last_login(db, user)
+    role = user_service.get_user_role(db, user.id_user)
+    log_service.create_log(db, "auth", "login", id_user=user.id_user, ip_address=ip)
+    return {
+        "token": token,
+        "id_user": user.id_user,
+        "pseudo": user.pseudo,
+        "role": role,
+        "language": user.language,
+        "must_change_password": user.must_change_password,
+        "mfa_enabled": user.mfa_enabled,
+    }
 
 
 @router.post("/login")
@@ -19,19 +36,30 @@ async def login(request: Request, body: LoginRequest, db: Session = Depends(get_
         log_service.create_log(db, "auth", "login_failed", detail=f"pseudo={body.pseudo}", ip_address=ip)
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    token = create_token(user.id_user)
-    user_service.update_last_login(db, user)
-    role = user_service.get_user_role(db, user.id_user)
-    log_service.create_log(db, "auth", "login", id_user=user.id_user, ip_address=ip)
+    if user.mfa_enabled:
+        log_service.create_log(db, "auth", "login_mfa_challenge", id_user=user.id_user, ip_address=ip)
+        return {"mfa_required": True, "mfa_token": create_mfa_challenge_token(user.id_user)}
 
-    return {
-        "token": token,
-        "id_user": user.id_user,
-        "pseudo": user.pseudo,
-        "role": role,
-        "language": user.language,
-        "must_change_password": user.must_change_password,
-    }
+    return _login_success(db, user, ip)
+
+
+@router.post("/login/mfa")
+@limiter.limit("5/minute")
+async def login_mfa(request: Request, body: MfaLoginRequest, db: Session = Depends(get_db)):
+    ip = request.client.host if request.client else None
+    user_id = verify_mfa_challenge_token(body.mfa_token)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="MFA session expired, please log in again")
+
+    user = user_service.get_user_by_id(db, user_id)
+    if not user or not user.is_active:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    if not user_service.verify_mfa_login(user, body.code):
+        log_service.create_log(db, "auth", "login_mfa_failed", id_user=user.id_user, ip_address=ip)
+        raise HTTPException(status_code=401, detail="Invalid authentication code")
+
+    return _login_success(db, user, ip)
 
 
 @router.post("/register")
@@ -61,6 +89,7 @@ async def register(
         "token": token,
         "language": "en",
         "recovery_words": recovery_words,
+        "mfa_enabled": False,
     }
 
 
@@ -83,7 +112,81 @@ async def get_me(request: Request, payload: dict = Depends(verify_token), db: Se
         "pseudo": user.pseudo,
         "role": role,
         "language": user.language,
+        "mfa_enabled": user.mfa_enabled,
     }
+
+
+@router.get("/me/mfa/status")
+async def mfa_status(payload: dict = Depends(verify_token), db: Session = Depends(get_db)):
+    user = user_service.get_user_by_id(db, payload["user_id"])
+    if not user or not user.is_active:
+        raise HTTPException(status_code=401, detail="User not found")
+    return {"mfa_enabled": user.mfa_enabled}
+
+
+@router.post("/me/mfa/setup")
+async def mfa_setup(
+    request: Request,
+    payload: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+):
+    """Genere un nouveau secret TOTP (non encore actif) et renvoie le QR a scanner."""
+    user = user_service.get_user_by_id(db, payload["user_id"])
+    if not user or not user.is_active:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    # Defensif : ne jamais ecraser un MFA deja actif (il faut passer par /disable).
+    if user.mfa_enabled:
+        raise HTTPException(status_code=400, detail="MFA already enabled; disable it first")
+
+    data = user_service.start_mfa_setup(db, user)
+    ip = request.client.host if request.client else None
+    log_service.create_log(db, "auth", "mfa_setup", id_user=user.id_user, ip_address=ip)
+    return data
+
+
+@router.post("/me/mfa/enable")
+async def mfa_enable(
+    request: Request,
+    body: MfaEnableRequest,
+    payload: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+):
+    """Confirme l'enrolment : valide un premier code et active le MFA."""
+    user = user_service.get_user_by_id(db, payload["user_id"])
+    if not user or not user.is_active:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    ip = request.client.host if request.client else None
+    if not user_service.confirm_mfa(db, user, body.code):
+        log_service.create_log(db, "auth", "mfa_enable_failed", id_user=user.id_user, ip_address=ip)
+        raise HTTPException(status_code=400, detail="Invalid authentication code")
+
+    log_service.create_log(db, "auth", "mfa_enabled", id_user=user.id_user, ip_address=ip)
+    return {"mfa_enabled": True}
+
+
+@router.post("/me/mfa/disable")
+async def mfa_disable(
+    request: Request,
+    body: MfaDisableRequest,
+    payload: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+):
+    """Reinitialise le MFA (verifie par mot de passe). L'utilisateur devra le
+    re-enroler puisque le MFA est obligatoire."""
+    user = user_service.get_user_by_id(db, payload["user_id"])
+    if not user or not user.is_active:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    ip = request.client.host if request.client else None
+    if not user_service.verify_password(body.password, user.password_hash):
+        log_service.create_log(db, "auth", "mfa_disable_failed", id_user=user.id_user, ip_address=ip)
+        raise HTTPException(status_code=400, detail="Incorrect password")
+
+    user_service.disable_mfa(db, user)
+    log_service.create_log(db, "auth", "mfa_disabled", id_user=user.id_user, ip_address=ip)
+    return {"mfa_enabled": False}
 
 
 @router.patch("/me/language")
@@ -192,6 +295,7 @@ async def recover_password(
         "pseudo": user.pseudo,
         "role": role,
         "language": user.language,
+        "mfa_enabled": user.mfa_enabled,
     }
 
 

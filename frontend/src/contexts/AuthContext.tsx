@@ -8,6 +8,7 @@ interface User {
   role: string;
   language: string;
   must_change_password?: boolean;
+  mfa_enabled?: boolean;
 }
 
 interface AuthContextType {
@@ -44,7 +45,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           if (response.ok) {
             const data = await response.json();
             const language = data.language ?? 'en';
-            setUser({ id_user: data.id_user, pseudo: data.pseudo, role: data.role, language });
+            setUser({ id_user: data.id_user, pseudo: data.pseudo, role: data.role, language, mfa_enabled: data.mfa_enabled });
             i18n.changeLanguage(language);
           } else if (response.status === 401 || response.status === 403) {
             localStorage.removeItem('token');

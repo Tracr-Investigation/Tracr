@@ -188,6 +188,19 @@ class RecoverPasswordRequest(BaseModel):
         return validate_password_strength(v)
 
 
+class MfaEnableRequest(BaseModel):
+    code: str = Field(min_length=6, max_length=10)
+
+
+class MfaDisableRequest(BaseModel):
+    password: str = Field(min_length=1, max_length=128)
+
+
+class MfaLoginRequest(BaseModel):
+    mfa_token: str = Field(min_length=1, max_length=2000)
+    code: str = Field(min_length=6, max_length=10)
+
+
 class DocumentCreateRequest(BaseModel):
     title: str = Field(min_length=1, max_length=255)
     content_html: str | None = Field(default="")

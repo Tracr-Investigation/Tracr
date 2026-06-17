@@ -503,6 +503,28 @@
     "recoveryDone": "Done",
     "recoveryGenerating": "Generating..."
   },
+  "mfa": {
+    "setupTitle": "Set up two-factor auth",
+    "setupSubtitle": "Required to secure your account",
+    "step1": "Install an authenticator app (Google Authenticator, Aegis, …).",
+    "step2": "Scan the QR code below.",
+    "step3": "Enter the 6-digit code to confirm.",
+    "cantScan": "Can't scan? Enter this key manually:",
+    "enableButton": "Enable two-factor auth",
+    "verifying": "Verifying…",
+    "signOut": "Sign out",
+    "loginPrompt": "Enter the 6-digit code from your authenticator app",
+    "verify": "Verify",
+    "back": "Back",
+    "sectionTitle": "Two-factor authentication",
+    "sectionSubtitle": "Required — TOTP code from an authenticator app at each login.",
+    "active": "Active",
+    "reconfigure": "Reconfigure",
+    "reconfigureTitle": "Reconfigure 2FA",
+    "reconfigureSubtitle": "Confirm your password, then scan a new QR code.",
+    "continue": "Continue",
+    "qrAlt": "TOTP QR code"
+  },
   "setupRecovery": {
     "title": "Save your recovery code",
     "subtitle": "Before accessing the app, write down your recovery phrase.",

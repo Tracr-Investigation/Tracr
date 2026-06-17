@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from sqlalchemy import Column, DateTime, String
+from sqlalchemy import Boolean, Column, DateTime, String, false
 from sqlmodel import Field, SQLModel
 from zoneinfo import ZoneInfo
 
@@ -36,4 +36,14 @@ class User(SQLModel, table=True):
     recovery_created_at: Optional[datetime] = Field(
         default=None,
         sa_column=Column(DateTime(timezone=True), nullable=True),
+    )
+    # MFA TOTP : secret base32 CHIFFRE (cf. utils.crypto) ; jamais en clair.
+    mfa_secret: Optional[str] = Field(
+        default=None,
+        sa_column=Column(String(512), nullable=True),
+    )
+    # True seulement apres confirmation d'un premier code (enrolment valide).
+    mfa_enabled: bool = Field(
+        default=False,
+        sa_column=Column(Boolean, nullable=False, server_default=false()),
     )

@@ -503,6 +503,28 @@
     "recoveryDone": "Terminer",
     "recoveryGenerating": "Génération..."
   },
+  "mfa": {
+    "setupTitle": "Configurer la double authentification",
+    "setupSubtitle": "Obligatoire pour sécuriser votre compte",
+    "step1": "Installez une application d'authentification (Google Authenticator, Aegis, …).",
+    "step2": "Scannez le QR code ci-dessous.",
+    "step3": "Saisissez le code à 6 chiffres pour confirmer.",
+    "cantScan": "Impossible de scanner ? Saisissez cette clé manuellement :",
+    "enableButton": "Activer la double authentification",
+    "verifying": "Vérification…",
+    "signOut": "Se déconnecter",
+    "loginPrompt": "Saisissez le code à 6 chiffres de votre application d'authentification",
+    "verify": "Vérifier",
+    "back": "Retour",
+    "sectionTitle": "Double authentification",
+    "sectionSubtitle": "Obligatoire — code TOTP d'une application d'authentification à chaque connexion.",
+    "active": "Active",
+    "reconfigure": "Reconfigurer",
+    "reconfigureTitle": "Reconfigurer la 2FA",
+    "reconfigureSubtitle": "Confirmez votre mot de passe, puis scannez un nouveau QR code.",
+    "continue": "Continuer",
+    "qrAlt": "QR code TOTP"
+  },
   "setupRecovery": {
     "title": "Sauvegarde de votre code de récupération",
     "subtitle": "Avant d'accéder à l'application, notez votre phrase de récupération.",

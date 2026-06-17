@@ -65,7 +65,7 @@ export const Settings = () => {
   return (
     <Layout>
       <div className="px-6 pt-6 pb-8">
-        <h1 className="text-2xl font-bold text-text-default mb-1">{t('settings.title')}</h1>
+        <h1 className="text-xl font-bold text-text-default mb-1">{t('settings.title')}</h1>
         <p className="text-text-muted text-sm mb-6">{t('settings.subtitle')}</p>
 
         <Tabs tabs={TABS} defaultTab="security" />

@@ -18,3 +18,5 @@ staticmap
 minio
 pytesseract
 Pillow
+pyotp
+qrcode
