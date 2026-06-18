@@ -19,6 +19,7 @@ import {api} from '../../../services/api';
 import {useToast} from '../../../contexts/ToastContext';
 import {formatRelativeDate} from '../../../utils/date';
 import {useTranslation} from 'react-i18next';
+import {HelpTooltip} from '../../../components/HelpTooltip';
 
 interface CollaboratorData {
     id_collaborator: number;
@@ -393,7 +394,9 @@ const TaskDetailModal = ({
                             <h3 className="text-text-default font-semibold truncate">{task.title}</h3>
                         </div>
                         <div className="flex items-center gap-2 flex-wrap">
+                            <HelpTooltip helpKey="tasks.priority">
                             <PriorityBadge priority={task.priority}/>
+                            </HelpTooltip>
                             <TaskStatusBadge status={task.status}/>
                         </div>
                     </div>
@@ -649,6 +652,7 @@ export const TasksTab = ({
         <div className="space-y-5">
             <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div className="flex items-center gap-2 flex-wrap">
+                    <HelpTooltip helpKey="tasks.overview">
                     <div className="flex bg-card/30 border border-border-subtle rounded-lg p-0.5">
                         {(['all', 'shared', 'private'] as const).map((v) => (
                             <button
@@ -664,7 +668,9 @@ export const TasksTab = ({
                             </button>
                         ))}
                     </div>
+                    </HelpTooltip>
 
+                    <HelpTooltip helpKey="tasks.visibility">
                     <div className="relative" ref={statusDropdownRef}>
                         <button
                             onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
@@ -702,6 +708,7 @@ export const TasksTab = ({
                             </div>
                         )}
                     </div>
+                    </HelpTooltip>
                 </div>
 
                 <div className="flex items-center gap-2">

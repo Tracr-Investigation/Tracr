@@ -42,6 +42,7 @@ import type {EntityData, RelationData} from '../../../services/api';
 import {useToast} from '../../../contexts/ToastContext';
 import {useTranslation} from 'react-i18next';
 import {EnrichmentPivots} from '../../../components/osint/EnrichmentPivots';
+import {HelpTooltip} from '../../../components/HelpTooltip';
 
 // ─── Entity types config ─────────────────────────────────────────────────────
 
@@ -606,6 +607,7 @@ export const GraphTab = ({
                 }
             `}</style>
 
+            <HelpTooltip helpKey="graph.overview" placement="bottom">
             <div ref={graphWrapRef} className="rounded-xl border border-border overflow-hidden" style={{height: '580px'}}>
                 <ReactFlow
                     nodes={nodes}
@@ -639,6 +641,7 @@ export const GraphTab = ({
                     <Panel position="top-left">
                         <div className="flex items-center gap-2">
                             {canEdit && (
+                                <HelpTooltip helpKey="graph.addEntity">
                                 <button
                                     onClick={() => { setEditingEntity(null); setShowEntityModal(true); }}
                                     className="flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary/80 text-white rounded-lg text-xs font-medium shadow transition-all"
@@ -646,6 +649,7 @@ export const GraphTab = ({
                                     <Plus size={13}/>
                                     {t('investigationDetail.graph.addEntity')}
                                 </button>
+                                </HelpTooltip>
                             )}
 
                             {canEdit && (
@@ -668,6 +672,7 @@ export const GraphTab = ({
                             )}
 
                             {/* Export dropdown */}
+                            <HelpTooltip helpKey="graph.export">
                             <div className="relative" ref={exportMenuRef}>
                                 <button
                                     onClick={() => setShowExportMenu(v => !v)}
@@ -697,6 +702,7 @@ export const GraphTab = ({
                                     </div>
                                 )}
                             </div>
+                            </HelpTooltip>
                         </div>
                     </Panel>
 
@@ -713,10 +719,13 @@ export const GraphTab = ({
                     )}
                 </ReactFlow>
             </div>
+            </HelpTooltip>
 
+            <HelpTooltip helpKey="graph.linkEntities">
             <p className="text-text-dim text-xs mt-2 text-center">
                 {canEdit ? t('investigationDetail.graph.hint') : t('investigationDetail.graph.hintReadonly')}
             </p>
+            </HelpTooltip>
 
             <EntityPanel
                 investigationId={investigationId}

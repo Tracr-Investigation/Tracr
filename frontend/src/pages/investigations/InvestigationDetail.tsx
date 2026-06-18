@@ -918,6 +918,7 @@ export const InvestigationDetail = () => {
                         </div>
 
                         <Tabs
+                            helpKey="tabs.overview"
                             tabs={[
                                 {
                                     id: 'details',

@@ -1,5 +1,6 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
+import { HelpTooltip } from './HelpTooltip';
 
 export interface TabItem {
   id: string;
@@ -11,6 +12,7 @@ export interface TabItem {
 interface TabsProps {
   tabs: TabItem[];
   defaultTab?: string;
+  helpKey?: string;
 }
 
 const getHashTab = (): string | null => {
@@ -19,7 +21,7 @@ const getHashTab = (): string | null => {
   return hash || null;
 };
 
-export const Tabs = ({ tabs, defaultTab }: TabsProps) => {
+export const Tabs = ({ tabs, defaultTab, helpKey }: TabsProps) => {
   const hasTab = (id: string | null): id is string => !!id && tabs.some((t) => t.id === id);
 
   const [activeTab, setActiveTab] = useState(() => {
@@ -49,6 +51,7 @@ export const Tabs = ({ tabs, defaultTab }: TabsProps) => {
 
   return (
     <div>
+      <HelpTooltip helpKey={helpKey ?? ''} placement="bottom">
       <div className="border-b border-border-subtle mb-6">
         <nav className="flex gap-1 overflow-x-auto -mb-px">
           {tabs.map((tab) => {
@@ -75,6 +78,7 @@ export const Tabs = ({ tabs, defaultTab }: TabsProps) => {
           })}
         </nav>
       </div>
+      </HelpTooltip>
 
       {current?.content}
     </div>

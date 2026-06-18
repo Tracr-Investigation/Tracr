@@ -4,8 +4,8 @@ Application full-stack de gestion d'enquêtes et d'investigations — backend Fa
 
 ## Prérequis
 
-- **Docker** et **Docker Compose**
-- **Git**
+- [Docker](https://docs.docker.com/get-docker/) et Docker Compose
+- Git
 
 ## Installation
 
@@ -22,34 +22,30 @@ cd Tracr
 cp .env.example .env
 ```
 
-Éditez `.env` :
+Remplissez les variables vides dans `.env`. Les valeurs à définir obligatoirement :
 
-```env
-# PostgreSQL
-POSTGRES_USER=usertracr
-POSTGRES_PASSWORD=votre_mot_de_passe
-POSTGRES_DB=tracrdb
-POSTGRES_HOST=postgres
-POSTGRES_PORT=5432
+| Variable | Description |
+|---|---|
+| `POSTGRES_USER` | Nom d'utilisateur PostgreSQL |
+| `POSTGRES_PASSWORD` | Mot de passe PostgreSQL |
+| `POSTGRES_DB` | Nom de la base de données |
+| `DATABASE_URL` | Construire à partir des 3 valeurs ci-dessus (voir format ci-dessous) |
+| `SECRET_KEY` | Clé aléatoire pour signer les JWT |
+| `MINIO_ACCESS_KEY` | Identifiant MinIO |
+| `MINIO_SECRET_KEY` | Mot de passe MinIO (min. 8 caractères) |
 
-# Redis
-REDIS_HOST=redis
-REDIS_PORT=6379
-
-# URLs de connexion
-DATABASE_URL=postgresql://usertracr:votre_mot_de_passe@postgres:5432/tracrdb
-REDIS_URL=redis://redis:6379
-
-# FastAPI
-SECRET_KEY=votre_cle_secrete
-DEBUG=True
+**Format `DATABASE_URL`** :
 ```
+postgresql://POSTGRES_USER:POSTGRES_PASSWORD@postgres:5432/POSTGRES_DB
+```
+Remplacez `POSTGRES_USER`, `POSTGRES_PASSWORD` et `POSTGRES_DB` par vos valeurs.
 
-Générer une clé secrète :
-
+**Générer la `SECRET_KEY`** :
 ```bash
 python -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
+
+> **Hôtes Docker** : laissez `POSTGRES_HOST=postgres`, `REDIS_HOST=redis` et `MINIO_ENDPOINT=minio:9000` tels quels — ce sont les noms des containers dans le réseau Docker. Ne les remplacez par `localhost` que si vous lancez les services hors Docker.
 
 ### 3. Démarrer
 
@@ -57,39 +53,62 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
 docker-compose up -d
 ```
 
-Les migrations sont appliquées automatiquement au démarrage du backend.
+Les migrations sont appliquées automatiquement au démarrage du backend. Vérifiez que tout est opérationnel :
+
+```bash
+docker-compose ps
+```
+
+Tous les services doivent afficher `healthy` ou `Up`. L'application est accessible sur `http://localhost:5173`.
+
+### Après un `git pull`
+
+Si `package.json` ou `requirements.txt` ont changé, reconstruire les images avant de relancer :
+
+```bash
+docker-compose build && docker-compose up -d
+```
 
 ## Commandes
-
-### Docker
 
 ```bash
 docker-compose up -d          # Démarrer tous les services
 docker-compose down           # Arrêter
 docker-compose logs -f        # Logs en temps réel
+docker-compose logs -f backend   # Logs d'un service spécifique
 ```
 
 ### Migrations Alembic
 
 ```bash
-# Appliquer les migrations
-docker-compose exec backend alembic upgrade head
-
-# Créer une nouvelle migration
-docker-compose exec backend alembic revision --autogenerate -m "description"
+docker-compose exec backend alembic upgrade head                          # Appliquer
+docker-compose exec backend alembic revision --autogenerate -m "desc"    # Créer
 ```
 
-### Frontend (hors Docker)
+### Développement hors Docker
+
+<details>
+<summary>Frontend</summary>
+
+Créer `frontend/.env` :
+```env
+VITE_API_URL=http://localhost:8000
+VITE_WS_URL=ws://localhost:1234
+```
 
 ```bash
 cd frontend
 npm install
-npm run dev      # Port 5173
+npm run dev      # http://localhost:5173
 npm run build
 npm run lint
 ```
+</details>
 
-### Backend (hors Docker)
+<details>
+<summary>Backend</summary>
+
+Mettre à jour `.env` : remplacer `POSTGRES_HOST=postgres` par `POSTGRES_HOST=localhost`, `REDIS_HOST=redis` par `REDIS_HOST=localhost`, et `MINIO_ENDPOINT=minio:9000` par `MINIO_ENDPOINT=localhost:9000`.
 
 ```bash
 cd backend
@@ -100,6 +119,7 @@ pip install -r requirements.txt
 alembic upgrade head
 python -m uvicorn app.main:app --reload
 ```
+</details>
 
 ## Tests
 

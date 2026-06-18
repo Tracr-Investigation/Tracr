@@ -14,7 +14,88 @@
     "expand": "Déplier",
     "collapseShortcut": "Replier (Ctrl+B)",
     "expandShortcut": "Déplier (Ctrl+B)",
-    "help": "Documentation"
+    "help": "Documentation",
+    "helpMode": "Mode aide"
+  },
+  "help": {
+    "graph": {
+      "overview": {
+        "title": "Graphe d'entités",
+        "description": "Ce graphe vous permet de visualiser les relations entre les entités (personnes, organisations, IP…) impliquées dans l'enquête.",
+        "steps": [
+          "Cliquez « Ajouter une entité » pour créer un nœud",
+          "Glissez d'un nœud vers un autre pour créer un lien",
+          "Cliquez sur un nœud ou une arête pour l'éditer ou le supprimer"
+        ]
+      },
+      "addEntity": {
+        "title": "Ajouter une entité",
+        "description": "Créez un nouveau nœud dans le graphe. Choisissez un type (Personne, IP, Domaine…), donnez-lui un libellé et une valeur facultative.",
+        "steps": [
+          "Sélectionnez le type d'entité",
+          "Remplissez le libellé (requis) et la valeur (facultatif)",
+          "Cliquez sur Enregistrer, le nœud apparaît sur le graphe"
+        ]
+      },
+      "linkEntities": {
+        "title": "Relier des entités",
+        "description": "Tracez une relation entre deux nœuds en glissant depuis le bord d'un nœud vers un autre. Vous pouvez libeller le lien.",
+        "steps": [
+          "Survolez un nœud jusqu'à voir apparaître la poignée de connexion",
+          "Glissez vers le nœud cible et relâchez",
+          "Saisissez un libellé dans la boîte de dialogue (facultatif)"
+        ]
+      },
+      "export": {
+        "title": "Exporter le graphe",
+        "description": "Exportez en PNG (image) pour l'inclure dans un rapport, ou en JSON pour réimporter ou partager les données complètes du graphe."
+      }
+    },
+    "timeline": {
+      "overview": {
+        "title": "Chronologie de l'enquête",
+        "description": "Journal chronologique de tous les événements de cette enquête : documents créés, tâches mises à jour, collaborateurs ajoutés, etc.",
+        "steps": [
+          "Faites défiler vers le bas pour charger les événements plus anciens",
+          "Chaque événement affiche l'auteur, la date et une courte description",
+          "Les icônes indiquent la catégorie de l'événement (document, tâche, entité…)"
+        ]
+      }
+    },
+    "tasks": {
+      "overview": {
+        "title": "Tâches",
+        "description": "Les tâches permettent d'assigner des éléments de travail aux collaborateurs. Utilisez les filtres pour n'afficher que les tâches pertinentes.",
+        "steps": [
+          "Filtrez par visibilité (partagée ou privée) et par statut",
+          "Cliquez sur une tâche pour voir le détail et ajouter des commentaires",
+          "Cochez la case pour marquer une tâche comme terminée"
+        ]
+      },
+      "priority": {
+        "title": "Niveaux de priorité",
+        "description": "Chaque tâche a une priorité : Basse, Normale, Haute ou Urgente. Les tâches en retard sont mises en évidence en rouge quelle que soit leur priorité."
+      },
+      "visibility": {
+        "title": "Tâches privées vs partagées",
+        "description": "Une tâche privée n'est visible que par vous. Une tâche partagée est visible par tous les collaborateurs de cette enquête."
+      }
+    },
+    "tabs": {
+      "overview": {
+        "title": "Onglets de l'enquête",
+        "description": "Chaque onglet donne accès à un aspect différent de l'enquête.",
+        "steps": [
+          "Détails : description et métadonnées",
+          "Tâches : éléments de travail et assignations",
+          "Documents : documents texte collaboratifs",
+          "Sources : captures web sauvegardées",
+          "Graphe : carte des relations entre entités",
+          "Chronologie : journal d'activité",
+          "Carte : entités géolocalisées"
+        ]
+      }
+    }
   },
   "home": {
     "title": "Tableau de bord",

@@ -9,8 +9,9 @@ import { useSidebarStore } from '../stores/sidebarStore';
 import {
     FileSearch, FileText, Settings, Shield, LogOut,
     ChevronsLeft, ChevronsRight, Menu, X, Bell,
-    LayoutDashboard, Calendar, Moon, Sun, BookOpen,
+    LayoutDashboard, Calendar, Moon, Sun, BookOpen, HelpCircle,
 } from 'lucide-react';
+import { useHelpStore } from '../stores/helpStore';
 
 // ── Tooltip (mode replié) ───────────────────────────────────────────────────────
 
@@ -105,6 +106,7 @@ export const Sidebar = () => {
     const [peeking, setPeeking] = useState(false);
     const peekTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const { collapsed, toggle } = useSidebarStore();
+    const { isHelpMode, toggle: toggleHelp } = useHelpStore();
     const { user, logout } = useAuth();
     const { unreadCount } = useNotifications();
     const { mode, toggleMode } = useThemeStore();
@@ -154,7 +156,7 @@ export const Sidebar = () => {
         return () => window.removeEventListener('keydown', onKey);
     }, [toggle]);
 
-    const mainItems: { icon: React.ElementType; label: string; path?: string; href?: string }[] = [
+    const mainItems: { icon: React.ElementType; label: string; path?: string; href?: string; action?: string }[] = [
         { icon: LayoutDashboard, label: t('sidebar.dashboard'),      path: '/' },
         { icon: FileSearch,      label: t('sidebar.investigations'),  path: '/investigations' },
         { icon: Calendar,        label: t('sidebar.calendar'),        path: '/calendar' },
@@ -162,6 +164,7 @@ export const Sidebar = () => {
         { icon: Settings,        label: t('sidebar.settings'),        path: '/settings' },
         ...(isAdmin ? [{ icon: Shield, label: t('sidebar.administration'), path: '/admin' }] : []),
         { icon: BookOpen,        label: t('sidebar.help'),            href: '/docs/' },
+        { icon: HelpCircle,      label: t('sidebar.helpMode'),        action: 'toggleHelp' },
     ];
 
     const initials = user?.pseudo ? user.pseudo.slice(0, 2).toUpperCase() : 'U';
@@ -216,12 +219,17 @@ export const Sidebar = () => {
                 <nav className="flex-1 overflow-y-auto py-3 px-2 flex flex-col gap-0.5">
                     {mainItems.map(item => (
                         <NavItem
-                            key={item.path ?? item.href}
+                            key={item.path ?? item.href ?? item.action}
                             icon={item.icon}
                             label={item.label}
-                            active={item.path ? isActive(item.path) : false}
+                            active={
+                                item.action === 'toggleHelp'
+                                    ? isHelpMode
+                                    : item.path ? isActive(item.path) : false
+                            }
                             collapsed={effectiveCollapsed}
                             onClick={() => {
+                                if (item.action === 'toggleHelp') { toggleHelp(); return; }
                                 if (item.href) { window.open(item.href, '_blank'); return; }
                                 if (item.path) nav(item.path);
                             }}
