@@ -16,3 +16,7 @@ nh3
 geopy
 staticmap
 minio
+pytesseract
+Pillow
+pyotp
+qrcode

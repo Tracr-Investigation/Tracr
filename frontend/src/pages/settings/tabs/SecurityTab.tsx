@@ -4,13 +4,35 @@ import {useAuth} from '../../../contexts/AuthContext';
 import {PasswordStrength} from '../../../components/PasswordStrength';
 import {isPasswordValid} from '../../../utils/passwordValidation';
 import {api} from '../../../services/api';
-import {Shield, Eye, EyeOff, Trash2, AlertTriangle, KeyRound, Copy, Check, X} from 'lucide-react';
+import {Shield, Eye, EyeOff, Trash2, AlertTriangle, KeyRound, Copy, Check, X, Smartphone} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 
 export const SecurityTab = () => {
     const {t} = useTranslation();
-    const {logout} = useAuth();
+    const {logout, user, login} = useAuth();
     const navigate = useNavigate();
+
+    const [showMfaModal, setShowMfaModal] = useState(false);
+    const [mfaPassword, setMfaPassword] = useState('');
+    const [showMfaPassword, setShowMfaPassword] = useState(false);
+    const [mfaError, setMfaError] = useState('');
+    const [mfaLoading, setMfaLoading] = useState(false);
+
+    const handleReconfigureMfa = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setMfaError('');
+        setMfaLoading(true);
+        try {
+            await api.mfaDisable(mfaPassword);
+            const token = localStorage.getItem('token');
+            if (user && token) login({...user, mfa_enabled: false}, token);
+            navigate('/setup-mfa');
+        } catch (err: unknown) {
+            setMfaError(err instanceof Error ? err.message : 'Error');
+        } finally {
+            setMfaLoading(false);
+        }
+    };
 
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -159,7 +181,7 @@ export const SecurityTab = () => {
                         <Shield size={22} className="text-primary"/>
                     </div>
                     <div>
-                        <h2 className="text-lg font-semibold text-text-default">{t('security.passwordTitle')}</h2>
+                        <h2 className="text-base font-semibold text-text-default">{t('security.passwordTitle')}</h2>
                         <p className="text-sm text-text-muted">{t('security.passwordSubtitle')}</p>
                     </div>
                 </div>
@@ -230,7 +252,7 @@ export const SecurityTab = () => {
                         </div>
                     )}
 
-                    <button type="submit" disabled={loading} className="w-full py-3 text-text-default font-semibold rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all" style={{background: 'var(--theme-primary)'}}>
+                    <button type="submit" disabled={loading} className="w-full py-3 !text-white font-semibold rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all" style={{background: 'var(--theme-primary)'}}>
                         {loading ? t('security.updating') : t('security.changePassword')}
                     </button>
                 </form>
@@ -244,7 +266,7 @@ export const SecurityTab = () => {
                         <KeyRound size={22} className="text-primary"/>
                     </div>
                     <div>
-                        <h2 className="text-lg font-semibold text-text-default">{t('security.recoveryTitle')}</h2>
+                        <h2 className="text-base font-semibold text-text-default">{t('security.recoveryTitle')}</h2>
                         <p className="text-sm text-text-muted">{t('security.recoverySubtitle')}</p>
                     </div>
                 </div>
@@ -272,6 +294,50 @@ export const SecurityTab = () => {
                 </div>
             </div>
 
+            {/* Two-factor authentication (TOTP) section */}
+            <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-xl" style={{background: 'color-mix(in srgb, var(--theme-primary) 15%, transparent)'}}>
+                        <Smartphone size={22} className="text-primary"/>
+                    </div>
+                    <div>
+                        <h2 className="text-base font-semibold text-text-default">{t('mfa.sectionTitle')}</h2>
+                        <p className="text-sm text-text-muted">{t('mfa.sectionSubtitle')}</p>
+                    </div>
+                </div>
+
+                <div className="h-px bg-primary/10"/>
+
+                <div className="flex items-center justify-between">
+                    {user?.mfa_enabled ? (
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20">
+                            {t('mfa.active')}
+                        </span>
+                    ) : (
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                            {t('mfa.inactive')}
+                        </span>
+                    )}
+                    {user?.mfa_enabled ? (
+                        <button
+                            onClick={() => { setMfaPassword(''); setMfaError(''); setShowMfaModal(true); }}
+                            className="px-4 py-2 text-sm font-medium rounded-xl transition-all"
+                            style={{background: 'color-mix(in srgb, var(--theme-primary) 12%, transparent)', border: '1px solid color-mix(in srgb, var(--theme-primary) 25%, transparent)', color: 'var(--theme-primary)'}}
+                        >
+                            {t('mfa.reconfigure')}
+                        </button>
+                    ) : (
+                        <button
+                            onClick={() => navigate('/setup-mfa')}
+                            className="px-4 py-2 text-sm font-medium rounded-xl transition-all"
+                            style={{background: 'color-mix(in srgb, var(--theme-primary) 12%, transparent)', border: '1px solid color-mix(in srgb, var(--theme-primary) 25%, transparent)', color: 'var(--theme-primary)'}}
+                        >
+                            {t('mfa.enable')}
+                        </button>
+                    )}
+                </div>
+            </div>
+
             {/* Delete account section */}
             <div className="space-y-6">
                 <div className="flex items-center gap-3">
@@ -279,7 +345,7 @@ export const SecurityTab = () => {
                         <Trash2 size={22} className="text-red-400"/>
                     </div>
                     <div>
-                        <h2 className="text-lg font-semibold text-text-default">{t('security.deleteTitle')}</h2>
+                        <h2 className="text-base font-semibold text-text-default">{t('security.deleteTitle')}</h2>
                         <p className="text-sm text-red-400">{t('security.deleteSubtitle')}</p>
                     </div>
                 </div>
@@ -394,6 +460,55 @@ export const SecurityTab = () => {
                 </div>
             )}
 
+            {/* MFA reconfigure modal */}
+            {showMfaModal && (
+                <div className="fixed inset-0 bg-overlay backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowMfaModal(false)}>
+                    <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md space-y-5" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-3">
+                            <div className="p-2.5 rounded-xl" style={{background: 'color-mix(in srgb, var(--theme-primary) 15%, transparent)'}}>
+                                <Smartphone size={22} className="text-primary"/>
+                            </div>
+                            <div>
+                                <h3 className="text-base font-semibold text-text-default">{t('mfa.reconfigureTitle')}</h3>
+                                <p className="text-sm text-text-muted">{t('mfa.reconfigureSubtitle')}</p>
+                            </div>
+                        </div>
+
+                        <form onSubmit={handleReconfigureMfa} className="space-y-4">
+                            <div className="relative">
+                                <input
+                                    type={showMfaPassword ? 'text' : 'password'}
+                                    value={mfaPassword}
+                                    onChange={(e) => setMfaPassword(e.target.value)}
+                                    className="w-full px-4 py-3 pr-12 bg-input-bg border border-border rounded-xl text-text-default placeholder-text-dim focus:outline-none focus:border-[var(--theme-primary)] transition-colors"
+                                    placeholder={t('security.passwordPlaceholder')}
+                                    required
+                                    autoFocus
+                                />
+                                <button type="button" onClick={() => setShowMfaPassword(!showMfaPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-dim hover:text-text-muted transition-colors">
+                                    {showMfaPassword ? <EyeOff size={18}/> : <Eye size={18}/>}
+                                </button>
+                            </div>
+
+                            {mfaError && (
+                                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+                                    <p className="text-red-400 text-sm">{mfaError}</p>
+                                </div>
+                            )}
+
+                            <div className="flex gap-3">
+                                <button type="button" onClick={() => setShowMfaModal(false)} className="flex-1 py-3 bg-card border border-border text-text-muted font-medium rounded-xl hover:bg-primary/10 hover:text-text-default transition-all">
+                                    {t('security.cancel')}
+                                </button>
+                                <button type="submit" disabled={mfaLoading || !mfaPassword} className="flex-1 py-3 !text-white font-semibold rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all" style={{background: 'var(--theme-primary)'}}>
+                                    {mfaLoading ? '…' : t('mfa.continue')}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
             {/* Delete confirmation modal */}
             {showDeleteModal && (
                 <div className="fixed inset-0 bg-overlay backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={closeDeleteModal}>
@@ -403,7 +518,7 @@ export const SecurityTab = () => {
                                 <AlertTriangle size={22} className="text-red-400"/>
                             </div>
                             <div>
-                                <h3 className="text-lg font-semibold text-text-default">{t('security.confirmDeletion')}</h3>
+                                <h3 className="text-base font-semibold text-text-default">{t('security.confirmDeletion')}</h3>
                                 <p className="text-sm text-red-400">{t('security.confirmDeletionSubtitle')}</p>
                             </div>
                         </div>

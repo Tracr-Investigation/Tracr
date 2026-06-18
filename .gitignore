@@ -34,10 +34,12 @@ build/
 *.log
 
 
+security-reports/
+*.sarif
+
+
 # Add manually
 
 
-/CLAUDE.md
 /notesave.md
-/.claude/
 /backend/.cache/

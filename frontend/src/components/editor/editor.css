@@ -1,6 +1,6 @@
 .prose-document .ProseMirror {
   outline: none;
-  color: #e2e8f0;
+  color: var(--text-default);
   font-size: 1rem;
   line-height: 1.8;
   min-height: 400px;
@@ -15,7 +15,7 @@
   font-weight: 800;
   line-height: 1.2;
   margin-top: 1.4em;
-  color: #fff;
+  color: var(--text-default);
 }
 
 .prose-document .ProseMirror h2 {
@@ -23,7 +23,7 @@
   font-weight: 700;
   line-height: 1.3;
   margin-top: 1.2em;
-  color: #fff;
+  color: var(--text-default);
 }
 
 .prose-document .ProseMirror h3 {
@@ -31,19 +31,19 @@
   font-weight: 600;
   line-height: 1.4;
   margin-top: 1em;
-  color: #fff;
+  color: var(--text-default);
 }
 
 .prose-document .ProseMirror p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
-  color: #6b7280;
+  color: var(--text-dim);
   pointer-events: none;
   height: 0;
   float: left;
 }
 
 .prose-document .ProseMirror a {
-  color: #8b5cf6;
+  color: var(--theme-primary);
   text-decoration: underline;
   cursor: pointer;
 }
@@ -96,22 +96,22 @@
 
 .prose-document .ProseMirror ul[data-type="taskList"] li[data-checked="true"] > div {
   text-decoration: line-through;
-  color: #6b7280;
+  color: var(--text-dim);
 }
 
 /* Blockquote */
 .prose-document .ProseMirror blockquote {
-  border-left: 4px solid #8b5cf6;
+  border-left: 4px solid var(--theme-primary);
   margin-left: 0;
   padding-left: 1em;
-  color: #a1a1aa;
+  color: var(--text-muted);
   font-style: italic;
 }
 
 /* Code */
 .prose-document .ProseMirror code {
-  background: rgba(139, 92, 246, 0.15);
-  color: #c4b5fd;
+  background: color-mix(in srgb, var(--theme-primary) 14%, transparent);
+  color: var(--theme-primary);
   border-radius: 3px;
   padding: 0.15em 0.35em;
   font-family: 'Fira Code', 'Cascadia Code', monospace;
@@ -119,8 +119,9 @@
 }
 
 .prose-document .ProseMirror pre {
-  background: #0a0a14;
-  color: #e2e8f0;
+  background: var(--bg-input);
+  color: var(--text-default);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
   padding: 1em;
   overflow-x: auto;
@@ -145,13 +146,13 @@
 /* Horizontal rule */
 .prose-document .ProseMirror hr {
   border: none;
-  border-top: 2px solid rgba(139, 92, 246, 0.2);
+  border-top: 2px solid var(--border-subtle);
   margin: 1.5em 0;
 }
 
 /* Selection */
 .prose-document .ProseMirror ::selection {
-  background: rgba(139, 92, 246, 0.3);
+  background: color-mix(in srgb, var(--theme-primary) 30%, transparent);
 }
 
 /* Highlight (mark) */

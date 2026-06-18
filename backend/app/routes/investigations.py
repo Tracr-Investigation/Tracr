@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, Response, UploadFile
 from sqlmodel import Session
 
-from services import user_service, investigation_service, log_service, status_service, collaborator_service, category_service
+from services import user_service, investigation_service, log_service, status_service, collaborator_service, category_service, storage_service
 from services.notification_emitter import create_and_emit
 from utils.security import verify_token
 from utils.schemas import InvestigationCreateRequest, InvestigationUpdateRequest, InvestigationTransferRequest, CollaboratorInviteRequest, CollaboratorUpdateRequest
@@ -42,7 +42,8 @@ async def create_investigation(
 ):
     ip = request.client.host if request.client else None
     investigation = investigation_service.create_investigation(
-        db, title=body.title, owner_id=user.id_user, description=body.description
+        db, title=body.title, owner_id=user.id_user, description=body.description,
+        objectives=body.objectives,
     )
     log_service.create_log(
         db,
@@ -57,6 +58,7 @@ async def create_investigation(
         "id_investigation": investigation.id_investigation,
         "title": investigation.title,
         "description": investigation.description,
+        "objectives": investigation.objectives,
     }
 
 
@@ -267,11 +269,12 @@ async def update_investigation(
     if investigation.owner_id != user.id_user:
         raise HTTPException(status_code=403, detail="Only the owner can update this investigation")
 
-    if body.title is None and body.description is None:
-        raise HTTPException(status_code=422, detail="At least one field (title or description) is required")
+    if body.title is None and body.description is None and body.objectives is None:
+        raise HTTPException(status_code=422, detail="At least one field (title, description or objectives) is required")
 
     updated = investigation_service.update_investigation(
-        db, investigation, title=body.title, description=body.description
+        db, investigation, title=body.title, description=body.description,
+        objectives=body.objectives,
     )
 
     ip = request.client.host if request.client else None
@@ -289,7 +292,118 @@ async def update_investigation(
         "id_investigation": updated.id_investigation,
         "title": updated.title,
         "description": updated.description,
+        "objectives": updated.objectives,
     }
+
+
+#  Image de couverture (page de garde des exports PDF)
+_COVER_MIME_EXT = {
+    "image/png": "png",
+    "image/jpeg": "jpg",
+    "image/webp": "webp",
+    "image/gif": "gif",
+}
+_COVER_EXT_MIME = {ext: mime for mime, ext in _COVER_MIME_EXT.items()}
+_MAX_COVER_BYTES = 8 * 1024 * 1024  # 8 Mo
+
+
+def cover_mime_from_key(storage_key: str) -> str:
+    """Deduit le type MIME a partir du suffixe de la cle d'objet."""
+    ext = storage_key.rsplit(".", 1)[-1].lower()
+    return _COVER_EXT_MIME.get(ext, "application/octet-stream")
+
+
+def _require_investigation_access(db: Session, investigation_id: int, user_id: int):
+    """Retourne l'enquete si l'utilisateur y a acces (proprietaire ou collaborateur)."""
+    investigation = investigation_service.get_investigation_by_id(db, investigation_id)
+    if not investigation:
+        raise HTTPException(status_code=404, detail="Investigation not found")
+    if investigation.owner_id != user_id:
+        if not collaborator_service.get_collaborator_permission(db, investigation_id, user_id):
+            raise HTTPException(status_code=403, detail="Access denied")
+    return investigation
+
+
+@router.post("/{investigation_id}/cover")
+async def upload_investigation_cover(
+        investigation_id: int,
+        request: Request,
+        file: UploadFile = File(...),
+        user=Depends(get_current_user),
+        db: Session = Depends(get_db),
+):
+    investigation = investigation_service.get_investigation_by_id(db, investigation_id)
+    if not investigation:
+        raise HTTPException(status_code=404, detail="Investigation not found")
+    if investigation.owner_id != user.id_user:
+        raise HTTPException(status_code=403, detail="Only the owner can set the cover image")
+
+    ext = _COVER_MIME_EXT.get((file.content_type or "").lower())
+    if not ext:
+        raise HTTPException(status_code=400, detail="Unsupported image type (png, jpeg, webp, gif)")
+
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="Empty file")
+    if len(content) > _MAX_COVER_BYTES:
+        raise HTTPException(status_code=400, detail="Image too large (max 8MB)")
+
+    new_key = f"covers/{investigation_id}.{ext}"
+    old_key = investigation.cover_storage_key
+    storage_service.put_object(new_key, content, file.content_type)
+    investigation_service.set_cover(db, investigation, new_key)
+    # Re-upload dans un autre format : on nettoie l'ancien objet pour eviter les orphelins.
+    if old_key and old_key != new_key:
+        try:
+            storage_service.remove_object(old_key)
+        except Exception:
+            pass
+
+    ip = request.client.host if request.client else None
+    log_service.create_log(
+        db, category="investigation", action="set_cover",
+        id_user=user.id_user, id_investigation=investigation_id,
+        detail=f"Investigation #{investigation_id} cover updated", ip_address=ip,
+    )
+    return {"has_cover": True}
+
+
+@router.delete("/{investigation_id}/cover")
+async def delete_investigation_cover(
+        investigation_id: int,
+        user=Depends(get_current_user),
+        db: Session = Depends(get_db),
+):
+    investigation = investigation_service.get_investigation_by_id(db, investigation_id)
+    if not investigation:
+        raise HTTPException(status_code=404, detail="Investigation not found")
+    if investigation.owner_id != user.id_user:
+        raise HTTPException(status_code=403, detail="Only the owner can remove the cover image")
+
+    old_key = investigation.cover_storage_key
+    if old_key:
+        try:
+            storage_service.remove_object(old_key)
+        except Exception:
+            pass
+    investigation_service.clear_cover(db, investigation)
+    return {"has_cover": False}
+
+
+@router.get("/{investigation_id}/cover")
+async def get_investigation_cover(
+        investigation_id: int,
+        user=Depends(get_current_user),
+        db: Session = Depends(get_db),
+):
+    investigation = _require_investigation_access(db, investigation_id, user.id_user)
+    if not investigation.cover_storage_key:
+        raise HTTPException(status_code=404, detail="No cover image")
+    try:
+        data = storage_service.get_object(investigation.cover_storage_key)
+    except Exception:
+        raise HTTPException(status_code=404, detail="No cover image")
+    return Response(content=data, media_type=cover_mime_from_key(investigation.cover_storage_key))
 
 
 @router.post("/{investigation_id}/transfer")

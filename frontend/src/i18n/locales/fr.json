@@ -2,6 +2,7 @@
   "sidebar": {
     "dashboard": "Tableau de bord",
     "investigations": "Enquêtes",
+    "myTasks": "Mes tâches",
     "calendar": "Calendrier",
     "templates": "Modèles",
     "settings": "Paramètres",
@@ -108,6 +109,23 @@
       }
     }
   },
+  "showcase": {
+    "tagline": "Plateforme d'investigation OSINT",
+    "tabs": {
+      "graph": "Graphe",
+      "sources": "Sources",
+      "documents": "Documents",
+      "timeline": "Chronologie",
+      "tasks": "Tâches"
+    },
+    "desc": {
+      "graph": "Cartographiez personnes, domaines, IP et comptes - et les liens entre eux.",
+      "sources": "Capturez une preuve avec l'extension navigateur, scellez-la dans l'enquête, puis insérez-la directement dans le rapport.",
+      "documents": "Rédigez les rapports d'enquête à plusieurs en temps réel, avec les éléments intégrés.",
+      "timeline": "Chaque action est enregistrée dans un journal d'activité complet et auditable.",
+      "tasks": "Planifiez et suivez le travail d'enquête avec priorités, assignations et échéances."
+    }
+  },
   "home": {
     "title": "Tableau de bord",
     "welcome": "Bon retour,",
@@ -146,10 +164,28 @@
     "overdue": "En retard",
     "close": "Fermer",
     "more": "+{{count}} de plus",
-    "days": ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
+    "days": [
+      "Dim",
+      "Lun",
+      "Mar",
+      "Mer",
+      "Jeu",
+      "Ven",
+      "Sam"
+    ],
     "months": [
-      "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
-      "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
+      "Janvier",
+      "Février",
+      "Mars",
+      "Avril",
+      "Mai",
+      "Juin",
+      "Juillet",
+      "Août",
+      "Septembre",
+      "Octobre",
+      "Novembre",
+      "Décembre"
     ],
     "priority": {
       "basse": "Basse",
@@ -181,7 +217,9 @@
       "descPlaceholder": "Décrivez l'enquête...",
       "cancel": "Annuler",
       "creating": "Création...",
-      "create": "Créer"
+      "create": "Créer",
+      "objectivesLabel": "Objectifs (optionnels)",
+      "objectivesPlaceholder": "Quels sont les objectifs de cette enquête ?"
     }
   },
   "investigationDetail": {
@@ -192,6 +230,9 @@
     "tabs": {
       "details": "Détails",
       "tasks": "Tâches",
+      "evidence": "Preuves",
+      "analysis": "Analyse",
+      "management": "Gestion",
       "collaborators": "Collaborateurs",
       "graph": "Graphe",
       "timeline": "Chronologie",
@@ -280,6 +321,14 @@
       "removed": "Catégorie retirée"
     },
     "settings": {
+      "coverLabel": "Couverture",
+      "coverHint": "Image affichée en page de garde des exports PDF (PNG, JPEG, WebP ou GIF, 8 Mo max).",
+      "coverDefault": "Couverture par défaut",
+      "coverUpload": "Ajouter une image",
+      "coverChange": "Changer l'image",
+      "coverRemove": "Retirer",
+      "coverUpdated": "Couverture mise à jour",
+      "coverRemoved": "Couverture retirée",
       "titleLabel": "Titre",
       "descLabel": "Description",
       "descPlaceholder": "Aucune description",
@@ -302,8 +351,12 @@
       "deleting": "Suppression...",
       "updated": "Enquête mise à jour",
       "transferred": "Propriété transférée à {{pseudo}}",
-      "deleted": "Enquête supprimée"
-    }
+      "deleted": "Enquête supprimée",
+      "objectivesLabel": "Objectifs",
+      "objectivesPlaceholder": "Objectifs de l'enquête (repris en tête de l'export PDF)"
+    },
+    "objectivesTitle": "Objectifs",
+    "noObjectives": "Aucun objectif défini"
   },
   "tasks": {
     "filterAll": "Toutes",
@@ -324,7 +377,7 @@
     "priorityLabel": "Priorité",
     "statusLabel": "Statut",
     "assignedLabel": "Assigné à",
-    "assignedNobody": "— Personne —",
+    "assignedNobody": "- Personne -",
     "dueDateLabel": "Date d'échéance",
     "privateLabel": "Privée (visible uniquement par vous)",
     "sharedLabel": "Partagée (visible par tous les membres)",
@@ -351,8 +404,28 @@
     "status": {
       "todo": "À faire",
       "en_cours": "En cours",
+      "bloque": "Bloqué",
+      "en_revue": "En revue",
+      "a_valider": "À valider",
       "termine": "Terminé"
-    }
+    },
+    "viewList": "Liste",
+    "viewKanban": "Kanban",
+    "showAllColumns": "Tout afficher",
+    "showMainColumns": "Réduire",
+    "columnEmpty": "Vide",
+    "addCard": "Ajouter",
+    "movedError": "Erreur lors du déplacement",
+    "personalTitle": "Mes tâches",
+    "personalSubtitle": "Vos tâches personnelles et celles qui vous sont assignées",
+    "tabPersonal": "Personnelles",
+    "tabAssigned": "Assignées à moi",
+    "tabCalendar": "Calendrier",
+    "personalEmpty": "Aucune tâche personnelle",
+    "personalEmptyDesc": "Créez une tâche pour vous organiser, indépendamment des enquêtes.",
+    "assignedEmpty": "Aucune tâche assignée",
+    "assignedEmptyDesc": "Les tâches qui vous sont assignées sur vos enquêtes apparaîtront ici.",
+    "fromInvestigation": "Enquête"
   },
   "admin": {
     "title": "Administration",
@@ -545,6 +618,30 @@
     "recoveryCheckbox": "J'ai sauvegardé ma phrase de récupération en lieu sûr",
     "recoveryDone": "Terminer",
     "recoveryGenerating": "Génération..."
+  },
+  "mfa": {
+    "setupTitle": "Configurer la double authentification",
+    "setupSubtitle": "Recommandé pour sécuriser votre compte",
+    "step1": "Installez une application d'authentification (Google Authenticator, Aegis, …).",
+    "step2": "Scannez le QR code ci-dessous.",
+    "step3": "Saisissez le code à 6 chiffres pour confirmer.",
+    "cantScan": "Impossible de scanner ? Saisissez cette clé manuellement :",
+    "enableButton": "Activer la double authentification",
+    "verifying": "Vérification…",
+    "signOut": "Se déconnecter",
+    "loginPrompt": "Saisissez le code à 6 chiffres de votre application d'authentification",
+    "verify": "Vérifier",
+    "back": "Retour",
+    "sectionTitle": "Double authentification",
+    "sectionSubtitle": "Recommandé - code TOTP d'une application d'authentification à chaque connexion.",
+    "active": "Active",
+    "reconfigure": "Reconfigurer",
+    "reconfigureTitle": "Reconfigurer la 2FA",
+    "reconfigureSubtitle": "Confirmez votre mot de passe, puis scannez un nouveau QR code.",
+    "continue": "Continuer",
+    "qrAlt": "QR code TOTP",
+    "inactive": "Inactive",
+    "enable": "Activer"
   },
   "setupRecovery": {
     "title": "Sauvegarde de votre code de récupération",

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Layout } from '../../components/Layout';
+import { usePageTitle } from '../../hooks/usePageTitle';
 import { api, type TemplateCategoryData, type TemplateData } from '../../services/api';
 import { useToast } from '../../contexts/ToastContext';
 import {
@@ -172,7 +173,7 @@ const FormPanel = ({ template, categories, open, onClose, onSave }: FormPanelPro
               <input type="checkbox" checked={isPublic} onChange={e => setIsPublic(e.target.checked)} className="rounded accent-[var(--theme-primary)]" />
               <span className="text-sm text-text-default inline-flex items-center gap-2">
                 {isPublic ? <Globe size={14} className="text-[var(--theme-primary)]" /> : <Lock size={14} className="text-text-dim" />}
-                {isPublic ? 'Public — visible par tous les utilisateurs' : 'Privé — visible uniquement par vous'}
+                {isPublic ? 'Public - visible par tous les utilisateurs' : 'Privé - visible uniquement par vous'}
               </span>
             </label>
 
@@ -376,6 +377,7 @@ const TemplateCard = ({ template, selected, onClick }: { template: TemplateData;
 
 export const Templates = () => {
   const { toast } = useToast();
+  usePageTitle('Modèles');
   const [templates, setTemplates] = useState<TemplateData[]>([]);
   const [categories, setCategories] = useState<TemplateCategoryData[]>([]);
   const [loading, setLoading] = useState(true);

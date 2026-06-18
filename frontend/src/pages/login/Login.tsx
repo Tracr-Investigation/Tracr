@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { usePageTitle } from '../../hooks/usePageTitle';
 import { api } from '../../services/api';
 import { useTranslation } from 'react-i18next';
 import { PasswordStrength } from '../../components/PasswordStrength';
@@ -44,6 +45,7 @@ export const Login = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const { login } = useAuth();
+    usePageTitle('Connexion');
 
     const [panel, setPanel] = useState<Panel>('login');
 
@@ -60,6 +62,12 @@ export const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [loginError, setLoginError] = useState('');
     const [loginLoading, setLoginLoading] = useState(false);
+
+    // Etape 2 (MFA) : jeton de challenge renvoye par /login quand le TOTP est actif.
+    const [mfaToken, setMfaToken] = useState<string | null>(null);
+    const [mfaCode, setMfaCode] = useState('');
+    const [mfaError, setMfaError] = useState('');
+    const [mfaLoading, setMfaLoading] = useState(false);
 
     const passwordRef = useRef<HTMLInputElement>(null);
 
@@ -104,8 +112,15 @@ export const Login = () => {
         setLoginLoading(true);
         try {
             const data = await api.login(pseudo, password);
+            // MFA actif : on bascule sur l'etape de saisie du code, sans connecter encore.
+            if (data.mfa_required) {
+                setMfaToken(data.mfa_token);
+                setMfaCode('');
+                setMfaError('');
+                return;
+            }
             try { localStorage.setItem(LAST_PSEUDO_KEY, data.pseudo); } catch { /* ignore */ }
-            login({id_user: data.id_user, pseudo: data.pseudo, role: data.role, language: data.language ?? 'en', must_change_password: data.must_change_password ?? false}, data.token);
+            login({id_user: data.id_user, pseudo: data.pseudo, role: data.role, language: data.language ?? 'en', must_change_password: data.must_change_password ?? false, mfa_enabled: data.mfa_enabled ?? false}, data.token);
             if (data.must_change_password) {
                 navigate('/force-change-password');
             } else {
@@ -116,6 +131,33 @@ export const Login = () => {
         } finally {
             setLoginLoading(false);
         }
+    };
+
+    const handleMfaSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!mfaToken) return;
+        setMfaError('');
+        setMfaLoading(true);
+        try {
+            const data = await api.loginMfa(mfaToken, mfaCode.trim());
+            try { localStorage.setItem(LAST_PSEUDO_KEY, data.pseudo); } catch { /* ignore */ }
+            login({id_user: data.id_user, pseudo: data.pseudo, role: data.role, language: data.language ?? 'en', must_change_password: data.must_change_password ?? false, mfa_enabled: data.mfa_enabled ?? true}, data.token);
+            if (data.must_change_password) {
+                navigate('/force-change-password');
+            } else {
+                navigate('/');
+            }
+        } catch (err: unknown) {
+            setMfaError(err instanceof Error ? err.message : 'Login error');
+        } finally {
+            setMfaLoading(false);
+        }
+    };
+
+    const cancelMfa = () => {
+        setMfaToken(null);
+        setMfaCode('');
+        setMfaError('');
     };
 
     const handleRecovery = async (e: React.FormEvent) => {
@@ -212,8 +254,63 @@ export const Login = () => {
                             </div>
                         </div>
 
-                        {/* ── Vue « compte mémorisé » : un bouton avec le pseudo + nouvel utilisateur ── */}
-                        {loginView === 'account' ? (
+                        {/* ── Étape MFA : saisie du code TOTP ── */}
+                        {mfaToken ? (
+                        <form onSubmit={handleMfaSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            <div style={{ textAlign: 'center', fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                                {t('mfa.loginPrompt')}
+                            </div>
+                            <input
+                                autoFocus
+                                inputMode="numeric"
+                                autoComplete="one-time-code"
+                                value={mfaCode}
+                                onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                placeholder="123456"
+                                style={{
+                                    width: '100%', padding: '12px 14px',
+                                    background: 'var(--bg-input)',
+                                    border: '1px solid var(--border-default)',
+                                    borderRadius: '10px',
+                                    color: 'var(--text-default)',
+                                    fontSize: '20px', textAlign: 'center', letterSpacing: '0.4em',
+                                    fontFamily: 'monospace', outline: 'none', boxSizing: 'border-box',
+                                    transition: 'border-color 0.2s',
+                                }}
+                                onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
+                                onBlur={e => e.target.style.borderColor = 'var(--border-default)'}
+                            />
+                            {mfaError && (
+                                <div style={{
+                                    padding: '10px 14px',
+                                    background: 'rgba(239,68,68,0.08)',
+                                    border: '1px solid var(--border-error)',
+                                    borderRadius: '10px',
+                                    fontSize: '13px', color: '#f87171',
+                                }}>
+                                    {mfaError}
+                                </div>
+                            )}
+                            <button type="submit" disabled={mfaLoading || mfaCode.length !== 6} style={{
+                                width: '100%', padding: '12px',
+                                background: 'linear-gradient(135deg, var(--theme-primary), var(--theme-secondary))',
+                                border: 'none', borderRadius: '10px',
+                                color: 'white', fontSize: '14px', fontWeight: 600,
+                                cursor: (mfaLoading || mfaCode.length !== 6) ? 'not-allowed' : 'pointer',
+                                opacity: (mfaLoading || mfaCode.length !== 6) ? 0.6 : 1,
+                                transition: 'opacity 0.2s',
+                            }}>
+                                {mfaLoading ? t('mfa.verifying') : t('mfa.verify')}
+                            </button>
+                            <button type="button" onClick={cancelMfa} style={{
+                                width: '100%', padding: '8px', background: 'none', border: 'none',
+                                color: 'var(--text-muted)', fontSize: '13px', cursor: 'pointer',
+                            }}>
+                                {t('mfa.back')}
+                            </button>
+                        </form>
+                        ) : /* ── Vue « compte mémorisé » : un bouton avec le pseudo + nouvel utilisateur ── */
+                        loginView === 'account' ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                             <button type="button" onClick={selectRememberedAccount} style={{
                                 display: 'flex', alignItems: 'center', gap: '14px',

@@ -54,7 +54,7 @@ export const EmbedNodeView = ({ node, selected }: NodeViewProps) => {
             <Icon size={9} style={{ color }} />
           </div>
           <span className="text-xs font-semibold text-text-muted">{label}</span>
-          {title && <span className="text-xs text-text-dim truncate">— {title}</span>}
+          {title && <span className="text-xs text-text-dim truncate">- {title}</span>}
           <span className="ml-auto text-[10px] text-text-dim font-mono truncate max-w-[200px] opacity-60">
             {url}
           </span>

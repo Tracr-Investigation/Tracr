@@ -243,7 +243,7 @@ export const DocumentEditor = forwardRef<DocumentEditorHandle, Props>(({
       {/* Editor area */}
       <div className="flex-1 flex flex-col min-w-0">
         <div
-          className={`flex-1 overflow-y-auto bg-[#0f0f1e] transition-all duration-200 ${
+          className={`flex-1 overflow-y-auto bg-surface transition-all duration-200 ${
             isDragOver ? 'ring-2 ring-inset ring-primary/40' : ''
           }`}
           onDragOver={handleDragOver}

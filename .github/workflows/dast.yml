@@ -1,0 +1,102 @@
+name: DAST (OWASP ZAP)
+
+on:
+  pull_request:
+  schedule:
+    - cron: "0 3 * * 1"   # lundi 3h UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  zap-api:
+    name: ZAP API scan
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Preparer le .env de test
+        run: |
+          cat > .env <<'EOF'
+          POSTGRES_USER=tracr
+          POSTGRES_PASSWORD=ci_test_password
+          POSTGRES_DB=tracrdb
+          POSTGRES_HOST=postgres
+          POSTGRES_PORT=5432
+          REDIS_HOST=redis
+          REDIS_PORT=6379
+          DATABASE_URL=postgresql://tracr:ci_test_password@postgres:5432/tracrdb
+          REDIS_URL=redis://redis:6379
+          SECRET_KEY=ci_only_not_a_real_secret_0123456789
+          DEBUG=True
+          EOF
+
+      - name: Demarrer le projet
+        run: docker compose up -d
+
+      - name: Attendre que le backend soit pret (/health)
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:8000/health >/dev/null 2>&1; then
+              echo "Backend ok"
+              exit 0
+            fi
+            echo "Attente du backend ($i)"
+            sleep 3
+          done
+          echo "::error::Le backend timeout"
+          docker compose logs backend
+          exit 1
+
+      - name: ZAP API Scan
+        uses: zaproxy/action-api-scan@v0.9.0
+        with:
+          target: "http://localhost:8000/openapi.json"
+          format: openapi
+          fail_action: false
+          allow_issue_writing: true
+
+      - name: Logs backend
+        if: failure()
+        run: docker compose logs backend
+
+      - name: Teardown
+        if: always()
+        run: docker compose down -v
+
+  # uniquement cron
+  zap-full:
+    name: ZAP full scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preparer le .env de test
+        run: |
+          cat > .env <<'EOF'
+          POSTGRES_USER=tracr
+          POSTGRES_PASSWORD=ci_test_password
+          POSTGRES_DB=tracrdb
+          DATABASE_URL=postgresql://tracr:ci_test_password@postgres:5432/tracrdb
+          REDIS_URL=redis://redis:6379
+          SECRET_KEY=ci_only_not_a_real_secret_0123456789
+          DEBUG=True
+          EOF
+      - run: docker compose up -d postgres redis backend
+      - run: |
+          for i in $(seq 1 60); do
+            curl -fsS http://localhost:8000/health && break || sleep 3
+          done
+      - name: ZAP Full Scan
+        uses: zaproxy/action-full-scan@v0.12.0
+        with:
+          target: "http://localhost:8000"
+          fail_action: false
+      - if: always()
+        run: docker compose down -v

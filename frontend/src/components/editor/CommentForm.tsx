@@ -26,7 +26,7 @@ export const CommentForm = ({ draft, quote, submitting, onDraftChange, onCancel,
         onChange={(e) => onDraftChange(e.target.value)}
         placeholder="Votre commentaire…"
         rows={3}
-        className="w-full bg-[#1a1a2e] border border-primary/20 rounded px-2 py-1.5 text-sm text-accent focus:outline-none focus:border-primary resize-none"
+        className="w-full bg-input-bg border border-primary/20 rounded px-2 py-1.5 text-sm text-accent focus:outline-none focus:border-primary resize-none"
       />
       <div className="flex justify-end gap-2">
         <button

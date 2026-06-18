@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 from zoneinfo import ZoneInfo
 
@@ -98,33 +98,125 @@ def delete_document(db: Session, document: Document) -> None:
 
 
 # Backups
-MAX_BACKUPS_PER_DOCUMENT = 50
+MAX_MANUAL_BACKUPS = 50        # backups manuels non épinglés conservés (les plus récents)
+MAX_PINNED_BACKUPS = 20        # plafond de backups épinglés par document
+AUTO_RECENT_WINDOW = timedelta(hours=1)    # < 1h  : on garde tous les auto (granularité 10 min)
+AUTO_HOURLY_WINDOW = timedelta(hours=24)   # 1h-24h : on garde 1 auto par heure
+AUTO_DAILY_WINDOW = timedelta(days=30)     # 1j-30j : on garde 1 auto par jour ; au-delà : supprimé
 
 
-def create_backup(db: Session, document: Document, user_id: int) -> DocumentBackup:
+class PinLimitError(Exception):
+    """Levée quand le nombre max de backups épinglés est atteint."""
+
+
+def _apply_retention(db: Session, document_id: int) -> None:
+    """Rétention intelligente. Les backups épinglés ne sont jamais supprimés.
+
+    - manuels (non épinglés) : on garde les MAX_MANUAL_BACKUPS plus récents ;
+    - auto (non épinglés) : thinning par tranches d'âge (tout < 1h, 1/h < 24h, 1/j < 30j).
+    """
+    now = _now()
+    rows = (
+        db.query(DocumentBackup)
+        .filter(DocumentBackup.id_document == document_id)
+        .order_by(DocumentBackup.created_at.desc())
+        .all()
+    )
+
+    to_delete: list[DocumentBackup] = []
+
+    # Manuels non épinglés : on ne garde que les plus récents
+    manual = [b for b in rows if b.kind != "auto" and not b.pinned]
+    to_delete.extend(manual[MAX_MANUAL_BACKUPS:])
+
+    # Auto non épinglés : thinning par bucket temporel (rows déjà du + récent au + ancien)
+    auto = [b for b in rows if b.kind == "auto" and not b.pinned]
+    seen_buckets: set = set()
+    for b in auto:
+        age = now - b.created_at
+        if age <= AUTO_RECENT_WINDOW:
+            continue  # on garde tout dans la dernière heure
+        if age <= AUTO_HOURLY_WINDOW:
+            key = ("h", b.created_at.strftime("%Y-%m-%d-%H"))
+        elif age <= AUTO_DAILY_WINDOW:
+            key = ("d", b.created_at.strftime("%Y-%m-%d"))
+        else:
+            to_delete.append(b)  # trop ancien
+            continue
+        if key in seen_buckets:
+            to_delete.append(b)  # un backup plus récent existe déjà dans ce bucket
+        else:
+            seen_buckets.add(key)
+
+    for b in to_delete:
+        db.delete(b)
+
+
+def create_backup(
+    db: Session,
+    document: Document,
+    user_id: Optional[int],
+    kind: str = "manual",
+) -> DocumentBackup:
     backup = DocumentBackup(
         id_document=document.id_document,
         id_user=user_id,
         title=document.title,
         content_html=document.content_html or "",
+        kind=kind,
     )
     db.add(backup)
     db.flush()
-    # Purge des plus anciennes si dépassement du quota
-    total = db.query(DocumentBackup).filter(DocumentBackup.id_document == document.id_document).count()
-    if total > MAX_BACKUPS_PER_DOCUMENT:
-        oldest = (
-            db.query(DocumentBackup)
-            .filter(DocumentBackup.id_document == document.id_document)
-            .order_by(DocumentBackup.created_at.asc())
-            .limit(total - MAX_BACKUPS_PER_DOCUMENT)
-            .all()
-        )
-        for old in oldest:
-            db.delete(old)
+    _apply_retention(db, document.id_document)
     db.commit()
     db.refresh(backup)
     return backup
+
+
+def toggle_pin(db: Session, backup: DocumentBackup) -> DocumentBackup:
+    """Épingle / désépingle un backup. Lève PinLimitError si le plafond est atteint."""
+    if not backup.pinned:
+        pinned_count = (
+            db.query(DocumentBackup)
+            .filter(
+                DocumentBackup.id_document == backup.id_document,
+                DocumentBackup.pinned.is_(True),
+            )
+            .count()
+        )
+        if pinned_count >= MAX_PINNED_BACKUPS:
+            raise PinLimitError()
+    backup.pinned = not backup.pinned
+    db.commit()
+    db.refresh(backup)
+    return backup
+
+
+def auto_backup_sweep(db: Session) -> int:
+    """Crée un backup 'auto' pour chaque document modifié depuis son dernier backup.
+
+    Appelé périodiquement (toutes les 10 min) par le planificateur. Aucun backup
+    n'est créé si le contenu n'a pas changé, pour ne pas dupliquer des versions identiques.
+    Retourne le nombre de backups créés.
+    """
+    created = 0
+    documents = db.query(Document).all()
+    for document in documents:
+        last = (
+            db.query(DocumentBackup)
+            .filter(DocumentBackup.id_document == document.id_document)
+            .order_by(DocumentBackup.created_at.desc())
+            .first()
+        )
+        current_html = document.content_html or ""
+        if last is None:
+            if not current_html.strip():
+                continue  # document vide : rien à sauvegarder
+        elif last.title == document.title and (last.content_html or "") == current_html:
+            continue  # aucun changement depuis le dernier backup
+        create_backup(db, document, user_id=None, kind="auto")
+        created += 1
+    return created
 
 
 def list_backups(db: Session, document_id: int) -> list[dict]:
@@ -142,6 +234,8 @@ def list_backups(db: Session, document_id: int) -> list[dict]:
             "id_user": b.id_user,
             "author_pseudo": pseudo,
             "title": b.title,
+            "kind": b.kind,
+            "pinned": b.pinned,
             "created_at": b.created_at.isoformat() if b.created_at else None,
         }
         for b, pseudo in rows

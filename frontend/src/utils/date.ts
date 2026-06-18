@@ -1,7 +1,7 @@
 import { formatDistanceToNow, differenceInDays } from 'date-fns';
 
 export function formatRelativeDate(dateStr: string | null): string {
-  if (!dateStr) return '—';
+  if (!dateStr) return '-';
   const date = new Date(dateStr);
   if (differenceInDays(new Date(), date) > 30) {
     return date.toLocaleDateString('en-US', {

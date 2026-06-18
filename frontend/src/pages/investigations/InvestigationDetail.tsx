@@ -2,7 +2,9 @@ import {useState, useEffect, useCallback, useRef} from 'react';
 import {useParams, Link, useNavigate} from 'react-router-dom';
 import {Layout} from '../../components/Layout';
 import {StatusBadge} from '../../components/StatusBadge';
+import {usePageTitle} from '../../hooks/usePageTitle';
 import {Tabs} from '../../components/Tabs';
+import {SubTabs} from '../../components/SubTabs';
 import {useToast} from '../../contexts/ToastContext';
 import {useAuth} from '../../contexts/AuthContext';
 import {api} from '../../services/api';
@@ -18,6 +20,7 @@ import {
     Clock,
     UserPlus,
     ChevronDown,
+    ChevronUp,
     Tag,
     Plus,
     X,
@@ -27,10 +30,14 @@ import {
     Network,
     Map as MapIcon,
     Archive,
+    Crosshair,
+    ImagePlus,
+    Loader2,
 } from 'lucide-react';
 import {TasksTab} from './tabs/TasksTab';
 import {DocumentsTab} from './tabs/DocumentsTab';
 import {SourcesTab} from './tabs/SourcesTab';
+import {SelectorsTab} from './tabs/SelectorsTab';
 import {TimelineTab} from './tabs/TimelineTab';
 import {GraphTab} from './tabs/GraphTab';
 import {MapTab} from './tabs/MapTab';
@@ -82,11 +89,13 @@ interface InvestigationDetailData {
     id_investigation: number;
     title: string;
     description: string | null;
+    objectives: string | null;
     status: StatusData;
     categories?: CategoryData[];
     owner: OwnerData;
     collaborators: CollaboratorData[];
     user_permission: string | null;
+    has_cover?: boolean;
     created_at: string | null;
     updated_at: string | null;
     closed_at: string | null;
@@ -287,7 +296,8 @@ const CollaboratorsTab = ({
                             className="px-4 py-2.5 bg-input-bg border border-border rounded-xl text-text-default text-sm focus:outline-none focus:border-[var(--theme-primary)] transition-colors"
                         >
                             {permissionOptions.map((p) => (
-                                <option key={p} value={p}>{permissionLabels[p]}</option>
+                                <option key={p} value={p} className="bg-card text-text-default">
+                                    {permissionLabels[p]}</option>
                             ))}
                         </select>
                     </div>
@@ -520,6 +530,7 @@ const SettingsTab = ({
     const {toast} = useToast();
     const [title, setTitle] = useState(investigation.title);
     const [description, setDescription] = useState(investigation.description || '');
+    const [objectives, setObjectives] = useState(investigation.objectives || '');
     const [saving, setSaving] = useState(false);
     const [transferQuery, setTransferQuery] = useState('');
     const [transferResults, setTransferResults] = useState<UserSearchResult[]>([]);
@@ -532,8 +543,61 @@ const SettingsTab = ({
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [deleting, setDeleting] = useState(false);
+    const coverInputRef = useRef<HTMLInputElement>(null);
+    const [coverUrl, setCoverUrl] = useState<string | null>(null);
+    const [hasCover, setHasCover] = useState(!!investigation.has_cover);
+    const [coverLoading, setCoverLoading] = useState(false);
 
-    const hasChanges = title !== investigation.title || description !== (investigation.description || '');
+    const hasChanges = title !== investigation.title
+        || description !== (investigation.description || '')
+        || objectives !== (investigation.objectives || '');
+
+    // Charge un apercu de la couverture existante (object URL revoque au demontage).
+    useEffect(() => {
+        if (!investigation.has_cover) return;
+        let active = true;
+        let created: string | null = null;
+        api.getInvestigationCoverUrl(investigation.id_investigation).then((url) => {
+            if (url && active) { created = url; setCoverUrl(url); }
+            else if (url) URL.revokeObjectURL(url);
+        });
+        return () => { active = false; if (created) URL.revokeObjectURL(created); };
+    }, [investigation.id_investigation, investigation.has_cover]);
+
+    const handleCoverSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (coverInputRef.current) coverInputRef.current.value = '';
+        if (!file) return;
+        setCoverLoading(true);
+        try {
+            await api.uploadInvestigationCover(investigation.id_investigation, file);
+            if (coverUrl) URL.revokeObjectURL(coverUrl);
+            setCoverUrl(URL.createObjectURL(file));
+            setHasCover(true);
+            toast('success', t('investigationDetail.settings.coverUpdated'));
+            onRefresh();
+        } catch (err) {
+            toast('error', err instanceof Error ? err.message : 'Erreur');
+        } finally {
+            setCoverLoading(false);
+        }
+    };
+
+    const handleCoverRemove = async () => {
+        setCoverLoading(true);
+        try {
+            await api.deleteInvestigationCover(investigation.id_investigation);
+            if (coverUrl) URL.revokeObjectURL(coverUrl);
+            setCoverUrl(null);
+            setHasCover(false);
+            toast('success', t('investigationDetail.settings.coverRemoved'));
+            onRefresh();
+        } catch (err) {
+            toast('error', err instanceof Error ? err.message : 'Erreur');
+        } finally {
+            setCoverLoading(false);
+        }
+    };
 
     useEffect(() => {
         const handleClick = (e: MouseEvent) => {
@@ -548,7 +612,8 @@ const SettingsTab = ({
         try {
             const newTitle = title !== investigation.title ? title : null;
             const newDesc = description !== (investigation.description || '') ? description : null;
-            await api.updateInvestigation(investigation.id_investigation, newTitle, newDesc);
+            const newObjectives = objectives !== (investigation.objectives || '') ? objectives : null;
+            await api.updateInvestigation(investigation.id_investigation, newTitle, newDesc, newObjectives);
             toast('success', t('investigationDetail.settings.updated'));
             if (newTitle) onSlugUpdate(newTitle);
             onRefresh();
@@ -609,6 +674,52 @@ const SettingsTab = ({
 
     return (
         <div className="max-w-2xl space-y-1 divide-y divide-white/6">
+            <div className="flex items-start gap-4 py-3">
+                <label className="text-sm text-text-muted w-24 shrink-0 pt-1.5">{t('investigationDetail.settings.coverLabel')}</label>
+                <div className="flex-1">
+                    <div className="flex items-start gap-3">
+                        <div className="w-28 h-20 rounded-lg overflow-hidden border border-border bg-input-bg shrink-0 flex items-center justify-center">
+                            {coverUrl ? (
+                                <img src={coverUrl} alt="" className="w-full h-full object-cover"/>
+                            ) : (
+                                <span className="text-[10px] text-text-dim text-center px-1.5 leading-tight">
+                                    {t('investigationDetail.settings.coverDefault')}
+                                </span>
+                            )}
+                        </div>
+                        <div className="space-y-2">
+                            <p className="text-xs text-text-dim">{t('investigationDetail.settings.coverHint')}</p>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => coverInputRef.current?.click()}
+                                    disabled={coverLoading}
+                                    className="px-3 py-1.5 rounded-xl text-xs font-medium border border-border text-text-default hover:border-[var(--theme-primary)] transition-all disabled:opacity-40 inline-flex items-center gap-1.5"
+                                >
+                                    {coverLoading ? <Loader2 size={13} className="animate-spin"/> : <ImagePlus size={13}/>}
+                                    {hasCover ? t('investigationDetail.settings.coverChange') : t('investigationDetail.settings.coverUpload')}
+                                </button>
+                                {hasCover && (
+                                    <button
+                                        onClick={handleCoverRemove}
+                                        disabled={coverLoading}
+                                        className="px-3 py-1.5 rounded-xl text-xs text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-40"
+                                    >
+                                        {t('investigationDetail.settings.coverRemove')}
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                    <input
+                        ref={coverInputRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,image/gif"
+                        className="hidden"
+                        onChange={handleCoverSelect}
+                    />
+                </div>
+            </div>
+
             <div className="flex items-center gap-4 py-3">
                 <label className="text-sm text-text-muted w-24 shrink-0">{t('investigationDetail.settings.titleLabel')}</label>
                 <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className={inputClass}/>
@@ -622,6 +733,18 @@ const SettingsTab = ({
                     rows={2}
                     className={`${inputClass} resize-none`}
                     placeholder={t('investigationDetail.settings.descPlaceholder')}
+                />
+            </div>
+
+            <div className="flex items-start gap-4 py-3">
+                <label className="text-sm text-text-muted w-24 shrink-0 pt-1.5">{t('investigationDetail.settings.objectivesLabel')}</label>
+                <textarea
+                    value={objectives}
+                    onChange={(e) => setObjectives(e.target.value)}
+                    rows={5}
+                    maxLength={5000}
+                    className={`${inputClass} resize-none`}
+                    placeholder={t('investigationDetail.settings.objectivesPlaceholder')}
                 />
             </div>
 
@@ -767,8 +890,42 @@ export const InvestigationDetail = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [openDropdown, setOpenDropdown] = useState(false);
+    const [headerCollapsed, setHeaderCollapsed] = useState(
+        () => localStorage.getItem('investigationHeaderCollapsed') === '1',
+    );
+    // Source à ouvrir dans l'onglet Sources (déclenché depuis un hit de l'onglet Sélecteurs)
+    const [openSourceId, setOpenSourceId] = useState<number | null>(null);
+    const toggleHeader = () => {
+        setHeaderCollapsed((c) => {
+            localStorage.setItem('investigationHeaderCollapsed', c ? '0' : '1');
+            return !c;
+        });
+    };
+    const openSourceInTab = (sourceId: number) => {
+        setOpenSourceId(sourceId);
+        window.location.hash = 'preuves/sources';
+    };
     const {toast} = useToast();
     const {user: currentUser} = useAuth();
+    usePageTitle(investigation?.title);
+
+    // Compat : réécrit les anciens hash plats (#sources, #graph…) vers la
+    // nouvelle hiérarchie d'onglets groupés (#preuves/sources, #analyse/graph…).
+    useEffect(() => {
+        const LEGACY_HASHES: Record<string, string> = {
+            sources: 'preuves/sources',
+            selectors: 'preuves/selectors',
+            graph: 'analyse/graph',
+            map: 'analyse/map',
+            timeline: 'analyse/timeline',
+            collaborators: 'gestion/collaborators',
+            settings: 'gestion/settings',
+        };
+        const current = window.location.hash.replace(/^#/, '');
+        if (LEGACY_HASHES[current]) {
+            window.location.hash = LEGACY_HASHES[current];
+        }
+    }, []);
 
     const fetchInvestigation = useCallback(async () => {
         if (!id) return;
@@ -822,7 +979,7 @@ export const InvestigationDetail = () => {
     };
 
     const formatDate = (dateStr: string | null) => {
-        if (!dateStr) return '—';
+        if (!dateStr) return '-';
         return new Date(dateStr).toLocaleDateString('fr-FR', {
             day: '2-digit',
             month: '2-digit',
@@ -863,7 +1020,16 @@ export const InvestigationDetail = () => {
                     <div>
                         {/* Header */}
                         <div className="flex items-start justify-between gap-4 mb-3">
-                            <h1 className="text-2xl font-bold text-text-default">{investigation.title}</h1>
+                            <div className="flex items-center gap-2 min-w-0">
+                                <button
+                                    onClick={toggleHeader}
+                                    className="text-text-dim hover:text-text-default transition-colors shrink-0 p-0.5 -ml-1"
+                                    title={headerCollapsed ? 'Déplier l\'en-tête' : 'Replier l\'en-tête'}
+                                >
+                                    {headerCollapsed ? <ChevronDown size={18}/> : <ChevronUp size={18}/>}
+                                </button>
+                                <h1 className="text-2xl font-bold text-text-default truncate">{investigation.title}</h1>
+                            </div>
                             <div className="relative shrink-0">
                                 {canChangeStatus ? (
                                     <button
@@ -886,36 +1052,42 @@ export const InvestigationDetail = () => {
                             </div>
                         </div>
 
-                        {investigation.description && (
-                            <p className="text-text-muted text-sm mb-4">{investigation.description}</p>
-                        )}
+                        {!headerCollapsed && (
+                            <>
+                                {investigation.description && (
+                                    <p className="text-text-muted text-sm mb-4">{investigation.description}</p>
+                                )}
 
-                        <div className="mb-5">
-                            <CategoriesSection investigation={investigation} onRefresh={refreshInvestigation}/>
-                        </div>
+                                <div className="mb-5">
+                                    <CategoriesSection investigation={investigation} onRefresh={refreshInvestigation}/>
+                                </div>
 
-                        <div className="flex items-center gap-5 text-sm text-text-muted mb-8 flex-wrap">
-                            <span className="flex items-center gap-1.5">
-                                <User size={13} style={{color: 'var(--theme-primary)'}}/>
-                                {investigation.owner.pseudo}
-                            </span>
-                            <span className="w-px h-4 bg-card/30"/>
-                            <span className="flex items-center gap-1.5">
-                                <Calendar size={13} style={{color: 'var(--theme-primary)'}}/>
-                                {formatDate(investigation.created_at)}
-                            </span>
-                            {investigation.updated_at && investigation.updated_at !== investigation.created_at && (
-                                <>
+                                <div className="flex items-center gap-5 text-sm text-text-muted mb-8 flex-wrap">
+                                    <span className="flex items-center gap-1.5">
+                                        <User size={13} style={{color: 'var(--theme-primary)'}}/>
+                                        {investigation.owner.pseudo}
+                                    </span>
                                     <span className="w-px h-4 bg-card/30"/>
                                     <span className="flex items-center gap-1.5">
-                                        <LayersPlus size={13} style={{color: 'var(--theme-primary)'}}/>
-                                        {t('investigationDetail.updated')} {formatRelativeDate(investigation.updated_at)}
+                                        <Calendar size={13} style={{color: 'var(--theme-primary)'}}/>
+                                        {formatDate(investigation.created_at)}
                                     </span>
-                                </>
-                            )}
-                            <span className="w-px h-4 bg-card/30"/>
-                            <span className="font-mono text-text-dim">#{investigation.id_investigation}</span>
-                        </div>
+                                    {investigation.updated_at && investigation.updated_at !== investigation.created_at && (
+                                        <>
+                                            <span className="w-px h-4 bg-card/30"/>
+                                            <span className="flex items-center gap-1.5">
+                                                <LayersPlus size={13} style={{color: 'var(--theme-primary)'}}/>
+                                                {t('investigationDetail.updated')} {formatRelativeDate(investigation.updated_at)}
+                                            </span>
+                                        </>
+                                    )}
+                                    <span className="w-px h-4 bg-card/30"/>
+                                    <span className="font-mono text-text-dim">#{investigation.id_investigation}</span>
+                                </div>
+                            </>
+                        )}
+
+                        <div className={headerCollapsed ? 'mt-4' : ''} />
 
                         <Tabs
                             helpKey="tabs.overview"
@@ -925,12 +1097,27 @@ export const InvestigationDetail = () => {
                                     label: t('investigationDetail.tabs.details'),
                                     icon: FileText,
                                     content: (
-                                        <div className="pt-5">
-                                            {investigation.description ? (
-                                                <p className="text-text-muted">{investigation.description}</p>
-                                            ) : (
-                                                <p className="text-text-dim italic">{t('investigationDetail.noDescription')}</p>
-                                            )}
+                                        <div className="pt-5 space-y-6">
+                                            <div>
+                                                <h3 className="text-xs font-semibold uppercase tracking-wider text-text-dim mb-2">
+                                                    {t('investigationDetail.settings.descLabel')}
+                                                </h3>
+                                                {investigation.description ? (
+                                                    <p className="text-text-muted">{investigation.description}</p>
+                                                ) : (
+                                                    <p className="text-text-dim italic">{t('investigationDetail.noDescription')}</p>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <h3 className="text-xs font-semibold uppercase tracking-wider text-text-dim mb-2">
+                                                    {t('investigationDetail.objectivesTitle')}
+                                                </h3>
+                                                {investigation.objectives ? (
+                                                    <p className="text-text-muted whitespace-pre-line">{investigation.objectives}</p>
+                                                ) : (
+                                                    <p className="text-text-dim italic">{t('investigationDetail.noObjectives')}</p>
+                                                )}
+                                            </div>
                                         </div>
                                     ),
                                 },
@@ -942,6 +1129,85 @@ export const InvestigationDetail = () => {
                                         <TasksTab
                                             investigation={investigation}
                                             currentUserId={currentUser?.id_user ?? 0}
+                                        />
+                                    ),
+                                },
+                                {
+                                    // Groupe « Preuves » : bibliothèque de sources + sélecteurs/hits,
+                                    // qui sont fonctionnellement couplés (un hit ouvre sa source).
+                                    id: 'preuves',
+                                    label: t('investigationDetail.tabs.evidence'),
+                                    icon: Archive,
+                                    content: (
+                                        <SubTabs
+                                            parentId="preuves"
+                                            tabs={[
+                                                {
+                                                    id: 'sources',
+                                                    label: 'Sources',
+                                                    icon: Archive,
+                                                    content: (
+                                                        <SourcesTab
+                                                            investigationId={investigation.id_investigation}
+                                                            userPermission={investigation.user_permission}
+                                                            openSourceId={openSourceId}
+                                                            onSourceOpened={() => setOpenSourceId(null)}
+                                                        />
+                                                    ),
+                                                },
+                                                {
+                                                    id: 'selectors',
+                                                    label: 'Sélecteurs',
+                                                    icon: Crosshair,
+                                                    content: (
+                                                        <SelectorsTab
+                                                            investigationId={investigation.id_investigation}
+                                                            userPermission={investigation.user_permission}
+                                                            onOpenSource={openSourceInTab}
+                                                        />
+                                                    ),
+                                                },
+                                            ]}
+                                        />
+                                    ),
+                                },
+                                {
+                                    // Groupe « Analyse » : trois lentilles sur la même donnée d'enquête.
+                                    id: 'analyse',
+                                    label: t('investigationDetail.tabs.analysis'),
+                                    icon: Network,
+                                    content: (
+                                        <SubTabs
+                                            parentId="analyse"
+                                            tabs={[
+                                                {
+                                                    id: 'graph',
+                                                    label: t('investigationDetail.tabs.graph'),
+                                                    icon: Network,
+                                                    content: (
+                                                        <GraphTab
+                                                            investigationId={investigation.id_investigation}
+                                                            userPermission={investigation.user_permission}
+                                                        />
+                                                    ),
+                                                },
+                                                {
+                                                    id: 'map',
+                                                    label: t('investigationDetail.tabs.map'),
+                                                    icon: MapIcon,
+                                                    content: (
+                                                        <MapTab investigationId={investigation.id_investigation}/>
+                                                    ),
+                                                },
+                                                {
+                                                    id: 'timeline',
+                                                    label: t('investigationDetail.tabs.timeline'),
+                                                    icon: History,
+                                                    content: (
+                                                        <TimelineTab investigationId={investigation.id_investigation}/>
+                                                    ),
+                                                },
+                                            ]}
                                         />
                                     ),
                                 },
@@ -958,70 +1224,45 @@ export const InvestigationDetail = () => {
                                     ),
                                 },
                                 {
-                                    id: 'sources',
-                                    label: 'Sources',
-                                    icon: Archive,
-                                    content: (
-                                        <SourcesTab
-                                            investigationId={investigation.id_investigation}
-                                            userPermission={investigation.user_permission}
-                                        />
-                                    ),
-                                },
-                                {
-                                    id: 'collaborators',
-                                    label: t('investigationDetail.tabs.collaborators'),
-                                    icon: Users,
-                                    content: (
-                                        <CollaboratorsTab
-                                            investigation={investigation}
-                                            onRefresh={refreshInvestigation}
-                                        />
-                                    ),
-                                },
-                                {
-                                    id: 'graph',
-                                    label: t('investigationDetail.tabs.graph'),
-                                    icon: Network,
-                                    content: (
-                                        <GraphTab
-                                            investigationId={investigation.id_investigation}
-                                            userPermission={investigation.user_permission}
-                                        />
-                                    ),
-                                },
-                                {
-                                    id: 'timeline',
-                                    label: t('investigationDetail.tabs.timeline'),
-                                    icon: History,
-                                    content: (
-                                        <TimelineTab investigationId={investigation.id_investigation}/>
-                                    ),
-                                },
-                                {
-                                    id: 'map',
-                                    label: t('investigationDetail.tabs.map'),
-                                    icon: MapIcon,
-                                    content: (
-                                        <MapTab investigationId={investigation.id_investigation}/>
-                                    ),
-                                },
-                                ...(investigation.user_permission === 'owner' ? [{
-                                    id: 'settings',
-                                    label: t('investigationDetail.tabs.settings'),
+                                    // Groupe « Gestion » : collaborateurs (tous) + paramètres (owner).
+                                    id: 'gestion',
+                                    label: t('investigationDetail.tabs.management'),
                                     icon: Settings,
                                     content: (
-                                        <SettingsTab
-                                            investigation={investigation}
-                                            onRefresh={refreshInvestigation}
-                                            onNavigateAway={() => navigate('/investigations')}
-                                            onSlugUpdate={(newTitle: string) => {
-                                                const newSlug = toInvestigationSlug(newTitle, investigation.id_investigation);
-                                                navigate(`/investigations/${newSlug}`, {replace: true});
-                                            }}
+                                        <SubTabs
+                                            parentId="gestion"
+                                            tabs={[
+                                                {
+                                                    id: 'collaborators',
+                                                    label: t('investigationDetail.tabs.collaborators'),
+                                                    icon: Users,
+                                                    content: (
+                                                        <CollaboratorsTab
+                                                            investigation={investigation}
+                                                            onRefresh={refreshInvestigation}
+                                                        />
+                                                    ),
+                                                },
+                                                ...(investigation.user_permission === 'owner' ? [{
+                                                    id: 'settings',
+                                                    label: t('investigationDetail.tabs.settings'),
+                                                    icon: Settings,
+                                                    content: (
+                                                        <SettingsTab
+                                                            investigation={investigation}
+                                                            onRefresh={refreshInvestigation}
+                                                            onNavigateAway={() => navigate('/investigations')}
+                                                            onSlugUpdate={(newTitle: string) => {
+                                                                const newSlug = toInvestigationSlug(newTitle, investigation.id_investigation);
+                                                                navigate(`/investigations/${newSlug}`, {replace: true});
+                                                            }}
+                                                        />
+                                                    ),
+                                                }] : []),
+                                            ]}
                                         />
                                     ),
-                                }] : []),
+                                },
                             ]}
                             defaultTab="details"
                         />

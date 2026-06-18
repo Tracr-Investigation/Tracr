@@ -1,5 +1,5 @@
 import { useEffect, useState, createElement } from 'react';
-import { X, Archive, Camera, FileCode, Film, Image as ImageIcon, History, FileQuestion } from 'lucide-react';
+import { X, Archive, Camera, FileCode, Film, Image as ImageIcon, History, FileQuestion, Paperclip } from 'lucide-react';
 import type { Editor } from '@tiptap/react';
 import { api, API_URL, type SourceData, type SourceType } from '../../services/api';
 
@@ -15,6 +15,7 @@ const TYPE_ICON: Record<SourceType, typeof Camera> = {
   page_mhtml: FileCode,
   media: ImageIcon,
   web_archive: History,
+  manual_file: Paperclip,
 };
 
 function iconFor(s: SourceData): typeof Camera {
@@ -35,13 +36,13 @@ function buildInsertHtml(s: SourceData): string {
   const viewUrl = `${API_URL}/sources/${s.id_source}/view?sig=${s.view_sig}`;
   const title = esc(s.title);
   const url = esc(s.source_url);
-  const date = s.captured_at ? new Date(s.captured_at).toLocaleString('fr-FR') : '—';
+  const date = s.captured_at ? new Date(s.captured_at).toLocaleString('fr-FR') : '-';
   const host = esc(hostOf(s.source_url));
   const hash = `${s.content_hash.slice(0, 16)}…`;
   const isImage = s.mime_type.startsWith('image/');
 
   const citation =
-    `<p><strong>Source archivée</strong> — <a href="${url}" target="_blank">${title}</a>` +
+    `<p><strong>Source archivée</strong> - <a href="${url}" target="_blank">${title}</a>` +
     `<br>Capturé le ${date} · ${host} · SHA-256 <code>${hash}</code></p>`;
 
   if (isImage) {

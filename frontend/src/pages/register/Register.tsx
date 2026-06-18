@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
+import { usePageTitle } from '../../hooks/usePageTitle';
 import { PasswordStrength } from '../../components/PasswordStrength';
 import { isPasswordValid } from '../../utils/passwordValidation';
 import { useAuth } from '../../contexts/AuthContext';
@@ -36,6 +37,7 @@ const TracrLogo = () => (
 );
 
 export const Register = () => {
+    usePageTitle('Inscription');
     const [pseudo, setPseudo] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -66,7 +68,7 @@ export const Register = () => {
         setLoading(true);
         try {
             const data = await api.register(pseudo, password);
-            login({ id_user: data.id_user, pseudo: data.pseudo, role: data.role, language: data.language ?? 'en' }, data.token);
+            login({ id_user: data.id_user, pseudo: data.pseudo, role: data.role, language: data.language ?? 'en', mfa_enabled: data.mfa_enabled ?? false }, data.token);
             sessionStorage.setItem('recovery_pending', '1');
             navigate('/setup-recovery', { state: { words: data.recovery_words } });
         } catch (err: unknown) {

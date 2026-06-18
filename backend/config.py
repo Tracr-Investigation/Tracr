@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     JWT_EXPIRATION_HOURS: int = 24
 
+    MFA_ENCRYPTION_KEY: str | None = None
+
     RATE_LIMIT_ENABLED: bool = True
 
     # MinIO / stockage objet des captures de sources

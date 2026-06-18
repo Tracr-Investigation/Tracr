@@ -1,0 +1,41 @@
+name: SAST (Semgrep)
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+  schedule:
+    - cron: "0 4 * * 1"   # lundi 04h UTC
+
+permissions:
+  contents: read
+  security-events: write 
+
+jobs:
+  semgrep:
+    name: Semgrep scan
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep:latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Semgrep scan
+        run: |
+          semgrep scan \
+            --config=p/default \
+            --config=p/security-audit \
+            --config=.semgrep/rules \
+            --severity=ERROR --severity=WARNING \
+            --sarif --output=semgrep.sarif \
+            --metrics=off \
+            --exclude='frontend/node_modules' \
+            --exclude='backend/alembic/versions'
+
+      - name: Upload SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep

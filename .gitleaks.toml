@@ -1,0 +1,19 @@
+# Configuration Gitleaks pour Tracr
+# https://github.com/gitleaks/gitleaks
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Faux positifs"
+paths = [
+  '''\.env\.example$''',
+  '''(^|/)package-lock\.json$''',
+  '''(^|/)tests?/''',
+  '''README\.md$''',
+]
+regexes = [
+  '''votre_mot_de_passe''',
+  '''votre_cle_secrete''',
+  '''usertracr''',
+]

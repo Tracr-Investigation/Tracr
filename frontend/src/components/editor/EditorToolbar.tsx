@@ -351,7 +351,7 @@ const ColorMenu = ({ editor, onPick }: ColorMenuProps) => {
   };
 
   return (
-    <div className="absolute top-full left-0 mt-1 z-30 bg-[#1a1a2e] border border-primary/20 rounded-lg p-2 shadow-lg min-w-[200px]">
+    <div className="absolute top-full left-0 mt-1 z-30 bg-card border border-primary/20 rounded-lg p-2 shadow-lg min-w-[200px]">
       <p className="text-[10px] uppercase font-semibold text-secondary mb-1">Surlignage</p>
       <div className="flex flex-wrap gap-1 mb-2">
         {HIGHLIGHT_COLORS.map((color) => {
@@ -538,7 +538,7 @@ const LinkDialog = ({ initialUrl, onApply, onClose }: LinkDialogProps) => {
       onClick={onClose}
     >
       <div
-        className="bg-[#1a1a2e] border border-primary/20 rounded-xl p-5 w-full max-w-md"
+        className="bg-card border border-primary/20 rounded-xl p-5 w-full max-w-md"
         onClick={handleStopPropagation}
       >
         <h3 className="text-base font-semibold text-accent mb-4">Ajouter / éditer un lien</h3>
@@ -620,7 +620,7 @@ export const EditorToolbar = ({
 
   return (
     <>
-      <div className="flex items-center flex-wrap gap-0.5 px-2 py-1.5 border-b border-primary/20 bg-[#1a1a2e]">
+      <div className="flex items-center flex-wrap gap-0.5 px-2 py-1.5 border-b border-primary/20 bg-card">
         <UndoRedoButtons editor={editor} />
         <Divider />
 

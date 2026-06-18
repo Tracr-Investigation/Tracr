@@ -1,4 +1,4 @@
-/* region.js — overlay de sélection d'une zone à capturer.
+/* region.js - overlay de sélection d'une zone à capturer.
  * Injecté à la demande par le popup. À la fin, envoie le rectangle (px CSS,
  * relatif au viewport) au service worker qui réalise la capture + le recadrage.
  */
@@ -13,7 +13,7 @@
   ].join(';'));
 
   const hint = document.createElement('div');
-  hint.textContent = 'Glissez pour sélectionner — Échap pour annuler';
+  hint.textContent = 'Glissez pour sélectionner - Échap pour annuler';
   hint.setAttribute('style', [
     'position:fixed', 'top:12px', 'left:50%', 'transform:translateX(-50%)',
     'background:#1e1e2e', 'color:#fff', 'font:600 12px/1.4 Inter,system-ui,sans-serif',

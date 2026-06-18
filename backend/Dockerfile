@@ -38,6 +38,9 @@ RUN apt-get update \
       libgdk-pixbuf-2.0-0 \
       shared-mime-info \
       fonts-dejavu-core \
+      tesseract-ocr \
+      tesseract-ocr-fra \
+      tesseract-ocr-eng \
  && rm -rf /var/lib/apt/lists/* \
  && groupadd --system --gid 1001 app \
  && useradd  --system --uid 1001 --gid app --home /app --shell /usr/sbin/nologin app

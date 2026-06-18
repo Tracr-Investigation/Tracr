@@ -21,6 +21,9 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   if (recoveryPending && location.pathname !== '/setup-recovery') {
     return <Navigate to="/setup-recovery" replace />;
   }
+  // Le MFA n'est pas obligatoire : on ne force plus l'enrolement. Tant qu'il n'est
+  // pas active, un « ! » est affiche sur l'entree Reglages de la sidebar (cf. Sidebar).
+  // L'ecran /setup-mfa reste accessible volontairement depuis les reglages.
 
   return <>{children}</>;
 };

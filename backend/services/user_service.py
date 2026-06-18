@@ -174,6 +174,77 @@ def verify_and_use_recovery(
     user.password_hash = hash_password(new_password)
     user.recovery_hash = None
     user.recovery_created_at = None
+    # La phrase de recuperation est la racine de confiance : on reinitialise aussi
+    # le MFA pour eviter tout lockout (l'utilisateur sera force de re-enroler).
+    user.mfa_secret = None
+    user.mfa_enabled = False
     db.add(user)
     db.commit()
     return user
+
+
+# ── MFA TOTP ──────────────────────────────────────────────────────────────
+def start_mfa_setup(db: Session, user: User) -> dict:
+    """Renvoie le secret/QR a scanner.
+
+    IDEMPOTENT : tant que le MFA n'est pas active, on REUTILISE le secret en
+    attente plutot que d'en regenerer un. Sinon, deux appels (ex. double effet
+    React StrictMode, ou rechargement de la page) stockeraient un secret different
+    de celui affiche dans le QR -> tous les codes seraient rejetes.
+    """
+    from services import mfa_service
+    from utils import crypto
+
+    secret = None
+    if user.mfa_secret and not user.mfa_enabled:
+        secret = crypto.decrypt(user.mfa_secret, aad=str(user.id_user))
+
+    if not secret:
+        secret = mfa_service.generate_secret()
+        # AAD = id_user : lie le chiffre au compte (anti-transplantation en base).
+        user.mfa_secret = crypto.encrypt(secret, aad=str(user.id_user))
+        user.mfa_enabled = False
+        db.add(user)
+        db.commit()
+
+    uri = mfa_service.provisioning_uri(secret, user.pseudo)
+    return {
+        "secret": secret,
+        "otpauth_uri": uri,
+        "qr": mfa_service.qr_data_uri(uri),
+    }
+
+
+def confirm_mfa(db: Session, user: User, code: str) -> bool:
+    """Active le MFA si le code correspond au secret en attente."""
+    from services import mfa_service
+    from utils import crypto
+
+    if not user.mfa_secret:
+        return False
+    secret = crypto.decrypt(user.mfa_secret, aad=str(user.id_user))
+    if not secret or not mfa_service.verify_code(secret, code):
+        return False
+    user.mfa_enabled = True
+    db.add(user)
+    db.commit()
+    return True
+
+
+def verify_mfa_login(user: User, code: str) -> bool:
+    """Verifie un code TOTP lors de la connexion (lecture seule)."""
+    from services import mfa_service
+    from utils import crypto
+
+    if not user.mfa_enabled or not user.mfa_secret:
+        return False
+    secret = crypto.decrypt(user.mfa_secret, aad=str(user.id_user))
+    return bool(secret and mfa_service.verify_code(secret, code))
+
+
+def disable_mfa(db: Session, user: User) -> None:
+    """Desactive le MFA (l'utilisateur devra le re-enroler - MFA obligatoire)."""
+    user.mfa_secret = None
+    user.mfa_enabled = False
+    db.add(user)
+    db.commit()

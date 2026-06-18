@@ -10,7 +10,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from sqlmodel import SQLModel
-import models  # noqa: F401 — nécessaire pour que Alembic détecte tous les modèles
+import models  # noqa: F401 - nécessaire pour que Alembic détecte tous les modèles
 from config import settings
 
 # this is the Alembic Config object, which provides

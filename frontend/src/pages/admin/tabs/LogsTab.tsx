@@ -58,7 +58,7 @@ export const LogsTab = () => {
     const totalPages = Math.ceil(filtered / limit);
 
     const formatDate = (dateStr: string | null) => {
-        if (!dateStr) return '—';
+        if (!dateStr) return '-';
         return new Date(dateStr).toLocaleDateString('fr-FR', {
             day: '2-digit', month: '2-digit', year: 'numeric',
             hour: '2-digit', minute: '2-digit', second: '2-digit',
@@ -127,11 +127,11 @@ export const LogsTab = () => {
                                 <tr key={log.id_log} className="border-b border-border-subtle hover:bg-card/20 transition-colors">
                                     <td className="px-6 py-4 text-text-muted text-sm font-mono">#{log.id_log}</td>
                                     <td className="px-6 py-4 text-text-muted text-sm whitespace-nowrap">{formatDate(log.created_at)}</td>
-                                    <td className="px-6 py-4 text-text-default text-sm font-medium">{log.pseudo || '—'}</td>
+                                    <td className="px-6 py-4 text-text-default text-sm font-medium">{log.pseudo || '-'}</td>
                                     <td className="px-6 py-4"><LogCategoryBadge category={log.category}/></td>
                                     <td className="px-6 py-4 text-text-default text-sm">{log.action}</td>
-                                    <td className="px-6 py-4 text-text-muted text-sm max-w-xs truncate">{log.detail || '—'}</td>
-                                    <td className="px-6 py-4 text-text-muted text-sm font-mono">{log.ip_address || '—'}</td>
+                                    <td className="px-6 py-4 text-text-muted text-sm max-w-xs truncate">{log.detail || '-'}</td>
+                                    <td className="px-6 py-4 text-text-muted text-sm font-mono">{log.ip_address || '-'}</td>
                                 </tr>
                             ))
                         )}

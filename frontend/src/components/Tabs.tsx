@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactNode } from 'react';
+import { useState, useEffect, Fragment, type ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { HelpTooltip } from './HelpTooltip';
 
@@ -18,7 +18,10 @@ interface TabsProps {
 const getHashTab = (): string | null => {
   if (typeof window === 'undefined') return null;
   const hash = window.location.hash.replace(/^#/, '');
-  return hash || null;
+  // Supporte les hash imbriqués `parent/sub` : seul le segment parent pilote
+  // l'onglet de premier niveau (le sous-onglet est géré par <SubTabs>).
+  const top = hash.split('/')[0];
+  return top || null;
 };
 
 export const Tabs = ({ tabs, defaultTab, helpKey }: TabsProps) => {
@@ -80,7 +83,7 @@ export const Tabs = ({ tabs, defaultTab, helpKey }: TabsProps) => {
       </div>
       </HelpTooltip>
 
-      {current?.content}
+      {current && <Fragment key={current.id}>{current.content}</Fragment>}
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { api } from '../../services/api';
+import { usePageTitle } from '../../hooks/usePageTitle';
 import { useTranslation } from 'react-i18next';
 import { Copy, Check, AlertTriangle, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 
@@ -8,6 +9,7 @@ export const SetupRecovery = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
+    usePageTitle('Récupération du compte');
 
     const stateWords = (location.state as { words?: string[] } | null)?.words;
 
@@ -93,7 +95,7 @@ export const SetupRecovery = () => {
                             }}>
                                 <AlertTriangle size={15} style={{ color: '#f59e0b', marginTop: '1px', flexShrink: 0 }} />
                                 <span style={{ fontSize: '12px', color: '#f59e0b', lineHeight: 1.5 }}>
-                                    La page a été rechargée — votre phrase précédente n'est plus affichable.
+                                    La page a été rechargée - votre phrase précédente n'est plus affichable.
                                     Entrez votre mot de passe pour en générer une nouvelle.
                                 </span>
                             </div>
@@ -223,7 +225,7 @@ export const SetupRecovery = () => {
                                 </span>
                             </label>
 
-                            {/* CTA — disabled tant que la checkbox n'est pas cochée */}
+                            {/* CTA - disabled tant que la checkbox n'est pas cochée */}
                             <button
                                 type="button"
                                 disabled={!confirmed}

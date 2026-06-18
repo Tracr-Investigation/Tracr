@@ -1,3 +1,5 @@
+import asyncio
+import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -5,20 +7,58 @@ from fastapi.responses import JSONResponse
 from slowapi.errors import RateLimitExceeded
 from alembic.config import Config as AlembicConfig
 from alembic import command as alembic_command
+from sqlmodel import Session
 import sys
 import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from app.dependencies import limiter
+from app.dependencies import limiter, engine
 from app.routes import auth, admin, investigations, tasks
-from app.routes import notifications, documents, templates, geocode, entities, sources
+from app.routes import notifications, documents, templates, geocode, entities, sources, selectors
+from services import document_service
 from socketio import ASGIApp as SocketASGIApp
 from app.socketio_server import sio
 
 
+logger = logging.getLogger("tracr.autobackup")
 
-fastapi_app = FastAPI()
+# Sauvegarde automatique des documents toutes les 10 minutes
+AUTO_BACKUP_INTERVAL_SECONDS = 600
+
+
+def _run_auto_backup_sweep() -> None:
+    """Exécution synchrone d'un balayage de backup (lancée dans un thread)."""
+    with Session(engine) as db:
+        created = document_service.auto_backup_sweep(db)
+        if created:
+            logger.info("Auto-backup: %d document(s) sauvegardé(s)", created)
+
+
+async def _auto_backup_loop() -> None:
+    while True:
+        await asyncio.sleep(AUTO_BACKUP_INTERVAL_SECONDS)
+        try:
+            await asyncio.to_thread(_run_auto_backup_sweep)
+        except Exception:
+            # Un échec ponctuel ne doit pas tuer la boucle de sauvegarde
+            logger.exception("Auto-backup sweep failed")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    task = asyncio.create_task(_auto_backup_loop())
+    try:
+        yield
+    finally:
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+
+
+fastapi_app = FastAPI(lifespan=lifespan)
 fastapi_app.state.limiter = limiter
 
 
@@ -37,6 +77,7 @@ fastapi_app.add_middleware(
     allow_origin_regex=r"^(chrome-extension|moz-extension)://.*$",
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["Content-Disposition"],
 )
 
 
@@ -69,5 +110,7 @@ fastapi_app.include_router(geocode.router)
 fastapi_app.include_router(entities.router)
 fastapi_app.include_router(sources.router)
 fastapi_app.include_router(sources.sources_router)
+fastapi_app.include_router(selectors.router)
+fastapi_app.include_router(selectors.selectors_router)
 
 app = SocketASGIApp(sio, other_asgi_app=fastapi_app, socketio_path="socket.io")

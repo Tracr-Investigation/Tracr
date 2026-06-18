@@ -9,7 +9,7 @@ import { useSidebarStore } from '../stores/sidebarStore';
 import {
     FileSearch, FileText, Settings, Shield, LogOut,
     ChevronsLeft, ChevronsRight, Menu, X, Bell,
-    LayoutDashboard, Calendar, Moon, Sun, BookOpen, HelpCircle,
+    LayoutDashboard, Moon, Sun, BookOpen, HelpCircle, ListChecks,
 } from 'lucide-react';
 import { useHelpStore } from '../stores/helpStore';
 
@@ -61,6 +61,7 @@ const NavItem = ({
     active,
     collapsed,
     badge,
+    alert,
     onClick,
 }: {
     icon: React.ElementType;
@@ -68,6 +69,7 @@ const NavItem = ({
     active: boolean;
     collapsed: boolean;
     badge?: number;
+    alert?: boolean;
     onClick: () => void;
 }) => (
     <Tooltip label={label} show={collapsed}>
@@ -91,6 +93,11 @@ const NavItem = ({
                 {badge !== undefined && badge > 0 && (
                     <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
                         {badge > 99 ? '99+' : badge}
+                    </span>
+                )}
+                {alert && (badge === undefined || badge === 0) && (
+                    <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-amber-500 text-black text-[9px] font-bold rounded-full flex items-center justify-center leading-none">
+                        !
                     </span>
                 )}
             </div>
@@ -156,12 +163,15 @@ export const Sidebar = () => {
         return () => window.removeEventListener('keydown', onKey);
     }, [toggle]);
 
-    const mainItems: { icon: React.ElementType; label: string; path?: string; href?: string }[] = [
+    // Tant que le MFA n'est pas activé, on signale l'item Réglages d'un « ! »
+    const mfaPending = user != null && user.mfa_enabled === false;
+
+    const mainItems: { icon: React.ElementType; label: string; path?: string; href?: string; alert?: boolean }[] = [
         { icon: LayoutDashboard, label: t('sidebar.dashboard'),      path: '/' },
         { icon: FileSearch,      label: t('sidebar.investigations'),  path: '/investigations' },
-        { icon: Calendar,        label: t('sidebar.calendar'),        path: '/calendar' },
+        { icon: ListChecks,      label: t('sidebar.myTasks'),         path: '/tasks' },
         { icon: FileText,        label: t('sidebar.templates'),       path: '/templates' },
-        { icon: Settings,        label: t('sidebar.settings'),        path: '/settings' },
+        { icon: Settings,        label: t('sidebar.settings'),        path: '/settings', alert: mfaPending },
         ...(isAdmin ? [{ icon: Shield, label: t('sidebar.administration'), path: '/admin' }] : []),
         { icon: BookOpen,        label: t('sidebar.help'),            href: '/docs/' },
     ];
@@ -199,7 +209,7 @@ export const Sidebar = () => {
                     ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                 `}
             >
-                {/* Header — le logo garde toujours sa taille */}
+                {/* Header - le logo garde toujours sa taille */}
                 <div
                     className={`
                         flex items-center h-14 px-3 border-b border-border shrink-0
@@ -218,11 +228,12 @@ export const Sidebar = () => {
                 <nav className="flex-1 overflow-y-auto py-3 px-2 flex flex-col gap-0.5">
                     {mainItems.map(item => (
                         <NavItem
-                            key={item.path ?? item.href ?? item.action}
+                            key={item.path ?? item.href}
                             icon={item.icon}
                             label={item.label}
                             active={item.path ? isActive(item.path) : false}
                             collapsed={effectiveCollapsed}
+                            alert={item.alert}
                             onClick={() => {
                                 if (item.href) { window.open(item.href, '_blank'); return; }
                                 if (item.path) nav(item.path);
@@ -310,7 +321,7 @@ export const Sidebar = () => {
                         </button>
                     </Tooltip>
 
-                    {/* Toggle déplier / replier — en bas, séparé */}
+                    {/* Toggle déplier / replier - en bas, séparé */}
                     <div className="mt-1 pt-2 border-t border-border/60">
                         <Tooltip label={collapsed ? t('sidebar.expandShortcut') : t('sidebar.collapseShortcut')} show={effectiveCollapsed}>
                             <button

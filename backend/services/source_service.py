@@ -17,10 +17,11 @@ from sqlalchemy.orm import Session
 from config import settings
 from models.source import InvestigationSource
 from models.user import User
-from services import storage_service
+from services import ocr_service, storage_service, text_extraction_service
 
-# Types de capture acceptes
-SOURCE_TYPES = frozenset({"page_screenshot", "page_mhtml", "media", "web_archive"})
+# Types de capture acceptes. `manual_file` = fichier ajoute manuellement par
+# l'enqueteur (hors extension : document, image, PDF deposes a la main).
+SOURCE_TYPES = frozenset({"page_screenshot", "page_mhtml", "media", "web_archive", "manual_file"})
 
 # Extension de fichier conseillee par type MIME courant (pour la cle de stockage)
 _EXT_BY_MIME = {
@@ -43,7 +44,7 @@ def _now() -> datetime:
 
 def view_signature(source: InvestigationSource) -> str:
     """Signature HMAC stable (sans expiration) autorisant la lecture d'UNE source
-    via une URL http — pour embarquer images/captures dans un document (le
+    via une URL http - pour embarquer images/captures dans un document (le
     sanitizer bloque data:/blob:). Ne révèle pas le JWT de l'utilisateur."""
     msg = f"{source.id_source}:{source.content_hash}".encode()
     return hmac.new(settings.SECRET_KEY.encode(), msg, hashlib.sha256).hexdigest()[:32]
@@ -86,6 +87,7 @@ def create_source(
     captured_at: datetime,
     capture_group: Optional[str] = None,
     page_metadata: Optional[dict] = None,
+    notes: Optional[str] = None,
 ) -> InvestigationSource:
     """Calcule le hash, depose le binaire dans MinIO et persiste la source.
 
@@ -100,6 +102,10 @@ def create_source(
 
     storage_service.put_object(storage_key, content, mime_type)
 
+    extracted_text, text_status = text_extraction_service.extract_text(
+        content, mime_type, source_type
+    )
+
     source = InvestigationSource(
         id_investigation=id_investigation,
         created_by=created_by,
@@ -112,7 +118,75 @@ def create_source(
         storage_key=storage_key,
         capture_group=capture_group,
         page_metadata=page_metadata,
+        notes=(notes.strip() if notes else None) or None,
+        extracted_text=extracted_text,
+        text_status=text_status,
         captured_at=captured_at,
+    )
+    db.add(source)
+    db.commit()
+    db.refresh(source)
+    return source
+
+
+def update_source(
+    db: Session,
+    source: InvestigationSource,
+    *,
+    title: Optional[str] = None,
+    notes: Optional[str] = None,
+) -> InvestigationSource:
+    """Met a jour les champs editables d'une source (titre, notes).
+    Le binaire et l'empreinte restent immuables (integrite de la preuve)."""
+    if title is not None and title.strip():
+        source.title = title.strip()
+    if notes is not None:
+        source.notes = notes.strip() or None
+    db.add(source)
+    db.commit()
+    db.refresh(source)
+    return source
+
+
+def ensure_extracted_text(db: Session, source: InvestigationSource) -> InvestigationSource:
+    """Analyse paresseuse : pour une source jamais traitee (`unprocessed`,
+    typiquement anterieure a la feature), recupere le binaire depuis MinIO,
+    extrait le texte et persiste le resultat. No-op si deja analysee."""
+    if source.text_status != text_extraction_service.STATUS_UNPROCESSED:
+        return source
+    try:
+        content = storage_service.get_object(source.storage_key)
+    except Exception:
+        return source  # objet indisponible : on retentera plus tard
+    extracted_text, text_status = text_extraction_service.extract_text(
+        content, source.mime_type, source.source_type
+    )
+    source.extracted_text = extracted_text
+    source.text_status = text_status
+    db.add(source)
+    db.commit()
+    db.refresh(source)
+    return source
+
+
+def can_ocr(source: InvestigationSource) -> bool:
+    """L'OCR n'a de sens que sur une image bitmap."""
+    return ocr_service.is_ocr_candidate(source.mime_type)
+
+
+def run_ocr(db: Session, source: InvestigationSource) -> InvestigationSource:
+    """Lance l'OCR sur une source image : recupere le binaire depuis MinIO,
+    reconnait le texte et persiste le resultat dans `extracted_text`. Le statut
+    passe a `extracted` si du texte est trouve, sinon `none` (analyse infructueuse)."""
+    try:
+        content = storage_service.get_object(source.storage_key)
+    except Exception:
+        return source
+    text = ocr_service.ocr_image(content)
+    source.extracted_text = text
+    source.text_status = (
+        text_extraction_service.STATUS_EXTRACTED if text
+        else text_extraction_service.STATUS_NONE
     )
     db.add(source)
     db.commit()
@@ -174,6 +248,8 @@ def _to_dict(source: InvestigationSource, author_pseudo: Optional[str]) -> dict:
         "content_hash": source.content_hash,
         "capture_group": source.capture_group,
         "page_metadata": source.page_metadata,
+        "notes": source.notes,
+        "text_status": source.text_status,
         "view_sig": view_signature(source),
         "captured_at": source.captured_at.isoformat() if source.captured_at else None,
         "created_at": source.created_at.isoformat() if source.created_at else None,

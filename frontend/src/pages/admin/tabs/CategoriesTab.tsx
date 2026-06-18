@@ -1,6 +1,7 @@
 import {useState, useEffect, useCallback} from 'react';
 import {api} from '../../../services/api';
-import {Tag, Plus, Pencil, Trash2, X} from 'lucide-react';
+import {SidePanel} from '../../../components/SidePanel';
+import {Tag, Plus, Pencil, Trash2} from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 
@@ -51,13 +52,24 @@ interface ModalProps {
     onSave: () => void;
 }
 
-const CategoryFormModal = ({category, onClose, onSave}: ModalProps) => {
+const CategoryFormPanel = ({open, category, onClose, onSave}: ModalProps & {open: boolean}) => {
     const {t} = useTranslation();
-    const [name, setName] = useState(category?.name || '');
-    const [color, setColor] = useState(category?.color || '#8b5cf6');
-    const [icon, setIcon] = useState(category?.icon || 'Tag');
+    const [name, setName] = useState('');
+    const [color, setColor] = useState('#8b5cf6');
+    const [icon, setIcon] = useState('Tag');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+
+    // (Re)initialise les champs a chaque ouverture, selon la categorie a editer.
+    useEffect(() => {
+        if (open) {
+            setName(category?.name || '');
+            setColor(category?.color || '#8b5cf6');
+            setIcon(category?.icon || 'Tag');
+            setError('');
+            setLoading(false);
+        }
+    }, [open, category]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -75,19 +87,12 @@ const CategoryFormModal = ({category, onClose, onSave}: ModalProps) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-overlay flex items-center justify-center z-50" onClick={onClose}>
-            <div className="bg-card/30 border border-border-subtle rounded-xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-                <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-semibold text-text-default">
-                        {category ? t('admin.categories.editTitle') : t('admin.categories.newTitle')}
-                    </h3>
-                    <button onClick={onClose} className="text-text-muted hover:text-text-default transition-colors"><X size={20}/></button>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-4">
+        <SidePanel open={open} onClose={onClose} title={category ? t('admin.categories.editTitle') : t('admin.categories.newTitle')}>
+            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto flex flex-col min-h-0">
+                <div className="px-6 py-5 space-y-5 flex-1">
                     <div>
                         <label className="block text-sm text-text-muted mb-1.5">{t('admin.categories.nameLabel')}</label>
-                        <input type="text" value={name} onChange={(e) => setName(e.target.value)} required maxLength={50}
+                        <input type="text" value={name} onChange={(e) => setName(e.target.value)} required maxLength={50} autoFocus={open}
                             className="w-full px-4 py-3 bg-input-bg border border-border rounded-xl text-text-default placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-border-focus transition-all"
                             placeholder={t('admin.categories.namePlaceholder')}
                         />
@@ -135,18 +140,18 @@ const CategoryFormModal = ({category, onClose, onSave}: ModalProps) => {
                     </div>
 
                     {error && <p className="text-red-400 text-sm">{error}</p>}
+                </div>
 
-                    <div className="flex justify-end gap-3 pt-2">
-                        <button type="button" onClick={onClose} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-card/30 border border-border-subtle text-text-muted hover:bg-primary/10 hover:text-text-default transition-all">
-                            {t('admin.categories.cancel')}
-                        </button>
-                        <button type="submit" disabled={loading || !name.trim()} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-text-default border border-primary/30 hover:bg-primary/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
-                            {loading ? t('admin.categories.saving') : category ? t('admin.categories.update') : t('admin.categories.create')}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                <div className="flex justify-end gap-3 px-6 py-4 border-t border-border-subtle shrink-0">
+                    <button type="button" onClick={onClose} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-card/30 border border-border-subtle text-text-muted hover:bg-primary/10 hover:text-text-default transition-all">
+                        {t('admin.categories.cancel')}
+                    </button>
+                    <button type="submit" disabled={loading || !name.trim()} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-text-default border border-primary/30 hover:bg-primary/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                        {loading ? t('admin.categories.saving') : category ? t('admin.categories.update') : t('admin.categories.create')}
+                    </button>
+                </div>
+            </form>
+        </SidePanel>
     );
 };
 
@@ -193,9 +198,12 @@ export const CategoriesTab = () => {
     const [categories, setCategories] = useState<CategoryData[]>([]);
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(true);
-    const [showCreate, setShowCreate] = useState(false);
-    const [editCategory, setEditCategory] = useState<CategoryData | undefined>(undefined);
+    const [panelOpen, setPanelOpen] = useState(false);
+    const [panelCategory, setPanelCategory] = useState<CategoryData | undefined>(undefined);
     const [deleteCategory, setDeleteCategory] = useState<CategoryData | undefined>(undefined);
+
+    const openCreate = () => { setPanelCategory(undefined); setPanelOpen(true); };
+    const openEdit = (c: CategoryData) => { setPanelCategory(c); setPanelOpen(true); };
 
     const fetchCategories = useCallback(async () => {
         setLoading(true);
@@ -213,14 +221,13 @@ export const CategoriesTab = () => {
     useEffect(() => { fetchCategories(); }, [fetchCategories]);
 
     const handleSave = () => {
-        setShowCreate(false);
-        setEditCategory(undefined);
+        setPanelOpen(false);
         setDeleteCategory(undefined);
         fetchCategories();
     };
 
     const formatDate = (dateStr: string | null) => {
-        if (!dateStr) return '—';
+        if (!dateStr) return '-';
         return new Date(dateStr).toLocaleDateString('en-US', {
             day: '2-digit', month: '2-digit', year: 'numeric',
             hour: '2-digit', minute: '2-digit',
@@ -240,7 +247,7 @@ export const CategoriesTab = () => {
                     </div>
                 </div>
 
-                <button onClick={() => setShowCreate(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-text-default border border-primary/30 hover:bg-primary/30 transition-all">
+                <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-text-default border border-primary/30 hover:bg-primary/30 transition-all">
                     <Plus size={16}/>
                     {t('admin.categories.newCategory')}
                 </button>
@@ -274,19 +281,19 @@ export const CategoriesTab = () => {
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
                                                 <span className="w-4 h-4 rounded-full border border-border" style={{backgroundColor: c.color || '#6b7280'}}/>
-                                                <span className="text-text-muted text-sm font-mono">{c.color || '—'}</span>
+                                                <span className="text-text-muted text-sm font-mono">{c.color || '-'}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2 text-text-muted text-sm">
                                                 <IconComp size={14}/>
-                                                {c.icon || '—'}
+                                                {c.icon || '-'}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-text-muted text-sm">{formatDate(c.created_at)}</td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center justify-end gap-2">
-                                                <button onClick={() => setEditCategory(c)} className="p-2 rounded-lg bg-card/30 border border-border-subtle text-text-muted hover:bg-primary/20 hover:text-text-default transition-all" title={t('admin.categories.editTooltip')}>
+                                                <button onClick={() => openEdit(c)} className="p-2 rounded-lg bg-card/30 border border-border-subtle text-text-muted hover:bg-primary/20 hover:text-text-default transition-all" title={t('admin.categories.editTooltip')}>
                                                     <Pencil size={14}/>
                                                 </button>
                                                 <button onClick={() => setDeleteCategory(c)} className="p-2 rounded-lg bg-card border border-red-500/20 text-text-muted hover:bg-red-500/20 hover:text-red-400 transition-all" title={t('admin.categories.deleteTooltip')}>
@@ -303,8 +310,7 @@ export const CategoriesTab = () => {
                 </div>
             </div>
 
-            {showCreate && <CategoryFormModal onClose={() => setShowCreate(false)} onSave={handleSave}/>}
-            {editCategory && <CategoryFormModal category={editCategory} onClose={() => setEditCategory(undefined)} onSave={handleSave}/>}
+            <CategoryFormPanel open={panelOpen} category={panelCategory} onClose={() => setPanelOpen(false)} onSave={handleSave}/>
             {deleteCategory && <DeleteModal category={deleteCategory} onClose={() => setDeleteCategory(undefined)} onSave={handleSave}/>}
         </div>
     );

@@ -2,6 +2,7 @@
   "sidebar": {
     "dashboard": "Dashboard",
     "investigations": "Investigations",
+    "myTasks": "My tasks",
     "calendar": "Calendar",
     "templates": "Templates",
     "settings": "Settings",
@@ -108,6 +109,23 @@
       }
     }
   },
+  "showcase": {
+    "tagline": "OSINT Investigation Platform",
+    "tabs": {
+      "graph": "Graph",
+      "sources": "Sources",
+      "documents": "Documents",
+      "timeline": "Timeline",
+      "tasks": "Tasks"
+    },
+    "desc": {
+      "graph": "Map people, domains, IPs and accounts - and the links between them.",
+      "sources": "Capture evidence with the browser extension, seal it into the case, then drop it straight into your report.",
+      "documents": "Write investigation reports together in real time, with findings embedded inline.",
+      "timeline": "Every action is recorded in a complete, auditable activity trail.",
+      "tasks": "Plan and track investigative work with priorities, assignees and due dates."
+    }
+  },
   "home": {
     "title": "Dashboard",
     "welcome": "Welcome back,",
@@ -146,10 +164,28 @@
     "overdue": "Overdue",
     "close": "Close",
     "more": "+{{count}} more",
-    "days": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "days": [
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat"
+    ],
     "months": [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December"
     ],
     "priority": {
       "basse": "Low",
@@ -181,7 +217,9 @@
       "descPlaceholder": "Describe the investigation...",
       "cancel": "Cancel",
       "creating": "Creating...",
-      "create": "Create"
+      "create": "Create",
+      "objectivesLabel": "Objectives (optional)",
+      "objectivesPlaceholder": "What are the objectives of this investigation?"
     }
   },
   "investigationDetail": {
@@ -192,6 +230,9 @@
     "tabs": {
       "details": "Details",
       "tasks": "Tasks",
+      "evidence": "Evidence",
+      "analysis": "Analysis",
+      "management": "Management",
       "collaborators": "Collaborators",
       "graph": "Graph",
       "timeline": "Timeline",
@@ -280,6 +321,14 @@
       "removed": "Category removed"
     },
     "settings": {
+      "coverLabel": "Cover",
+      "coverHint": "Image shown on the cover page of PDF exports (PNG, JPEG, WebP or GIF, 8 MB max).",
+      "coverDefault": "Default cover",
+      "coverUpload": "Add an image",
+      "coverChange": "Change image",
+      "coverRemove": "Remove",
+      "coverUpdated": "Cover updated",
+      "coverRemoved": "Cover removed",
       "titleLabel": "Title",
       "descLabel": "Description",
       "descPlaceholder": "No description",
@@ -302,8 +351,12 @@
       "deleting": "Deleting...",
       "updated": "Investigation updated",
       "transferred": "Ownership transferred to {{pseudo}}",
-      "deleted": "Investigation deleted"
-    }
+      "deleted": "Investigation deleted",
+      "objectivesLabel": "Objectives",
+      "objectivesPlaceholder": "Investigation objectives (shown at the top of the PDF export)"
+    },
+    "objectivesTitle": "Objectives",
+    "noObjectives": "No objectives set"
   },
   "tasks": {
     "filterAll": "All",
@@ -324,7 +377,7 @@
     "priorityLabel": "Priority",
     "statusLabel": "Status",
     "assignedLabel": "Assigned to",
-    "assignedNobody": "— Nobody —",
+    "assignedNobody": "- Nobody -",
     "dueDateLabel": "Due date",
     "privateLabel": "Private (visible only to you)",
     "sharedLabel": "Shared (visible to all members)",
@@ -351,8 +404,28 @@
     "status": {
       "todo": "To do",
       "en_cours": "In progress",
+      "bloque": "Blocked",
+      "en_revue": "In review",
+      "a_valider": "To validate",
       "termine": "Done"
-    }
+    },
+    "viewList": "List",
+    "viewKanban": "Kanban",
+    "showAllColumns": "Show all",
+    "showMainColumns": "Collapse",
+    "columnEmpty": "Empty",
+    "addCard": "Add",
+    "movedError": "Error while moving the task",
+    "personalTitle": "My tasks",
+    "personalSubtitle": "Your personal tasks and the ones assigned to you",
+    "tabPersonal": "Personal",
+    "tabAssigned": "Assigned to me",
+    "tabCalendar": "Calendar",
+    "personalEmpty": "No personal task",
+    "personalEmptyDesc": "Create a task to organize yourself, independently of investigations.",
+    "assignedEmpty": "No assigned task",
+    "assignedEmptyDesc": "Tasks assigned to you across your investigations will appear here.",
+    "fromInvestigation": "Investigation"
   },
   "admin": {
     "title": "Administration",
@@ -546,11 +619,35 @@
     "recoveryDone": "Done",
     "recoveryGenerating": "Generating..."
   },
+  "mfa": {
+    "setupTitle": "Set up two-factor auth",
+    "setupSubtitle": "Recommended to secure your account",
+    "step1": "Install an authenticator app (Google Authenticator, Aegis, …).",
+    "step2": "Scan the QR code below.",
+    "step3": "Enter the 6-digit code to confirm.",
+    "cantScan": "Can't scan? Enter this key manually:",
+    "enableButton": "Enable two-factor auth",
+    "verifying": "Verifying…",
+    "signOut": "Sign out",
+    "loginPrompt": "Enter the 6-digit code from your authenticator app",
+    "verify": "Verify",
+    "back": "Back",
+    "sectionTitle": "Two-factor authentication",
+    "sectionSubtitle": "Recommended - TOTP code from an authenticator app at each login.",
+    "active": "Active",
+    "reconfigure": "Reconfigure",
+    "reconfigureTitle": "Reconfigure 2FA",
+    "reconfigureSubtitle": "Confirm your password, then scan a new QR code.",
+    "continue": "Continue",
+    "qrAlt": "TOTP QR code",
+    "inactive": "Inactive",
+    "enable": "Enable"
+  },
   "setupRecovery": {
     "title": "Save your recovery code",
     "subtitle": "Before accessing the app, write down your recovery phrase.",
     "wordsTitle": "Your recovery phrase",
-    "wordsDesc": "These 12 words let you reset your password without email. Write them down in a safe place — they won't be shown again.",
+    "wordsDesc": "These 12 words let you reset your password without email. Write them down in a safe place - they won't be shown again.",
     "warning": "Never share this phrase. It gives full access to your account.",
     "copy": "Copy",
     "copied": "Copied!",

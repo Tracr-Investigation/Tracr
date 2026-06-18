@@ -89,7 +89,7 @@ export const TemplateEditor = ({
   const innerStyle = { minHeight };
 
   return (
-    <div className="flex flex-col border border-primary/20 rounded-lg overflow-hidden bg-[#0f0f1e]">
+    <div className="flex flex-col border border-primary/20 rounded-lg overflow-hidden bg-surface">
       {showToolbar && <EditorToolbar editor={editor} hasSelection={hasSelection} />}
       <div className="overflow-y-auto" style={containerStyle}>
         <div className="px-4 py-3" style={innerStyle}>

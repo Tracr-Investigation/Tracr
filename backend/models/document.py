@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text, false
 from sqlmodel import Field, SQLModel
 from zoneinfo import ZoneInfo
 
@@ -30,6 +30,16 @@ class DocumentBackup(SQLModel, table=True):
     content_html: str = Field(
         default="",
         sa_column=Column(Text, nullable=False, server_default=""),
+    )
+    # 'manual' = créé par un utilisateur ; 'auto' = sauvegarde planifiée (toutes les 10 min)
+    kind: str = Field(
+        default="manual",
+        sa_column=Column(String(16), nullable=False, server_default="manual", index=True),
+    )
+    # backup épinglé : protégé, jamais supprimé par la rétention
+    pinned: bool = Field(
+        default=False,
+        sa_column=Column(Boolean, nullable=False, server_default=false()),
     )
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(ZoneInfo("Europe/Paris")),

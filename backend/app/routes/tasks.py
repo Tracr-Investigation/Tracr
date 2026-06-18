@@ -4,7 +4,14 @@ from sqlmodel import Session
 from services import investigation_service, log_service, user_service
 from services import task_service
 from services.notification_emitter import create_and_emit
-from utils.schemas import TaskCreateRequest, TaskResponseCreateRequest, TaskUpdateRequest
+from utils.schemas import (
+    PersonalTaskCreateRequest,
+    PersonalTaskUpdateRequest,
+    TaskCreateRequest,
+    TaskMoveRequest,
+    TaskResponseCreateRequest,
+    TaskUpdateRequest,
+)
 from utils.security import verify_token
 from app.dependencies import get_db
 
@@ -175,6 +182,40 @@ async def update_task(
     return updated
 
 
+@router.patch("/{investigation_id}/tasks/{task_id}/move")
+async def move_task(
+    investigation_id: int,
+    task_id: int,
+    body: TaskMoveRequest,
+    request: Request,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Déplacement Kanban d'une tâche d'enquête (changement de colonne / position)."""
+    _, permission = _check_investigation_access(db, investigation_id, user.id_user)
+
+    task = task_service.get_task_by_id(db, task_id)
+    if not task or task.id_investigation != investigation_id:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    _check_task_visibility(task, permission, user.id_user)
+
+    if not task_service.can_change_status(permission, user.id_user, task):
+        raise HTTPException(status_code=403, detail="Insufficient permissions to move this task")
+
+    updated = task_service.move_task(db, task, body.status, body.position)
+
+    ip = request.client.host if request.client else None
+    log_service.create_log(
+        db, category="task", action="move",
+        id_user=user.id_user,
+        id_investigation=investigation_id,
+        detail=f"Tâche #{task_id} → {body.status} (Investigation #{investigation_id})",
+        ip_address=ip,
+    )
+    return updated
+
+
 @router.delete("/{investigation_id}/tasks/{task_id}")
 async def delete_task(
     investigation_id: int,
@@ -307,3 +348,119 @@ async def get_my_tasks(
 ):
     tasks = task_service.get_my_tasks(db, user.id_user)
     return {"tasks": tasks}
+
+
+@me_router.get("/assigned")
+async def get_assigned_tasks(
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Toutes les tâches assignées à l'utilisateur (toutes enquêtes, toutes colonnes)
+    pour le Kanban « assignées à moi »."""
+    tasks = task_service.get_my_tasks(db, user.id_user, limit=None, include_completed=True)
+    return {"tasks": tasks}
+
+
+# --- Tâches personnelles (hors enquête, id_investigation NULL) -----------------
+
+def _get_owned_personal_task(db: Session, task_id: int, user_id: int):
+    """Récupère une tâche personnelle appartenant à l'utilisateur, sinon 404."""
+    task = task_service.get_task_by_id(db, task_id)
+    if not task or task.id_investigation is not None or task.created_by != user_id:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return task
+
+
+@me_router.get("/personal")
+async def get_personal_tasks(
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    tasks = task_service.get_personal_tasks(db, user.id_user)
+    return {"tasks": tasks}
+
+
+@me_router.post("/personal")
+async def create_personal_task(
+    body: PersonalTaskCreateRequest,
+    request: Request,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    task = task_service.create_task(
+        db,
+        id_investigation=None,
+        id_user=user.id_user,
+        title=body.title,
+        description=body.description,
+        status=body.status,
+        priority=body.priority,
+        due_date=body.due_date,
+    )
+    ip = request.client.host if request.client else None
+    log_service.create_log(
+        db, category="task", action="create_personal",
+        id_user=user.id_user,
+        detail=f"Tâche perso #{task['id_task']} - {body.title}",
+        ip_address=ip,
+    )
+    return task
+
+
+@me_router.patch("/personal/{task_id}")
+async def update_personal_task(
+    task_id: int,
+    body: PersonalTaskUpdateRequest,
+    request: Request,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    task = _get_owned_personal_task(db, task_id, user.id_user)
+    updated = task_service.update_task(
+        db, task,
+        title=body.title,
+        description=body.description,
+        status=body.status,
+        priority=body.priority,
+        due_date=body.due_date,
+        clear_due_date=body.clear_due_date,
+    )
+    ip = request.client.host if request.client else None
+    log_service.create_log(
+        db, category="task", action="update_personal",
+        id_user=user.id_user,
+        detail=f"Tâche perso #{task_id} modifiée",
+        ip_address=ip,
+    )
+    return updated
+
+
+@me_router.patch("/personal/{task_id}/move")
+async def move_personal_task(
+    task_id: int,
+    body: TaskMoveRequest,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    task = _get_owned_personal_task(db, task_id, user.id_user)
+    return task_service.move_task(db, task, body.status, body.position)
+
+
+@me_router.delete("/personal/{task_id}")
+async def delete_personal_task(
+    task_id: int,
+    request: Request,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    task = _get_owned_personal_task(db, task_id, user.id_user)
+    title = task.title
+    task_service.delete_task(db, task)
+    ip = request.client.host if request.client else None
+    log_service.create_log(
+        db, category="task", action="delete_personal",
+        id_user=user.id_user,
+        detail=f"Tâche perso #{task_id} - {title} supprimée",
+        ip_address=ip,
+    )
+    return {"detail": "Task deleted"}
