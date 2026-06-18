@@ -1,41 +1,51 @@
 ---
-sidebar_position: 12
+sidebar_position: 8
 title: Notifications
 ---
 
 # Notifications
 
-Les notifications vous informent en temps réel des événements qui vous concernent dans Tracr.
+Tracr envoie des notifications en temps réel pour vous tenir informé des activités sur vos enquêtes.
+
+---
 
 ## Types de notifications
 
 | Type | Déclencheur |
 |---|---|
-| **Invitation** | Quelqu'un vous invite à collaborer sur une enquête |
-| **Mention** | Vous êtes mentionné dans un document |
-| **Changement de statut** | Le statut d'une enquête où vous collaborez a changé |
-| **Système** | Message de l'administrateur |
+| Invitation | Vous avez été invité à rejoindre une enquête |
+| Changement de statut | Le statut d'une enquête dont vous êtes membre a changé |
+| Mention | Vous avez été mentionné dans un document |
+| Système | Message de la plateforme |
 
-## Consulter les notifications
+---
 
-Cliquez sur l'icône **Cloche** dans la sidebar. Le badge rouge indique le nombre de notifications non lues.
+## Accéder aux notifications
 
-La page **Notifications** liste :
-- Les notifications non lues en haut
-- Les invitations en attente de réponse
-- L'historique des notifications lues
+- **Icône cloche** dans la barre latérale : affiche le nombre de notifications non lues. Cliquez pour accéder à la page Notifications complète.
+- **Tableau de bord** : les 5 notifications les plus récentes sont affichées dans la section "Notifications récentes".
 
-## Répondre à une invitation
+---
 
-Quand vous recevez une invitation à rejoindre une enquête, deux boutons apparaissent :
-- **Accepter** : vous êtes ajouté comme collaborateur et pouvez accéder à l'enquête immédiatement.
-- **Refuser** : l'invitation est supprimée.
+## Cliquer sur une notification
+
+Cliquer sur une notification dans la liste la marque automatiquement comme lue et navigue vers l'enquête concernée si applicable.
+
+---
+
+## Invitations en attente
+
+Les invitations à rejoindre une enquête apparaissent dans la page Notifications sous forme de carte avec les boutons **Accepter** et **Refuser**. Elles sont également visibles et actionnables directement depuis le **Tableau de bord**.
+
+---
 
 ## Marquer comme lu
 
-- **Une notification** : cliquez sur la notification pour l'ouvrir - elle est automatiquement marquée comme lue.
-- **Toutes les notifications** : cliquez sur **Tout marquer comme lu** en haut de la page.
+- Cliquez sur une notification pour la marquer comme lue individuellement.
+- Un bouton **Tout marquer comme lu** permet de marquer toutes les notifications en une seule action.
+
+---
 
 ## Notifications en temps réel
 
-Tracr reçoit les notifications instantanément via une connexion persistante. Vous n'avez pas besoin de rafraîchir la page - le badge se met à jour automatiquement dès qu'un événement vous concerne.
+Les notifications sont transmises en temps réel via Socket.IO. Aucun rechargement de page n'est nécessaire pour recevoir une nouvelle notification.

@@ -1,4 +1,5 @@
 # Tracr
+
  
 Application full-stack de gestion d'enquêtes et d'investigations - backend FastAPI, frontend React TypeScript, collaboration temps réel via Yjs.
  

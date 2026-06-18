@@ -9,8 +9,9 @@ import { useSidebarStore } from '../stores/sidebarStore';
 import {
     FileSearch, FileText, Settings, Shield, LogOut,
     ChevronsLeft, ChevronsRight, Menu, X, Bell,
-    LayoutDashboard, Moon, Sun, BookOpen, ListChecks,
+    LayoutDashboard, Moon, Sun, BookOpen, HelpCircle, ListChecks,
 } from 'lucide-react';
+import { useHelpStore } from '../stores/helpStore';
 
 // ── Tooltip (mode replié) ───────────────────────────────────────────────────────
 
@@ -112,6 +113,7 @@ export const Sidebar = () => {
     const [peeking, setPeeking] = useState(false);
     const peekTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const { collapsed, toggle } = useSidebarStore();
+    const { isHelpMode, toggle: toggleHelp } = useHelpStore();
     const { user, logout } = useAuth();
     const { unreadCount } = useNotifications();
     const { mode, toggleMode } = useThemeStore();
@@ -293,6 +295,15 @@ export const Sidebar = () => {
                             </div>
                         )}
                     </div>
+
+                    {/* Help mode */}
+                    <NavItem
+                        icon={HelpCircle}
+                        label={t('sidebar.helpMode')}
+                        active={isHelpMode}
+                        collapsed={effectiveCollapsed}
+                        onClick={toggleHelp}
+                    />
 
                     {/* Logout */}
                     <Tooltip label={t('sidebar.logout')} show={effectiveCollapsed}>

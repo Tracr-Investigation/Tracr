@@ -1090,6 +1090,7 @@ export const InvestigationDetail = () => {
                         <div className={headerCollapsed ? 'mt-4' : ''} />
 
                         <Tabs
+                            helpKey="tabs.overview"
                             tabs={[
                                 {
                                     id: 'details',

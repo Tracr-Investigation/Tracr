@@ -1,33 +1,64 @@
 ---
-sidebar_position: 8
-title: Modèles
+sidebar_position: 9
+title: Templates
 ---
 
-# Modèles
+# Templates
 
-Les modèles permettent de créer des structures de documents réutilisables entre enquêtes.
+Les templates sont des modèles de documents réutilisables. Ils permettent de pré-remplir le contenu, les titres et la mise en forme lors de la création d'un nouveau document dans une enquête.
 
-## Créer un modèle
+---
 
-Depuis la page **Modèles** (sidebar) :
+## Interface
 
-1. Cliquez sur **Nouveau modèle**.
-2. Donnez-lui un nom, une description et optionnellement une catégorie.
-3. Rédigez le contenu du modèle dans l'éditeur.
-4. Sauvegardez.
+La page Templates est divisée en deux onglets :
 
-## Rendre un modèle public
+- **Mes templates** : les templates que vous avez créés
+- **Publics** : les templates publics créés par d'autres utilisateurs
 
-Un modèle peut être **privé** (visible uniquement par son créateur) ou **public** (visible par tous les utilisateurs). Cochez l'option **Public** lors de la création ou de l'édition.
+Une barre de recherche et des filtres par catégorie permettent de retrouver rapidement un template.
 
-## Utiliser un modèle
+---
 
-Lors de la **création d'un document** dans une enquête, vous pouvez sélectionner un modèle. Le contenu du modèle est copié comme point de départ dans le nouveau document.
+## Créer un template
 
-## Catégories de modèles
+1. Cliquez sur **Nouveau**.
+2. Renseignez un nom (obligatoire) et une description (facultative).
+3. Sélectionnez une catégorie si disponible.
+4. Rédigez le contenu dans l'éditeur.
+5. Choisissez la visibilité (Public ou Privé).
+6. Cliquez sur **Créer**.
 
-Les catégories de modèles sont gérées par les administrateurs (panneau Administration → Catégories de modèles). Elles permettent de regrouper les modèles par type d'enquête ou de procédure.
+---
 
-## Modifier ou supprimer un modèle
+## Visibilité
 
-Vous ne pouvez modifier ou supprimer que les modèles dont vous êtes le créateur. Les administrateurs peuvent gérer tous les modèles.
+- **Public** : visible et utilisable par tous les utilisateurs de la plateforme
+- **Privé** : visible uniquement par vous
+
+---
+
+## Aperçu d'un template
+
+Cliquez sur un template dans la liste pour ouvrir le **panneau d'aperçu** latéral. Il affiche :
+- Le nom, la catégorie et le statut public/privé
+- L'auteur et la date de dernière modification
+- Un aperçu du contenu en lecture seule
+
+---
+
+## Modifier ou supprimer un template
+
+Depuis le panneau d'aperçu, les boutons **Modifier** et **Supprimer** sont disponibles si vous êtes propriétaire du template.
+
+---
+
+## Catégories
+
+Les catégories de templates sont gérées par les administrateurs (Administration → Catégories de modèles). Elles permettent d'organiser les templates par thème ou type d'enquête.
+
+---
+
+## Utiliser un template dans un document
+
+Lors de la création d'un nouveau document dans une enquête, un sélecteur de template apparaît. Choisissez un template pour que son contenu pré-remplisse l'éditeur.

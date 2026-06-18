@@ -1,23 +1,46 @@
 ---
-sidebar_position: 9
+sidebar_position: 11
 title: Calendar
 ---
 
 # Calendar
 
-The **Calendar** provides a monthly view of all tasks assigned to you, across all investigations.
+The calendar displays all tasks **assigned to you** across all your investigations, positioned on their due date.
+
+---
 
 ## Navigation
 
-- Use the **◀ ▶** arrows to change months.
-- The **Today** button returns to the current month.
+- The **Previous month** and **Next month** buttons let you navigate between months.
+- The **Today** button re-centers the view on the current month.
 
-## Reading the calendar
+---
 
-Each day displays tasks whose due date falls on that day. Tasks are colored according to their source investigation.
+## Task display
 
-Click on a task in the calendar to go directly to the corresponding investigation.
+Each task is represented by a colored dot based on its priority:
+
+| Priority | Color |
+|---|---|
+| Low | Grey |
+| Normal | Blue |
+| High | Orange |
+| Urgent | Red |
+
+---
+
+## Clicking a task
+
+Clicking a task in the calendar navigates directly to the corresponding investigation (Tasks tab).
+
+---
 
 ## Tasks without a due date
 
-Tasks without a due date do not appear in the calendar. To find them, use the **My tasks** section on the **Dashboard**.
+Tasks without a due date do not appear in the calendar. Use the **My tasks** section on the dashboard to view them.
+
+---
+
+## Scope
+
+The calendar only shows tasks **assigned to you**. Tasks you created for others, or unassigned shared tasks, do not appear.

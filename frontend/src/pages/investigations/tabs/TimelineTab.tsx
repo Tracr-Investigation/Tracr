@@ -12,6 +12,7 @@ import {
 import {api} from '../../../services/api';
 import {formatRelativeDate} from '../../../utils/date';
 import {useTranslation} from 'react-i18next';
+import {HelpTooltip} from '../../../components/HelpTooltip';
 
 interface TimelineEvent {
     id_log: number;
@@ -148,6 +149,7 @@ export const TimelineTab = ({investigationId}: {investigationId: number}) => {
 
     return (
         <div className="pt-6">
+            <HelpTooltip helpKey="timeline.overview">
             <div className="relative">
                 {/* Vertical line */}
                 <div className="absolute left-[15px] top-0 bottom-0 w-px bg-border-subtle"/>
@@ -192,6 +194,7 @@ export const TimelineTab = ({investigationId}: {investigationId: number}) => {
                     })}
                 </div>
             </div>
+            </HelpTooltip>
 
             {events.length < total && (
                 <div className="flex justify-center mt-4">

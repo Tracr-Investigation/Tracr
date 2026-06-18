@@ -1,36 +1,56 @@
 ---
-sidebar_position: 7
+sidebar_position: 6
 title: OSINT
 ---
 
 # OSINT
 
-Tracr integrates OSINT (Open Source Intelligence) enrichment tools to facilitate pivoting on indicators of compromise (IoC).
+Tracr includes two OSINT enrichment tools accessible directly from the interface, with no server-side network calls. All links open in a new tab at the user's initiative.
 
-## IoC Panel
+---
 
-The **IoC** (Indicators of Compromise) panel allows you to quickly list and enrich indicators:
+## Enrichment pivots (entity graph)
 
-- IP addresses
-- Domain names
-- File hashes (MD5, SHA1, SHA256)
-- URLs
-- Email addresses
+From the **Graph** tab of an investigation, click any node to open its detail panel. The **Enrichment** section displays direct links to public tools adapted to the entity type.
 
-## Enrichment pivots
-
-For each IoC, the **Enrichment** panel offers quick pivot links to public sources:
-
-| Type | Available sources |
+| Entity type | Tools |
 |---|---|
-| IP | Shodan, VirusTotal, AbuseIPDB, Censys |
-| Domain | VirusTotal, URLScan, DomainTools, Whois |
-| Hash | VirusTotal, MalwareBazaar, Any.run |
-| URL | URLScan, VirusTotal |
-| Email | HaveIBeenPwned, Hunter.io |
+| IP address | Shodan, VirusTotal, AbuseIPDB, Censys, GreyNoise |
+| Domain | VirusTotal, urlscan.io, crt.sh, SecurityTrails, Whois |
+| Email | Epieos, EmailRep, Have I Been Pwned, Hunter |
+| Account | X/Twitter, Instagram, GitHub, Reddit, TikTok, WhatsMyName |
+| Phone | Google dork, Sync.me |
+| Person | LinkedIn, Google dork |
+| Organization | LinkedIn, OpenCorporates |
+| Location | Google Maps, OpenStreetMap |
+| Other | VirusTotal |
 
-Click a pivot link to open the search in a new tab.
+All types also benefit from generic pivots: **Google**, **DuckDuckGo**, and **Wayback Machine**.
 
-:::tip
-After enriching an IoC, create a corresponding entity in the investigation graph to keep a structured record.
-:::
+The search query is built automatically from the entity's value (or label if the value is empty).
+
+---
+
+## IoC panel (Indicators of Compromise)
+
+The IoC panel is integrated into the **document editor**. It analyzes the text of the open document and automatically extracts technical indicators.
+
+**Detected indicator types:**
+
+| Type | Description |
+|---|---|
+| IP | IPv4 and IPv6 addresses |
+| Domains | Valid domain names |
+| Emails | Email addresses |
+| Hashes | MD5, SHA1, SHA256 and other hex digests |
+| CVE | Vulnerability identifiers (CVE-XXXX-XXXXX) |
+| Crypto | Bitcoin, Ethereum, and other wallet addresses |
+
+**Usage:**
+
+1. Open a document in the editor.
+2. Click the **Indicators (IOC)** button in the toolbar.
+3. The panel opens on the right and lists all detected indicators, grouped by type.
+4. For each indicator, click **Entity** to add it directly to the investigation's graph.
+5. Indicators already present in the graph show a green checkmark.
+6. Click the copy icon to copy an indicator to the clipboard.

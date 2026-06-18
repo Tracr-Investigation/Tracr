@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { formatRelativeDate } from '../../utils/date';
 import { TemplateEditor } from '../../components/editor/TemplateEditor';
+import { HelpTooltip } from '../../components/HelpTooltip';
 
 type FullTemplate = TemplateData & { content_html: string };
 type Tab = 'mine' | 'public';
@@ -506,13 +507,15 @@ export const Templates = () => {
           {/* Header */}
           <div className="px-6 pt-6 pb-4 shrink-0">
             <div className="flex items-center justify-between mb-5">
-              <div>
-                <h1 className="text-2xl font-bold text-text-default flex items-center gap-2.5">
-                  <FileText size={22} style={{ color: 'var(--theme-primary)' }} />
-                  Templates
-                </h1>
-                <p className="text-sm text-text-dim mt-1">Modèles de documents réutilisables</p>
-              </div>
+              <HelpTooltip helpKey="templates.overview">
+                <div>
+                  <h1 className="text-2xl font-bold text-text-default flex items-center gap-2.5">
+                    <FileText size={22} style={{ color: 'var(--theme-primary)' }} />
+                    Templates
+                  </h1>
+                  <p className="text-sm text-text-dim mt-1">Modèles de documents réutilisables</p>
+                </div>
+              </HelpTooltip>
               <button
                 onClick={handleOpenCreate}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-semibold transition-all hover:opacity-90 active:scale-95"

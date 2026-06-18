@@ -20,3 +20,11 @@
   --ifm-color-primary-lightest: #ede9fe;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
+
+/* Hide administration page from sidebar for non-admin users */
+html.tracr-user a.menu__link[href$="/administration"],
+html.tracr-user a.menu__link[href$="/administration/"],
+html.tracr-user li:has(> a.menu__link[href$="/administration"]),
+html.tracr-user li:has(> a.menu__link[href$="/administration/"]) {
+  display: none;
+}

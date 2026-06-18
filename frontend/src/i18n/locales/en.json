@@ -15,7 +15,99 @@
     "expand": "Expand",
     "collapseShortcut": "Collapse (Ctrl+B)",
     "expandShortcut": "Expand (Ctrl+B)",
-    "help": "Documentation"
+    "help": "Documentation",
+    "helpMode": "Help mode"
+  },
+  "help": {
+    "graph": {
+      "overview": {
+        "title": "Entity graph",
+        "description": "This graph lets you visualize relationships between entities (people, organizations, IPs, etc.) involved in the investigation.",
+        "steps": [
+          "Click \"Add entity\" to create a node",
+          "Drag from one node to another to create a link",
+          "Click a node or edge to edit or delete it"
+        ]
+      },
+      "addEntity": {
+        "title": "Add an entity",
+        "description": "Create a new node in the graph. Choose a type (Person, IP, Domain…), give it a label and an optional value.",
+        "steps": [
+          "Select the entity type",
+          "Fill in the label (required) and value (optional)",
+          "Click Save, the node appears on the graph"
+        ]
+      },
+      "linkEntities": {
+        "title": "Connect entities",
+        "description": "Draw a relationship between two nodes by dragging from the edge of one node to another. You can optionally label the link.",
+        "steps": [
+          "Hover a node until the connection handle appears",
+          "Drag to the target node and release",
+          "Type a label in the dialog (optional)"
+        ]
+      },
+      "export": {
+        "title": "Export the graph",
+        "description": "Export as PNG (image) to include in a report, or as JSON to reimport or share the full graph data."
+      }
+    },
+    "timeline": {
+      "overview": {
+        "title": "Investigation timeline",
+        "description": "Chronological log of all events in this investigation: documents created, tasks updated, collaborators added, etc.",
+        "steps": [
+          "Scroll down to load older events",
+          "Each event shows the author, date, and a short description",
+          "Icons indicate the event category (document, task, entity…)"
+        ]
+      }
+    },
+    "tasks": {
+      "overview": {
+        "title": "Tasks",
+        "description": "Tasks let you assign work items to collaborators. Use filters to show only relevant tasks.",
+        "steps": [
+          "Filter by visibility (shared or private) and status",
+          "Click a task to open its detail and add comments",
+          "Toggle the checkbox to mark a task as done"
+        ]
+      },
+      "priority": {
+        "title": "Priority levels",
+        "description": "Each task has a priority: Low, Normal, High, or Urgent. Overdue tasks are highlighted in red regardless of priority."
+      },
+      "visibility": {
+        "title": "Private vs shared tasks",
+        "description": "A private task is only visible to you. A shared task is visible to all collaborators on this investigation."
+      }
+    },
+    "tabs": {
+      "overview": {
+        "title": "Investigation tabs",
+        "description": "Each tab gives access to a different aspect of the investigation.",
+        "steps": [
+          "Details: description and metadata",
+          "Tasks: work items and assignments",
+          "Documents: collaborative rich-text documents",
+          "Sources: saved web captures",
+          "Graph: entity relationship map",
+          "Timeline: activity log",
+          "Map: geolocated entities"
+        ]
+      }
+    },
+    "templates": {
+      "overview": {
+        "title": "Templates",
+        "description": "Templates are reusable document structures you can apply when creating a new document inside an investigation. They save time by pre-filling content, headings, and formatting.",
+        "steps": [
+          "Create a template with \"New\": write its content once",
+          "Mark it Public to share it with all users, or keep it Private",
+          "When creating a document, pick a template to start from it instantly"
+        ]
+      }
+    }
   },
   "showcase": {
     "tagline": "OSINT Investigation Platform",

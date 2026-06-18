@@ -21,6 +21,7 @@ import {api} from '../../../services/api';
 import {useToast} from '../../../contexts/ToastContext';
 import {formatRelativeDate} from '../../../utils/date';
 import {useTranslation} from 'react-i18next';
+import {HelpTooltip} from '../../../components/HelpTooltip';
 import {
     type TaskData,
     type TaskStatus,
@@ -84,6 +85,20 @@ const TaskDetailModal = ({
     const [editing, setEditing] = useState(false);
     const [savingEdit, setSavingEdit] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    const [show, setShow] = useState(false);
+
+    // Anime l'entree au montage : on part de translate-x-full puis on bascule
+    // au frame suivant pour que la transition joue (meme principe que le panneau
+    // de creation). A la fermeture on rejoue l'animation avant de demonter.
+    useEffect(() => {
+        const id = requestAnimationFrame(() => setShow(true));
+        return () => cancelAnimationFrame(id);
+    }, []);
+
+    const handleClose = useCallback(() => {
+        setShow(false);
+        setTimeout(onClose, 300);
+    }, [onClose]);
 
     const isOwner = userPermission === 'owner';
     const canEdit = isOwner || task.created_by === currentUserId;
@@ -135,7 +150,7 @@ const TaskDetailModal = ({
             toast('success', t('tasks.updated'));
             setEditing(false);
             onRefresh();
-            onClose();
+            handleClose();
         } catch (err) {
             toast('error', err instanceof Error ? err.message : 'Error updating task');
         } finally {
@@ -149,7 +164,7 @@ const TaskDetailModal = ({
             await api.deleteTask(investigationId, task.id_task);
             toast('success', t('tasks.deleted'));
             onRefresh();
-            onClose();
+            handleClose();
         } catch (err) {
             toast('error', err instanceof Error ? err.message : 'Error deleting task');
         } finally {
@@ -167,10 +182,21 @@ const TaskDetailModal = ({
     };
 
     return (
-        <div className="fixed inset-0 bg-overlay flex items-center justify-center z-50 p-4">
+        <>
+            {/* Backdrop */}
             <div
-                className="bg-card/30 border border-border-subtle rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-                <div className="flex items-start justify-between p-5 border-b border-border-subtle">
+                className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 ${show ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+                onClick={handleClose}
+            />
+
+            {/* Panel glissant depuis la droite */}
+            <div
+                className={`fixed top-0 right-0 h-screen w-full max-w-[480px] z-50 flex flex-col
+                    transition-transform duration-300 ease-in-out
+                    ${show ? 'translate-x-0' : 'translate-x-full'}`}
+                style={{ background: 'var(--color-card)', borderLeft: '1px solid var(--color-border-subtle)' }}
+            >
+                <div className="flex items-start justify-between p-5 border-b border-border-subtle shrink-0">
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                             {task.is_private ? (
@@ -181,7 +207,9 @@ const TaskDetailModal = ({
                             <h3 className="text-text-default font-semibold truncate">{task.title}</h3>
                         </div>
                         <div className="flex items-center gap-2 flex-wrap">
+                            <HelpTooltip helpKey="tasks.priority">
                             <PriorityBadge priority={task.priority}/>
+                            </HelpTooltip>
                             <TaskStatusBadge status={task.status}/>
                         </div>
                     </div>
@@ -204,7 +232,7 @@ const TaskDetailModal = ({
                             </button>
                         )}
                         <button
-                            onClick={onClose}
+                            onClick={handleClose}
                             className="p-2 text-text-muted hover:text-text-default hover:bg-primary/10 rounded-lg transition-all"
                         >
                             <X size={14}/>
@@ -326,7 +354,7 @@ const TaskDetailModal = ({
                     )}
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 
@@ -486,6 +514,7 @@ export const TasksTab = ({
                         </button>
                     </div>
 
+                    <HelpTooltip helpKey="tasks.overview">
                     <div className="flex bg-card/30 border border-border-subtle rounded-lg p-0.5">
                         {(['all', 'shared', 'private'] as const).map((v) => (
                             <button
@@ -501,8 +530,10 @@ export const TasksTab = ({
                             </button>
                         ))}
                     </div>
+                    </HelpTooltip>
 
                     {view === 'list' && (
+                        <HelpTooltip helpKey="tasks.visibility">
                         <div className="relative" ref={statusDropdownRef}>
                             <button
                                 onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
@@ -540,6 +571,7 @@ export const TasksTab = ({
                                 </div>
                             )}
                         </div>
+                        </HelpTooltip>
                     )}
                 </div>
 

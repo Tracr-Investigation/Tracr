@@ -1,30 +1,39 @@
 ---
-sidebar_position: 1
-slug: /
+sidebar_position: -1
 title: Introduction
+slug: /
 ---
 
-# Bienvenue sur Tracr
+# Tracr
 
-Tracr est une plateforme collaborative de gestion d'enquêtes et d'investigations. Elle permet à des équipes de mener des investigations structurées, de documenter leurs trouvailles, de visualiser les relations entre entités et de collaborer en temps réel.
+Tracr est une plateforme de gestion d'enquêtes et d'investigations. Elle est conçue pour centraliser toutes les informations liées à une investigation : documents collaboratifs, tâches, entités et leurs relations, sources web archivées, et journal d'activité.
+
+---
 
 ## Fonctionnalités principales
 
 | Fonctionnalité | Description |
 |---|---|
-| **Enquêtes** | Organisez votre travail en enquêtes indépendantes avec statuts et collaborateurs |
-| **Documents** | Éditeur riche avec collaboration temps réel (plusieurs curseurs simultanés) |
-| **Tâches** | Assignez et suivez les tâches au sein de chaque enquête |
-| **Entités & Graphe** | Créez des entités (personnes, IPs, domaines…) et visualisez leurs relations |
-| **Carte** | Géolocalisez des entités et des événements sur une carte interactive |
-| **OSINT** | Pivotez rapidement sur des indicateurs de compromission (IoC) |
-| **Modèles** | Réutilisez des structures de documents entre enquêtes |
-| **Calendrier** | Visualisez les échéances de vos tâches |
+| Enquêtes | Conteneur principal regroupant tous les éléments d'une investigation |
+| Documents | Éditeur de texte riche collaboratif en temps réel avec Yjs |
+| Tâches | Gestion de tâches avec priorités, assignations et échéances |
+| Graphe d'entités | Visualisation des relations entre entités (personnes, IPs, domaines…) |
+| Sources | Captures et archives de pages web avec empreinte SHA-256 |
+| Carte | Visualisation géographique des entités de type Localisation |
+| Chronologie | Journal chronologique des activités d'une enquête |
+| Templates | Modèles de documents réutilisables |
+| OSINT | Pivots d'enrichissement vers des outils publics et extraction automatique d'IoCs |
+| Calendrier | Vue calendrier de toutes vos tâches assignées |
+| Codes de récupération | Phrase de récupération BIP39 (12 mots) pour retrouver l'accès en cas d'oubli de mot de passe |
 
-## Accès et authentification
+---
 
-Connectez-vous avec votre identifiant et mot de passe. Lors de la première connexion créée par un administrateur, vous devrez changer votre mot de passe.
+## Rôles de la plateforme
 
-Tracr propose deux rôles :
-- **Utilisateur**: accès à ses enquêtes et aux enquêtes où il est collaborateur
-- **Administrateur**: gestion des utilisateurs, accès à toutes les enquêtes, gestion des statuts et catégories
+| Rôle | Accès |
+|---|---|
+| **Utilisateur** | Accès aux enquêtes dont il est membre, aux templates, aux notifications |
+| **Administrateur** | Accès complet + panneau Administration (utilisateurs, statuts, catégories, logs) |
+| **Super-administrateur** | Contrôle total de la plateforme |
+
+Les rôles de plateforme sont distincts des permissions par enquête (Propriétaire, Manager, Éditeur, Lecteur) qui sont gérées enquête par enquête.

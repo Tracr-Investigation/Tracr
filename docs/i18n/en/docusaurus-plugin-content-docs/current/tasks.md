@@ -1,40 +1,62 @@
 ---
-sidebar_position: 4
+sidebar_position: 5
 title: Tasks
 ---
 
 # Tasks
 
-Tasks allow you to track the actions to be taken within an investigation.
+Tasks let you organize and track work within an investigation. They are managed from the **Tasks** tab of each investigation, and visible globally from the **Dashboard** and the **Calendar**.
 
-## Create a task
+---
 
-From the **Tasks** tab of an investigation:
+## Task fields
 
-1. Click **New task**.
-2. Fill in the title, description (optional), assignment, and due date.
-3. Confirm.
-
-## Task statuses
-
-Each task can have one of the following statuses:
-
-| Status | Description |
+| Field | Description |
 |---|---|
-| **To do** | Task created, not started |
-| **In progress** | Task being processed |
-| **Done** | Task completed |
+| Title | Short label (required, 255 characters max) |
+| Description | Details or instructions (optional, 2000 characters max) |
+| Status | To do / In progress / Done |
+| Priority | Low / Normal / High / Urgent |
+| Assigned to | A member of the investigation or nobody |
+| Due date | Deadline (optional) |
+| Visibility | Private or Shared |
 
-Click on a task's status to change it.
+---
 
-## Assignment
+## Priorities
 
-A task can be assigned to any collaborator of the investigation. The assigned person sees the task in their **Dashboard** and in the **Calendar**.
+| Priority | Color |
+|---|---|
+| Low | Grey |
+| Normal | Blue |
+| High | Orange |
+| Urgent | Red |
 
-## My tasks
+Tasks whose due date has passed are highlighted in red in the list, regardless of their priority.
 
-The **My tasks** section of the dashboard lists all tasks assigned to you, across all investigations, sorted by due date.
+---
 
-## Calendar
+## Visibility: private or shared
 
-The **Calendar** (accessible from the sidebar) displays all your assigned tasks in a monthly view. Click on a task to go directly to the corresponding investigation.
+- **Shared**: visible to all collaborators of the investigation
+- **Private**: visible only to you. Other members do not know it exists.
+
+---
+
+## Task tab filters
+
+- **Visibility**: all, shared, private
+- **Status**: all, to do, in progress, done
+
+---
+
+## Comments
+
+Each task has a comments section. All members of the investigation can read and add comments on shared tasks. Click a task in the list to open its detail panel and access the comments section.
+
+---
+
+## Global view of your tasks
+
+- **Dashboard**: the "My tasks" section lists all tasks assigned to you, across all investigations
+- **Calendar**: shows your assigned tasks positioned on their due date

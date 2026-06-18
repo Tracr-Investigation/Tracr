@@ -1,60 +1,69 @@
 ---
-sidebar_position: 2
-title: Getting Started
+sidebar_position: 0
+title: Quick start
 ---
 
-# Getting Started
+# Quick start
 
-This guide walks you through your first login to your first collaborative investigation.
+This guide walks you through from your first login to creating your first complete investigation.
+
+---
 
 ## 1. First login
 
-:::tip Recovery codes
-After changing your password, set up your **recovery codes** in Settings → Security. They will allow you to recover your account if you forget your password.
-:::
+Go to your Tracr instance URL. Enter your credentials on the login page.
 
-## 2. Create your first investigation
+**Account created by an administrator:** if your account was created by an administrator, you will be redirected to a **mandatory password change** page on your first login. After setting your new password, you will be redirected to the **recovery code setup** page.
 
-1. From the **Dashboard**, click **New investigation**.
-2. Give it a clear name (e.g. "Network incident 2026-06").
-3. Select a status (e.g. "In progress").
-4. Confirm.
+**Recovery codes:** write down the 12 words displayed and keep them in a safe place. They will allow you to regain access to your account if you forget your password. This step cannot be skipped.
 
-You are now the owner of this investigation.
+---
 
-## 3. Invite a collaborator
+## 2. Create an investigation
 
-1. Open the investigation you just created.
-2. Click the **Collaborators** icon in the top right.
-3. Type your colleague's username and add them.
+1. From the **Dashboard**, click **New investigation** or go to **Investigations** in the sidebar.
+2. Enter the title and, optionally, a description.
+3. Select an initial status.
+4. Confirm: the investigation is created and you are automatically the owner.
 
-They will have access to all tabs of the investigation immediately.
+---
 
-## 4. Create a first document
+## 3. Invite collaborators
+
+1. Open the investigation and go to the **Collaborators** tab.
+2. Type a user's username in the search field.
+3. Select the permission level to assign (Manager, Editor, or Reader).
+4. Click the user in the results to send the invitation.
+
+The invited user will receive a notification and can accept or decline from the **Notifications** page or from the **Dashboard**.
+
+---
+
+## 4. Create a document
 
 1. In the **Documents** tab, click **New document**.
-2. Give it a title.
-3. Start writing in the editor.
+2. Optionally choose a template to start from an existing structure.
+3. Enter a title and confirm.
+4. Write your content in the rich editor.
 
-If your colleague opens the same document, you will see their cursor appear in color - real-time collaboration is active.
+---
 
-## 5. Add entities
+## 5. Add entities to the graph
 
-1. Go to the **Graph** tab.
-2. Click **Add entity**.
-3. Fill in the type (`ip`, `domain`, `person`…) and the label.
-4. To link two entities, hover over the edge of a node and drag to another.
+1. In the **Graph** tab, click **Add entity**.
+2. Choose the type (Person, IP, Domain, etc.), enter a label, and confirm.
+3. Create links between entities by dragging from a node handle to another node.
 
-## 6. Assign a task
+---
 
-1. In the **Tasks** tab, click **New task**.
-2. Enter the title, assign it to a collaborator, and set a due date.
-3. Confirm.
+## 6. Create tasks
 
-The task appears in the assigned person's **Calendar** and **Dashboard**.
+1. In the **Tasks** tab, click the **New task** button.
+2. Enter the title, priority, status, and optionally assign it to a collaborator.
+3. Set a due date if needed.
 
-## Next steps
+---
 
-- See the [Documents](./documents.md) page to discover all editor features.
-- Configure your preferences in [Settings](./settings.md).
-- Explore [OSINT](./osint.md) to enrich your indicators.
+## 7. Pending invitations
+
+If you have pending invitations, they appear at the top of the **Dashboard** with Accept and Decline buttons. You can also manage them from the **Notifications** page.
