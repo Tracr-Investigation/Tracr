@@ -106,6 +106,17 @@ def create_source(
         content, mime_type, source_type
     )
 
+    # OCR immediat sur les images sans texte natif : la source est persistee
+    # directement avec sa version oceriseee (pas d'etape manuelle ulterieure).
+    # On reutilise les bytes deja en main (pas de re-telechargement MinIO).
+    if text_status == text_extraction_service.STATUS_PENDING_OCR:
+        ocr_text = ocr_service.ocr_image(content)
+        extracted_text = ocr_text
+        text_status = (
+            text_extraction_service.STATUS_EXTRACTED if ocr_text
+            else text_extraction_service.STATUS_NONE
+        )
+
     source = InvestigationSource(
         id_investigation=id_investigation,
         created_by=created_by,
@@ -250,6 +261,7 @@ def _to_dict(source: InvestigationSource, author_pseudo: Optional[str]) -> dict:
         "page_metadata": source.page_metadata,
         "notes": source.notes,
         "text_status": source.text_status,
+        "extracted_text": source.extracted_text,
         "view_sig": view_signature(source),
         "captured_at": source.captured_at.isoformat() if source.captured_at else None,
         "created_at": source.created_at.isoformat() if source.created_at else None,

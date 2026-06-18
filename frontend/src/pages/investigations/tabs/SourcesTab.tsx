@@ -138,6 +138,59 @@ const HashBadge = ({ hash }: { hash: string }) => {
   );
 };
 
+// ── Texte extrait / OCR (aperçu repliable + copie) ────────────────────────────
+
+const PREVIEW_LEN = 100;
+
+const ExtractedTextSection = ({ source }: { source: SourceData }) => {
+  const [expanded, setExpanded] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const text = (source.extracted_text ?? '').trim();
+  const isImage = source.mime_type.startsWith('image/');
+
+  if (!text) return null;
+
+  const long = text.length > PREVIEW_LEN;
+  const shown = expanded || !long ? text : `${text.slice(0, PREVIEW_LEN)}…`;
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch { /* ignore */ }
+  };
+
+  return (
+    <div className="mt-5">
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-[11px] font-semibold text-text-default/50 uppercase tracking-wider inline-flex items-center gap-1.5">
+          <ScanText size={12} /> {isImage ? 'Texte reconnu (OCR)' : 'Texte extrait'}
+          <span className="text-text-dim normal-case font-normal">· {text.length} car.</span>
+        </span>
+        <button
+          onClick={copy}
+          className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--theme-primary)] hover:opacity-80"
+          title="Copier le texte"
+        >
+          {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />} Copier
+        </button>
+      </div>
+      <p className="text-sm text-text-muted whitespace-pre-wrap break-words bg-input-bg border border-border-subtle rounded-lg px-3 py-2">
+        {shown}
+      </p>
+      {long && (
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="mt-1 text-xs font-semibold text-[var(--theme-primary)] hover:opacity-80"
+        >
+          {expanded ? '− Réduire' : '+ Voir tout'}
+        </button>
+      )}
+    </div>
+  );
+};
+
 // ── Source card ───────────────────────────────────────────────────────────────
 
 const SourceCard = ({
@@ -215,7 +268,7 @@ const SourcePreviewPanel = ({
   onClose: () => void;
   onDownload: (s: SourceData) => void;
   canEdit: boolean;
-  onUpdated: (s: SourceData) => void;
+  onUpdated: (s: SourceData, opts?: { silent?: boolean }) => void;
 }) => {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -235,6 +288,11 @@ const SourcePreviewPanel = ({
     try {
       const res = await api.ocrSource(source.id_source);
       setSourceHits(res);
+      // Recharge la source pour afficher le texte fraîchement océrisé dans la fiche.
+      try {
+        const refreshed = await api.getSource(source.id_source);
+        onUpdated(refreshed, { silent: true });
+      } catch { /* affichage non bloquant */ }
       toast('success', res.analyzed
         ? `OCR terminé - ${res.hits.length} sélecteur(s) détecté(s)`
         : 'OCR terminé - aucun texte reconnu sur l\'image');
@@ -388,6 +446,8 @@ const SourcePreviewPanel = ({
               )}
             </dl>
           )}
+
+          {source && <ExtractedTextSection source={source} />}
 
           {source && (
             <div className="mt-5">
@@ -823,10 +883,10 @@ export const SourcesTab = ({ investigationId, userPermission, openSourceId, onSo
     }
   }, [investigationId, toast]);
 
-  const handleUpdated = useCallback((updated: SourceData) => {
+  const handleUpdated = useCallback((updated: SourceData, opts?: { silent?: boolean }) => {
     setSources((prev) => prev.map((s) => (s.id_source === updated.id_source ? updated : s)));
     setPreviewSource((prev) => (prev && prev.id_source === updated.id_source ? updated : prev));
-    toast('success', 'Source mise à jour');
+    if (!opts?.silent) toast('success', 'Source mise à jour');
   }, [toast]);
 
   return (

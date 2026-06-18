@@ -36,6 +36,19 @@
       body: JSON.stringify({ pseudo, password }),
     });
     if (!res.ok) throw new Error(await parseError(res, 'Identifiants invalides'));
+    // { token, pseudo, ... } OU, si MFA actif, { mfa_required: true, mfa_token }
+    return res.json();
+  }
+
+  // 2e etape quand le MFA est actif : echange le mfa_token + code TOTP contre le
+  // jeton d'acces complet. `code` accepte aussi un code de secours.
+  async function loginMfa(apiUrl, mfaToken, code) {
+    const res = await fetch(`${apiUrl}/login/mfa`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mfa_token: mfaToken, code }),
+    });
+    if (!res.ok) throw new Error(await parseError(res, 'Code de vérification invalide'));
     return res.json(); // { token, pseudo, ... }
   }
 
@@ -72,5 +85,5 @@
     return res.json();
   }
 
-  root.TracrAPI = { DEFAULT_API_URL, store, login, listInvestigations, uploadSource };
+  root.TracrAPI = { DEFAULT_API_URL, store, login, loginMfa, listInvestigations, uploadSource };
 })(self);

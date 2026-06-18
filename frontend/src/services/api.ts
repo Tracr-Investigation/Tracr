@@ -45,6 +45,8 @@ export interface SourceData {
     capture_group: string | null;
     page_metadata: Record<string, unknown> | null;
     notes: string | null;
+    text_status: string | null;
+    extracted_text: string | null;
     view_sig: string;
     captured_at: string | null;
     created_at: string | null;

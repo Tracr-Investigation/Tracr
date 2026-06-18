@@ -1,11 +1,12 @@
 /* popup.js - UI de l'extension : connexion, sélection d'enquête, captures. */
-const { store, login, listInvestigations, uploadSource } = self.TracrAPI;
+const { store, login, loginMfa, listInvestigations, uploadSource } = self.TracrAPI;
 
 const $ = (id) => document.getElementById(id);
 const els = {
   loginView: $('loginView'), captureView: $('captureView'),
   apiUrl: $('apiUrl'), pseudo: $('pseudo'), password: $('password'),
   loginBtn: $('loginBtn'), loginError: $('loginError'), logoutBtn: $('logoutBtn'),
+  mfaStep: $('mfaStep'), mfaCode: $('mfaCode'), mfaBtn: $('mfaBtn'), mfaCancel: $('mfaCancel'),
   whoPseudo: $('whoPseudo'), investigationSelect: $('investigationSelect'),
   titleInput: $('titleInput'), metaHost: $('metaHost'), metaTime: $('metaTime'),
   captureFull: $('captureFull'), captureVisible: $('captureVisible'),
@@ -16,6 +17,8 @@ const els = {
 
 let activeTab = null;
 let cfg = null;
+// Contexte de l'étape MFA en cours (entre /login et /login/mfa).
+let pendingMfa = null; // { apiUrl, mfaToken }
 
 async function getActiveTab() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -44,6 +47,25 @@ function show(view) {
 
 // ── Connexion ────────────────────────────────────────────────────────────────
 
+// Affiche / masque l'étape MFA et bascule l'UI de saisie initiale.
+function showMfaStep(on) {
+  els.mfaStep.classList.toggle('hidden', !on);
+  els.loginBtn.classList.toggle('hidden', on);
+  els.pseudo.disabled = on;
+  els.password.disabled = on;
+  els.apiUrl.disabled = on;
+  if (on) { els.mfaCode.value = ''; els.mfaCode.focus(); }
+}
+
+// Persiste le jeton complet puis bascule en mode capture.
+async function finishLogin(apiUrl, data) {
+  await store.set({ apiUrl, token: data.token, pseudo: data.pseudo });
+  cfg = await store.get();
+  pendingMfa = null;
+  showMfaStep(false);
+  await enterCaptureMode();
+}
+
 async function handleLogin() {
   els.loginError.classList.add('hidden');
   const apiUrl = els.apiUrl.value.trim().replace(/\/$/, '') || self.TracrAPI.DEFAULT_API_URL;
@@ -55,9 +77,13 @@ async function handleLogin() {
   els.loginBtn.textContent = 'Connexion…';
   try {
     const data = await login(apiUrl, pseudo, password);
-    await store.set({ apiUrl, token: data.token, pseudo: data.pseudo });
-    cfg = await store.get();
-    await enterCaptureMode();
+    if (data.mfa_required) {
+      // Compte protégé par double authentification : on demande le code TOTP.
+      pendingMfa = { apiUrl, mfaToken: data.mfa_token };
+      showMfaStep(true);
+      return;
+    }
+    await finishLogin(apiUrl, data);
   } catch (err) {
     els.loginError.textContent = err.message || 'Échec de la connexion';
     els.loginError.classList.remove('hidden');
@@ -67,9 +93,40 @@ async function handleLogin() {
   }
 }
 
+async function handleMfaSubmit() {
+  els.loginError.classList.add('hidden');
+  const code = els.mfaCode.value.trim();
+  if (!pendingMfa || code.length < 6) return;
+
+  els.mfaBtn.disabled = true;
+  els.mfaBtn.textContent = 'Vérification…';
+  try {
+    const data = await loginMfa(pendingMfa.apiUrl, pendingMfa.mfaToken, code);
+    await finishLogin(pendingMfa.apiUrl, data);
+  } catch (err) {
+    els.loginError.textContent = err.message || 'Code de vérification invalide';
+    els.loginError.classList.remove('hidden');
+    els.mfaCode.value = '';
+    els.mfaCode.focus();
+  } finally {
+    els.mfaBtn.disabled = false;
+    els.mfaBtn.textContent = 'Vérifier le code';
+  }
+}
+
+function handleMfaCancel() {
+  pendingMfa = null;
+  els.loginError.classList.add('hidden');
+  showMfaStep(false);
+  els.password.value = '';
+  els.password.focus();
+}
+
 async function handleLogout() {
   await store.clearAuth();
   cfg = await store.get();
+  pendingMfa = null;
+  showMfaStep(false);
   show('login');
 }
 
@@ -422,6 +479,9 @@ async function init() {
 
   els.loginBtn.addEventListener('click', handleLogin);
   els.password.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleLogin(); });
+  els.mfaBtn.addEventListener('click', handleMfaSubmit);
+  els.mfaCode.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleMfaSubmit(); });
+  els.mfaCancel.addEventListener('click', handleMfaCancel);
   els.logoutBtn.addEventListener('click', handleLogout);
   els.investigationSelect.addEventListener('change', () => {
     const inv = currentInvestigation();

@@ -40,6 +40,16 @@
     <label>Mot de passe</label>
     <input id="password" type="password" autocomplete="current-password" />
     <button id="loginBtn" class="primary">Se connecter</button>
+
+    <!-- Étape MFA (affichée seulement si le compte a la double authentification) -->
+    <div id="mfaStep" class="hidden">
+      <label>Code de vérification</label>
+      <input id="mfaCode" type="text" inputmode="numeric" autocomplete="one-time-code"
+             maxlength="10" placeholder="123456" />
+      <button id="mfaBtn" class="primary">Vérifier le code</button>
+      <button id="mfaCancel" class="link">Annuler</button>
+    </div>
+
     <p id="loginError" class="error hidden"></p>
   </section>
 
