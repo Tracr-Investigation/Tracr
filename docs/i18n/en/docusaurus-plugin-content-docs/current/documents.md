@@ -5,39 +5,83 @@ title: Documents
 
 # Documents
 
-Tracr documents are rich notes associated with an investigation. They support **real-time collaboration**: multiple users can write simultaneously in the same document.
+Documents are rich-text files associated with an investigation. They can be written and edited simultaneously by multiple collaborators in real time.
+
+---
 
 ## Create a document
 
-From the **Documents** tab of an investigation, click **New document**. You can optionally choose a template to pre-fill the structure.
+1. In the **Documents** tab of an investigation, click **New document**.
+2. Optionally, choose a **template** from the list to pre-fill the content.
+3. Enter a title.
+4. Confirm to open the editor.
 
-## Rich editor
+Only users with *editor*, *manager*, or *owner* permission can create documents.
 
-The editor offers:
+---
 
-- **Formatting**: bold, italic, underline, headings H1–H3, lists, task lists
-- **Links**: select text and click the link icon
-- **Images**: via the image icon in the toolbar
-- **Embeds**: embed external content (URL)
-- **Location pins**: add a geographic point directly in the text, also visible on the investigation map
-- **Entity mentions**: type `@` to mention an existing entity from the investigation
+## Document editor
+
+The editor is based on TipTap and offers rich formatting:
+
+- Headings (H1, H2, H3)
+- Bullet and numbered lists
+- Tables
+- Bold, italic, underline, inline code
+- Hyperlinks
+- Code blocks with syntax highlighting
+
+Saving is automatic.
+
+---
 
 ## Real-time collaboration
 
-When multiple users open the same document, their cursors appear with their username in color. Changes are synchronized instantly via Yjs (CRDT).
+Multiple users can edit the same document simultaneously. Each collaborator's cursor and selection are visible in a distinct color. Changes are synchronized instantly via the Yjs protocol (CRDT).
 
-:::note
-If the connection is lost, pending changes are preserved locally and re-synchronized upon reconnection.
-:::
+---
 
-## Comments
+## IoC panel (Indicators of Compromise)
 
-Select text in the editor and click the **Comment** icon in the floating bar. Comments appear in the right sidebar. A comment can be resolved once addressed.
+The IoC panel is accessible from the editor via the **Indicators (IOC)** button. It automatically analyzes the document text and extracts technical indicators.
 
-## Backups
+**Detected indicator types:**
 
-The editor automatically creates periodic backups. To view them, open the **Backups** panel (clock icon at the top right). You can compare a backup with the current version and restore it.
+| Type | Examples |
+|---|---|
+| IP addresses | 192.168.1.1, 8.8.8.8 |
+| Domains | example.com, sub.domain.org |
+| Email addresses | contact@example.com |
+| Hashes | MD5, SHA1, SHA256 |
+| CVEs | CVE-2024-1234 |
+| Crypto addresses | Bitcoin, Ethereum, etc. |
 
-## Templates
+**Add an IoC as an entity in the graph:**
 
-If a template was applied at creation, its content is pre-loaded. See the [Templates](./templates.md) section to create your own.
+For each detected indicator, an **Entity** button lets you add it directly to the investigation's graph in one click. Indicators already present in the graph show a green checkmark instead of the button.
+
+You can also copy any indicator to the clipboard via the copy icon that appears on hover.
+
+---
+
+## Quick preview
+
+From the document list, click a row to open the **side preview panel** without entering the editor. The preview shows the content in read-only mode along with metadata (author, modification date).
+
+---
+
+## Full-screen editing
+
+Click the **Open** button or the direct link to access the full-screen editor.
+
+---
+
+## PDF export
+
+From the editor, use the export button to generate a PDF file of the document. The PDF is rendered server-side (WeasyPrint) and includes full formatting.
+
+---
+
+## Delete a document
+
+A document can be deleted by the investigation owner or its creator. Deletion is permanent.

@@ -1,40 +1,62 @@
 ---
-sidebar_position: 4
+sidebar_position: 5
 title: Tâches
 ---
 
 # Tâches
 
-Les tâches permettent de suivre les actions à mener dans le cadre d'une enquête.
+Les tâches permettent d'organiser et de suivre le travail au sein d'une enquête. Elles sont gérées depuis l'onglet **Tâches** de chaque enquête, et visibles globalement depuis le **Tableau de bord** et le **Calendrier**.
 
-## Créer une tâche
+---
 
-Depuis l'onglet **Tâches** d'une enquête :
+## Champs d'une tâche
 
-1. Cliquez sur **Nouvelle tâche**.
-2. Renseignez le titre, la description (optionnelle), l'assignation et l'échéance.
-3. Validez.
-
-## Statuts de tâche
-
-Chaque tâche peut avoir l'un des statuts suivants :
-
-| Statut | Description |
+| Champ | Description |
 |---|---|
-| **À faire** | Tâche créée, non commencée |
-| **En cours** | Tâche en cours de traitement |
-| **Terminée** | Tâche complétée |
+| Titre | Intitulé court (obligatoire, 255 caractères max) |
+| Description | Détails ou instructions (facultatif, 2000 caractères max) |
+| Statut | À faire / En cours / Terminé |
+| Priorité | Basse / Normale / Haute / Urgente |
+| Assignée à | Un membre de l'enquête ou personne |
+| Date d'échéance | Date limite (facultative) |
+| Visibilité | Privée ou Partagée |
 
-Cliquez sur le statut d'une tâche pour le modifier.
+---
 
-## Assignation
+## Priorités
 
-Une tâche peut être assignée à n'importe quel collaborateur de l'enquête. La personne assignée voit la tâche dans son **Tableau de bord** et dans le **Calendrier**.
+| Priorité | Couleur |
+|---|---|
+| Basse | Gris |
+| Normale | Bleu |
+| Haute | Orange |
+| Urgente | Rouge |
 
-## Mes tâches
+Les tâches dont la date d'échéance est dépassée sont mises en évidence en rouge dans la liste, quelle que soit leur priorité.
 
-La section **Mes tâches** du tableau de bord liste toutes les tâches qui vous sont assignées, toutes enquêtes confondues, triées par échéance.
+---
 
-## Calendrier
+## Visibilité : privée ou partagée
 
-Le **Calendrier** (accessible depuis la sidebar) affiche toutes vos tâches assignées sur une vue mensuelle. Cliquez sur une tâche pour accéder directement à l'enquête correspondante.
+- **Partagée** : visible par tous les collaborateurs de l'enquête
+- **Privée** : visible uniquement par vous. Les autres membres ne savent pas qu'elle existe.
+
+---
+
+## Filtres de l'onglet Tâches
+
+- **Visibilité** : toutes, partagées, privées
+- **Statut** : tout, à faire, en cours, terminé
+
+---
+
+## Commentaires
+
+Chaque tâche possède une section de commentaires. Tous les membres de l'enquête peuvent lire et ajouter des commentaires sur les tâches partagées. Cliquez sur une tâche dans la liste pour ouvrir son panneau de détail et accéder à la section commentaires.
+
+---
+
+## Vue globale de vos tâches
+
+- **Tableau de bord** : la section "Mes tâches" liste toutes les tâches qui vous sont assignées, toutes enquêtes confondues
+- **Calendrier** : affiche vos tâches assignées positionnées sur leur date d'échéance

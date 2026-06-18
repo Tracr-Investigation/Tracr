@@ -1,50 +1,53 @@
 ---
-sidebar_position: 11
+sidebar_position: 12
 title: Settings
 ---
 
 # Settings
 
-The **Settings** page groups your personal account preferences. It is accessible from the sidebar (gear icon).
+The **Settings** page is accessible from the sidebar. It is organized into three tabs.
+
+---
 
 ## Security
 
 ### Change password
 
-Enter your current password, then enter and confirm the new one. The strength indicator guides you in choosing a strong password.
+Enter your current password, then your new password (twice for confirmation). A password strength indicator is displayed in real time.
 
 ### Recovery codes
 
-Recovery codes allow you to regain access to your account if you forget your password.
+Recovery codes let you regain access to your account if you forget your password.
 
-1. Click **Generate recovery codes**.
+They take the form of a **12-word phrase** (BIP39 format), displayed in a 3-column grid. You can copy the full phrase in one click.
+
+**Generate or regenerate codes:**
+1. Click **Generate** (or **Regenerate** if you already have codes).
 2. Confirm with your current password.
-3. Note the displayed codes — they are only visible once.
-4. Check the confirmation box and confirm.
+3. The 12 words are displayed. Copy them and store them somewhere safe.
+4. Check the confirmation checkbox and click **Done**.
 
-:::warning
-Keep these codes in a safe place. If you lose them and forget your password, only an administrator can unblock you.
-:::
-
-To regenerate new codes (old ones are then invalidated), repeat the procedure.
+Regeneration invalidates previous codes.
 
 ### Delete account
 
-Deletion is permanent. All your data is deleted, but investigations and documents you created remain accessible to collaborators.
+Account deletion is permanent and removes all your data.
+
+1. Click **Delete my account**.
+2. Enter your **current password** in the confirmation dialog.
+3. Confirm the deletion.
+
+---
 
 ## Language
 
-Choose the interface language: **Français** or **English**. The choice is saved on your account and applies across all your devices.
+Select the display language for the interface from the available languages. The choice is saved to your profile and applies to all your sessions.
+
+---
 
 ## Appearance
 
-### Display mode
+Customize the interface appearance:
 
-- **Dark**: black background, light text (default)
-- **Light**: white background, dark text
-
-### Accent color
-
-Six colors available: Violet, Emerald, Blue, Rose, Amber, Cyan. The chosen color applies to all interactive elements (buttons, active links, indicators).
-
-Click a color then **Apply** to save.
+- **Theme**: light or dark. Can also be toggled from the sidebar.
+- **Accent color**: choose from the available palettes to customize the main color of the interface. Click a color then click **Apply**.

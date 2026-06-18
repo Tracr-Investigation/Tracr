@@ -95,6 +95,17 @@
           "Carte : entités géolocalisées"
         ]
       }
+    },
+    "templates": {
+      "overview": {
+        "title": "Templates",
+        "description": "Les templates sont des structures de documents réutilisables que vous pouvez appliquer lors de la création d'un document dans une enquête. Ils font gagner du temps en pré-remplissant le contenu, les titres et la mise en forme.",
+        "steps": [
+          "Créez un template avec « Nouveau » : rédigez son contenu une seule fois",
+          "Marquez-le Public pour le partager avec tous les utilisateurs, ou gardez-le Privé",
+          "Lors de la création d'un document, choisissez un template pour démarrer dessus instantanément"
+        ]
+      }
     }
   },
   "home": {

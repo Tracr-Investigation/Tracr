@@ -95,6 +95,17 @@
           "Map: geolocated entities"
         ]
       }
+    },
+    "templates": {
+      "overview": {
+        "title": "Templates",
+        "description": "Templates are reusable document structures you can apply when creating a new document inside an investigation. They save time by pre-filling content, headings, and formatting.",
+        "steps": [
+          "Create a template with \"New\": write its content once",
+          "Mark it Public to share it with all users, or keep it Private",
+          "When creating a document, pick a template to start from it instantly"
+        ]
+      }
     }
   },
   "home": {

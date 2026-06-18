@@ -1,23 +1,46 @@
 ---
-sidebar_position: 9
+sidebar_position: 11
 title: Calendrier
 ---
 
 # Calendrier
 
-Le **Calendrier** offre une vue mensuelle de toutes les tâches qui vous sont assignées, toutes enquêtes confondues.
+Le calendrier affiche toutes les tâches qui **vous sont assignées** dans l'ensemble de vos enquêtes, positionnées sur leur date d'échéance.
+
+---
 
 ## Navigation
 
-- Utilisez les flèches **◀ ▶** pour changer de mois.
-- Le bouton **Aujourd'hui** revient au mois courant.
+- Les boutons **Mois précédent** et **Mois suivant** permettent de naviguer entre les mois.
+- Le bouton **Aujourd'hui** recentre la vue sur le mois en cours.
 
-## Lire le calendrier
+---
 
-Chaque jour affiche les tâches dont l'échéance tombe ce jour-là. Les tâches sont colorées selon leur enquête d'origine.
+## Affichage des tâches
 
-Cliquez sur une tâche dans le calendrier pour accéder directement à l'enquête correspondante.
+Chaque tâche est représentée par une pastille colorée selon sa priorité :
 
-## Tâches sans échéance
+| Priorité | Couleur |
+|---|---|
+| Basse | Gris |
+| Normale | Bleu |
+| Haute | Orange |
+| Urgente | Rouge |
 
-Les tâches sans date d'échéance n'apparaissent pas dans le calendrier. Pour les retrouver, utilisez la section **Mes tâches** sur le **Tableau de bord**.
+---
+
+## Cliquer sur une tâche
+
+Cliquer sur une tâche dans le calendrier navigue directement vers l'enquête correspondante (onglet Tâches).
+
+---
+
+## Tâches sans date d'échéance
+
+Les tâches sans date d'échéance n'apparaissent pas dans le calendrier. Utilisez la section **Mes tâches** du tableau de bord pour les visualiser.
+
+---
+
+## Périmètre
+
+Le calendrier n'affiche que les tâches **assignées à vous**. Les tâches que vous avez créées pour d'autres personnes, ou les tâches partagées non assignées, n'y apparaissent pas.

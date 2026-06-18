@@ -1,50 +1,53 @@
 ---
-sidebar_position: 11
+sidebar_position: 12
 title: Paramètres
 ---
 
 # Paramètres
 
-La page **Paramètres** regroupe les préférences personnelles de votre compte. Elle est accessible depuis la sidebar (icône engrenage).
+La page **Paramètres** est accessible depuis la barre latérale. Elle est organisée en trois onglets.
+
+---
 
 ## Sécurité
 
 ### Changer de mot de passe
 
-Renseignez votre mot de passe actuel, puis saisissez et confirmez le nouveau. L'indicateur de force vous guide pour choisir un mot de passe robuste.
+Renseignez votre mot de passe actuel, puis votre nouveau mot de passe (deux fois pour confirmation). Un indicateur de force du mot de passe s'affiche en temps réel.
 
 ### Codes de récupération
 
-Les codes de récupération permettent de regagner l'accès à votre compte si vous oubliez votre mot de passe.
+Les codes de récupération permettent de retrouver l'accès à votre compte si vous oubliez votre mot de passe.
 
-1. Cliquez sur **Générer les codes de récupération**.
+Ils se présentent sous la forme d'une **phrase de 12 mots** (format BIP39), affichés dans une grille 3 colonnes. Vous pouvez copier la phrase complète en un clic.
+
+**Générer ou régénérer les codes :**
+1. Cliquez sur **Générer** (ou **Régénérer** si vous en avez déjà).
 2. Confirmez avec votre mot de passe actuel.
-3. Notez les codes affichés — ils ne sont visibles qu'une seule fois.
-4. Cochez la case de confirmation et validez.
+3. Les 12 mots s'affichent. Copiez-les et conservez-les en lieu sûr.
+4. Cochez la case de confirmation et cliquez sur **Terminé**.
 
-:::warning
-Conservez ces codes dans un endroit sûr. Si vous les perdez et oubliez votre mot de passe, seul un administrateur pourra vous débloquer.
-:::
-
-Pour régénérer de nouveaux codes (les anciens sont alors invalidés), répétez la procédure.
+La régénération invalide les codes précédents.
 
 ### Supprimer le compte
 
-La suppression est définitive. Toutes vos données sont supprimées, mais les enquêtes et documents que vous avez créés restent accessibles aux collaborateurs.
+La suppression du compte est définitive et entraîne la suppression de toutes vos données.
+
+1. Cliquez sur **Supprimer mon compte**.
+2. Saisissez votre **mot de passe actuel** dans la boîte de dialogue de confirmation.
+3. Confirmez la suppression.
+
+---
 
 ## Langue
 
-Choisissez la langue de l'interface : **Français** ou **English**. Le choix est sauvegardé sur votre compte et s'applique sur tous vos appareils.
+Sélectionnez la langue d'affichage de l'interface parmi les langues disponibles. Le choix est enregistré dans votre profil et s'applique à toutes vos sessions.
+
+---
 
 ## Apparence
 
-### Mode d'affichage
+Personnalisez l'apparence de l'interface :
 
-- **Sombre** : fond noir, texte clair (par défaut)
-- **Clair** : fond blanc, texte sombre
-
-### Couleur d'accent
-
-Six couleurs disponibles : Violet, Émeraude, Bleu, Rose, Ambre, Cyan. La couleur choisie s'applique à tous les éléments interactifs (boutons, liens actifs, indicateurs).
-
-Cliquez sur une couleur puis sur **Appliquer** pour enregistrer.
+- **Thème** : clair ou sombre. Peut aussi être basculé depuis la barre latérale.
+- **Couleur d'accentuation** : choisissez parmi les palettes disponibles pour personnaliser la couleur principale de l'interface. Cliquez sur une couleur puis sur **Appliquer**.

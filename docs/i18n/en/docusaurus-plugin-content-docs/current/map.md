@@ -1,28 +1,36 @@
 ---
-sidebar_position: 6
+sidebar_position: 7
 title: Map
 ---
 
 # Map
 
-The **Map** tab of an investigation displays an interactive map (Leaflet / OpenStreetMap) with the geographic points associated with the investigation.
+The **Map** tab of an investigation displays an interactive map (Leaflet) of all entities of type **Location** present in the entity graph.
 
-## Add a geographic point
+---
 
-There are two ways to add a location to an investigation:
+## How it works
 
-### From the document editor
-In a document, use the **Location pin** tool in the toolbar. Search for an address or click on the map to place the point. It will appear in the document text AND on the investigation map.
+Location-type entities are automatically geocoded from their text value (address, place name, coordinates). Each successfully geocoded entity appears as a marker on the map.
 
-### From the map directly
-In the **Map** tab, click the **Add point** button, then click on the map or enter coordinates. Enter a title and optional description.
+Hovering over a marker shows a popup with the entity's label and value.
 
-## Navigating the map
+---
 
-- **Move**: click-drag
-- **Zoom**: scroll wheel or +/– buttons
-- **Click on a marker**: displays the title and description of the point
+## Automatic view adjustment
 
-## Geocoding
+When the map loads:
+- If only one location is present, the map centers on that point with an appropriate zoom level
+- If multiple locations are present, the map automatically adjusts to fit them all
 
-Tracr uses a geocoding service to convert addresses into coordinates. When adding a location, type an address in the search field to get suggestions.
+---
+
+## Ungeocoded entities
+
+Location-type entities whose value could not be geocoded are listed below the map. This can happen if the value is too vague, misspelled, or not recognized by the geocoding service.
+
+---
+
+## Adding locations
+
+To add a point to the map, create a **Location** entity in the investigation's Graph tab. Enter an address or place name in the value field. The entity will appear on the map after the next tab load.

@@ -53,3 +53,20 @@ title: Keyboard Shortcuts
 
 The `Ctrl+B` shortcut for the sidebar is not triggered when the cursor is in the editor, to avoid conflicting with the **Bold** shortcut.
 :::
+
+## URL hash navigation
+
+You can open a specific tab of an investigation directly by adding a hash to the URL:
+
+| URL | Tab opened |
+|---|---|
+| `/investigations/my-investigation-1#tasks` | Tasks |
+| `/investigations/my-investigation-1#documents` | Documents |
+| `/investigations/my-investigation-1#sources` | Sources |
+| `/investigations/my-investigation-1#collaborators` | Collaborators |
+| `/investigations/my-investigation-1#graph` | Graph |
+| `/investigations/my-investigation-1#timeline` | Timeline |
+| `/investigations/my-investigation-1#map` | Map |
+| `/investigations/my-investigation-1#settings` | Settings |
+
+These links are shareable: sending a URL with a hash to a collaborator will open the corresponding tab directly for them.

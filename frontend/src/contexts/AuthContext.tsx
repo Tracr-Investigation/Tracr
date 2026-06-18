@@ -46,8 +46,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             const language = data.language ?? 'en';
             setUser({ id_user: data.id_user, pseudo: data.pseudo, role: data.role, language });
             i18n.changeLanguage(language);
+            document.cookie = `tracr_role=${data.role}; path=/; SameSite=Lax`;
           } else if (response.status === 401 || response.status === 403) {
             localStorage.removeItem('token');
+            document.cookie = 'tracr_role=; path=/; max-age=0; SameSite=Lax';
           }
           break;
         } catch {
@@ -68,11 +70,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(user);
     localStorage.setItem('token', token);
     i18n.changeLanguage(user.language ?? 'en');
+    document.cookie = `tracr_role=${user.role}; path=/; SameSite=Lax`;
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem('token');
+    document.cookie = 'tracr_role=; path=/; max-age=0; SameSite=Lax';
   };
 
   return (

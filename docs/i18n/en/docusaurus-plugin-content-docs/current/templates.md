@@ -1,33 +1,64 @@
 ---
-sidebar_position: 8
+sidebar_position: 9
 title: Templates
 ---
 
 # Templates
 
-Templates allow you to create reusable document structures across investigations.
+Templates are reusable document models. They let you pre-fill content, headings, and formatting when creating a new document in an investigation.
+
+---
+
+## Interface
+
+The Templates page is divided into two tabs:
+
+- **My templates**: templates you have created
+- **Public**: public templates created by other users
+
+A search bar and category filters allow you to quickly find a template.
+
+---
 
 ## Create a template
 
-From the **Templates** page (sidebar):
+1. Click **New**.
+2. Enter a name (required) and a description (optional).
+3. Select a category if available.
+4. Write the content in the editor.
+5. Choose the visibility (Public or Private).
+6. Click **Create**.
 
-1. Click **New template**.
-2. Give it a name, description, and optionally a category.
-3. Write the template content in the editor.
-4. Save.
+---
 
-## Make a template public
+## Visibility
 
-A template can be **private** (visible only to its creator) or **public** (visible to all users). Check the **Public** option when creating or editing.
+- **Public**: visible and usable by all users on the platform
+- **Private**: visible only to you
 
-## Use a template
+---
 
-When **creating a document** in an investigation, you can select a template. The template content is copied as a starting point in the new document.
+## Template preview
 
-## Template categories
+Click a template in the list to open the **side preview panel**. It shows:
+- The name, category, and public/private status
+- The author and last modification date
+- A read-only content preview
 
-Template categories are managed by administrators (Administration panel → Template categories). They allow grouping templates by investigation type or procedure.
+---
 
 ## Edit or delete a template
 
-You can only edit or delete templates you created. Administrators can manage all templates.
+From the preview panel, **Edit** and **Delete** buttons are available if you own the template.
+
+---
+
+## Categories
+
+Template categories are managed by administrators (Administration → Template categories). They allow templates to be organized by theme or investigation type.
+
+---
+
+## Use a template in a document
+
+When creating a new document in an investigation, a template selector appears. Choose a template to pre-fill the editor with its content.

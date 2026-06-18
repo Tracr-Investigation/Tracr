@@ -1,36 +1,56 @@
 ---
-sidebar_position: 7
+sidebar_position: 6
 title: OSINT
 ---
 
 # OSINT
 
-Tracr intègre des outils d'enrichissement OSINT (Open Source Intelligence) pour faciliter les pivots sur des indicateurs de compromission (IoC).
+Tracr intègre deux outils d'enrichissement OSINT accessibles directement depuis l'interface, sans aucun appel réseau côté serveur. Tous les liens s'ouvrent dans un nouvel onglet à l'initiative de l'utilisateur.
 
-## Panneau IoC
+---
 
-Le panneau **IoC** (Indicators of Compromise) permet de lister et d'enrichir rapidement des indicateurs :
+## Pivots d'enrichissement (graphe d'entités)
 
-- Adresses IP
-- Noms de domaine
-- Hachages de fichiers (MD5, SHA1, SHA256)
-- URLs
-- Adresses e-mail
+Depuis l'onglet **Graphe** d'une enquête, cliquez sur n'importe quel nœud pour ouvrir son panneau de détail. La section **Enrichissement** affiche des liens directs vers des outils publics adaptés au type de l'entité.
 
-## Pivots d'enrichissement
-
-Pour chaque IoC, le panneau **Enrichissement** propose des liens de pivot rapide vers des sources publiques :
-
-| Type | Sources disponibles |
+| Type d'entité | Outils |
 |---|---|
-| IP | Shodan, VirusTotal, AbuseIPDB, Censys |
-| Domaine | VirusTotal, URLScan, DomainTools, Whois |
-| Hash | VirusTotal, MalwareBazaar, Any.run |
-| URL | URLScan, VirusTotal |
-| Email | HaveIBeenPwned, Hunter.io |
+| Adresse IP | Shodan, VirusTotal, AbuseIPDB, Censys, GreyNoise |
+| Domaine | VirusTotal, urlscan.io, crt.sh, SecurityTrails, Whois |
+| E-mail | Epieos, EmailRep, Have I Been Pwned, Hunter |
+| Compte | X/Twitter, Instagram, GitHub, Reddit, TikTok, WhatsMyName |
+| Téléphone | Google dork, Sync.me |
+| Personne | LinkedIn, Google dork |
+| Organisation | LinkedIn, OpenCorporates |
+| Localisation | Google Maps, OpenStreetMap |
+| Autre | VirusTotal |
 
-Cliquez sur un lien de pivot pour ouvrir la recherche dans un nouvel onglet.
+Tous les types bénéficient également des pivots génériques : **Google**, **DuckDuckGo** et **Wayback Machine**.
 
-:::tip
-Après avoir enrichi un IoC, créez une entité correspondante dans le graphe de l'enquête pour garder une trace structurée.
-:::
+La recherche est construite automatiquement à partir de la valeur de l'entité (ou du libellé si la valeur est vide).
+
+---
+
+## Panneau IoC (Indicateurs de Compromission)
+
+Le panneau IoC est intégré à l'**éditeur de documents**. Il analyse le texte du document ouvert et extrait automatiquement les indicateurs techniques.
+
+**Types d'indicateurs détectés :**
+
+| Type | Description |
+|---|---|
+| IP | Adresses IPv4 et IPv6 |
+| Domaines | Noms de domaine valides |
+| E-mails | Adresses e-mail |
+| Hashes | MD5, SHA1, SHA256 et autres empreintes hexadécimales |
+| CVE | Identifiants de vulnérabilités (CVE-XXXX-XXXXX) |
+| Crypto | Adresses de portefeuilles Bitcoin, Ethereum, etc. |
+
+**Utilisation :**
+
+1. Ouvrez un document dans l'éditeur.
+2. Cliquez sur le bouton **Indicateurs (IOC)** dans la barre d'outils.
+3. Le panneau s'ouvre à droite et liste tous les indicateurs détectés, groupés par type.
+4. Pour chaque indicateur, cliquez sur **Entité** pour l'ajouter directement au graphe de l'enquête.
+5. Les indicateurs déjà présents dans le graphe affichent une coche verte.
+6. Cliquez sur l'icône de copie pour copier un indicateur dans le presse-papiers.

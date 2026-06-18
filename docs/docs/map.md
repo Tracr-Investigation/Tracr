@@ -1,28 +1,36 @@
 ---
-sidebar_position: 6
+sidebar_position: 7
 title: Carte
 ---
 
 # Carte
 
-L'onglet **Carte** d'une enquête affiche une carte interactive (Leaflet / OpenStreetMap) avec les points géographiques associés à l'enquête.
+L'onglet **Carte** d'une enquête affiche une carte interactive (Leaflet) de toutes les entités de type **Localisation** présentes dans le graphe d'entités.
 
-## Ajouter un point géographique
+---
 
-Il existe deux façons d'ajouter une localisation à une enquête :
+## Fonctionnement
 
-### Depuis l'éditeur de document
-Dans un document, utilisez l'outil **Épingle de localisation** dans la barre d'outils. Cherchez une adresse ou cliquez sur la carte pour placer le point. Il apparaîtra dans le texte du document ET sur la carte de l'enquête.
+Les entités de type Localisation sont géocodées automatiquement à partir de leur valeur textuelle (adresse, nom de lieu, coordonnées). Chaque entité géocodée apparaît comme un marqueur sur la carte.
 
-### Depuis la carte directement
-Dans l'onglet **Carte**, cliquez sur le bouton **Ajouter un point**, puis cliquez sur la carte ou entrez des coordonnées. Renseignez un titre et une description optionnelle.
+Au survol d'un marqueur, une popup affiche le libellé et la valeur de l'entité.
 
-## Navigation sur la carte
+---
 
-- **Déplacer**: cliquez-glissez
-- **Zoom**: molette ou boutons +/–
-- **Cliquer sur un marqueur**: affiche le titre et la description du point
+## Ajustement automatique de la vue
 
-## Géocodage
+Quand la carte charge :
+- Si une seule localisation est présente, la carte se centre sur ce point avec un niveau de zoom adapté
+- Si plusieurs localisations sont présentes, la carte s'ajuste automatiquement pour les englober toutes
 
-Tracr utilise un service de géocodage pour convertir des adresses en coordonnées. Lors de l'ajout d'une localisation, tapez une adresse dans le champ de recherche pour obtenir des suggestions.
+---
+
+## Entités non géocodées
+
+Les entités de type Localisation dont la valeur n'a pas pu être géocodée sont listées sous la carte. Cela peut arriver si la valeur est trop vague, mal orthographiée ou non reconnue par le service de géocodage.
+
+---
+
+## Ajouter des localisations
+
+Pour ajouter un point à la carte, créez une entité de type **Localisation** dans l'onglet Graphe de l'enquête. Renseignez une adresse ou un nom de lieu dans le champ valeur. L'entité apparaîtra sur la carte après le prochain chargement de l'onglet.

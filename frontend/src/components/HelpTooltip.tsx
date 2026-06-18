@@ -37,16 +37,21 @@ export const HelpTooltip = ({ helpKey, children, placement = 'auto' }: HelpToolt
             const rect = wrapperRef.current?.getBoundingClientRect();
             if (!rect) return;
 
+                const yCenter = rect.top + rect.height / 2;
+            // Avoid top overflow: if centering the tooltip would push it above
+            // the viewport, fall back to bottom placement.
+            const enoughVerticalRoom = yCenter > 140;
+
             const side: 'right' | 'bottom' =
                 placement === 'bottom' ? 'bottom' :
                 placement === 'right' ? 'right' :
-                rect.right + 340 <= window.innerWidth ? 'right' : 'bottom';
+                (rect.right + 340 <= window.innerWidth && enoughVerticalRoom) ? 'right' : 'bottom';
 
             const x = side === 'right'
                 ? rect.right + 12
                 : rect.left;
             const y = side === 'right'
-                ? rect.top + rect.height / 2
+                ? yCenter
                 : rect.bottom + 10;
 
             setCoords({ x, y, side });

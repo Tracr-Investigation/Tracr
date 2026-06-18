@@ -156,7 +156,7 @@ export const Sidebar = () => {
         return () => window.removeEventListener('keydown', onKey);
     }, [toggle]);
 
-    const mainItems: { icon: React.ElementType; label: string; path?: string; href?: string; action?: string }[] = [
+    const mainItems: { icon: React.ElementType; label: string; path?: string; href?: string }[] = [
         { icon: LayoutDashboard, label: t('sidebar.dashboard'),      path: '/' },
         { icon: FileSearch,      label: t('sidebar.investigations'),  path: '/investigations' },
         { icon: Calendar,        label: t('sidebar.calendar'),        path: '/calendar' },
@@ -164,7 +164,6 @@ export const Sidebar = () => {
         { icon: Settings,        label: t('sidebar.settings'),        path: '/settings' },
         ...(isAdmin ? [{ icon: Shield, label: t('sidebar.administration'), path: '/admin' }] : []),
         { icon: BookOpen,        label: t('sidebar.help'),            href: '/docs/' },
-        { icon: HelpCircle,      label: t('sidebar.helpMode'),        action: 'toggleHelp' },
     ];
 
     const initials = user?.pseudo ? user.pseudo.slice(0, 2).toUpperCase() : 'U';
@@ -222,14 +221,9 @@ export const Sidebar = () => {
                             key={item.path ?? item.href ?? item.action}
                             icon={item.icon}
                             label={item.label}
-                            active={
-                                item.action === 'toggleHelp'
-                                    ? isHelpMode
-                                    : item.path ? isActive(item.path) : false
-                            }
+                            active={item.path ? isActive(item.path) : false}
                             collapsed={effectiveCollapsed}
                             onClick={() => {
-                                if (item.action === 'toggleHelp') { toggleHelp(); return; }
                                 if (item.href) { window.open(item.href, '_blank'); return; }
                                 if (item.path) nav(item.path);
                             }}
@@ -290,6 +284,15 @@ export const Sidebar = () => {
                             </div>
                         )}
                     </div>
+
+                    {/* Help mode */}
+                    <NavItem
+                        icon={HelpCircle}
+                        label={t('sidebar.helpMode')}
+                        active={isHelpMode}
+                        collapsed={effectiveCollapsed}
+                        onClick={toggleHelp}
+                    />
 
                     {/* Logout */}
                     <Tooltip label={t('sidebar.logout')} show={effectiveCollapsed}>

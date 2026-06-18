@@ -53,3 +53,20 @@ title: Raccourcis clavier
 
 Le raccourci `Ctrl+B` pour la sidebar n'est pas déclenché lorsque le curseur est dans l'éditeur, pour ne pas interférer avec le raccourci **Gras**.
 :::
+
+## Navigation par hash d'URL
+
+Vous pouvez ouvrir directement un onglet spécifique d'une enquête en ajoutant un hash à l'URL :
+
+| URL | Onglet ouvert |
+|---|---|
+| `/investigations/mon-enquete-1#tasks` | Tâches |
+| `/investigations/mon-enquete-1#documents` | Documents |
+| `/investigations/mon-enquete-1#sources` | Sources |
+| `/investigations/mon-enquete-1#collaborators` | Collaborateurs |
+| `/investigations/mon-enquete-1#graph` | Graphe |
+| `/investigations/mon-enquete-1#timeline` | Chronologie |
+| `/investigations/mon-enquete-1#map` | Carte |
+| `/investigations/mon-enquete-1#settings` | Paramètres |
+
+Ces liens sont partageables : envoyer une URL avec hash à un collaborateur lui ouvrira directement l'onglet correspondant.
