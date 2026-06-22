@@ -43,6 +43,8 @@ export interface SourceData {
     size_bytes: number;
     content_hash: string;
     capture_group: string | null;
+    role: string | null;
+    show_in_list: boolean;
     page_metadata: Record<string, unknown> | null;
     notes: string | null;
     text_status: string | null;
@@ -1533,7 +1535,10 @@ export const api = {
         return data;
     },
 
-    updateSource: async (id: number, body: { title?: string; notes?: string | null }) => {
+    updateSource: async (
+        id: number,
+        body: { title?: string; notes?: string | null; show_in_list?: boolean },
+    ) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/sources/${id}`, {
             method: 'PATCH',
@@ -1543,6 +1548,16 @@ export const api = {
         const data = await response.json();
         if (!response.ok) throw new Error(parseApiError(data.detail, 'Error updating source'));
         return data as SourceData;
+    },
+
+    listSourceMedia: async (id: number) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/sources/${id}/media`, {
+            headers: {'Authorization': `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching media'));
+        return data as { media: SourceData[] };
     },
 
     // Ajout manuel d'un fichier comme source (hors extension navigateur).

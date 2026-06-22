@@ -1,10 +1,20 @@
 import { useEffect, useState } from 'react';
-import { api, type SourceData } from '../../../services/api';
+import { api, API_URL, type SourceData } from '../../../services/api';
+
+// Les medias compagnons (video/audio/grosses images) sont stockes comme placeholders
+// `tracr-media:<id>:<sig>` dans le HTML archive. On les reecrit ici en URL d'API
+// signee (lecture sans auth) pour que l'iframe les charge/joue depuis Tracr.
+const rewriteMedia = (html: string) =>
+  html.replace(
+    /tracr-media:(\d+):([a-f0-9]+)/g,
+    (_m, id, sig) => `${API_URL}/sources/${id}/view?sig=${sig}`,
+  );
 
 /**
  * Affiche une « page autonome » (snapshot HTML SingleFile-style) capturée par
- * l'extension : tout le CSS est inliné, les URLs absolutisées → on rend le HTML
- * directement dans une iframe sandbox (aucun script exécuté, aucun moteur de rejeu).
+ * l'extension : tout le CSS est inliné, les URLs absolutisées, les médias inlinés
+ * ou stockés en compagnons → on rend le HTML directement dans une iframe sandbox
+ * (aucun script exécuté, aucun moteur de rejeu).
  */
 export const ArchivedPageViewer = ({ source }: { source: SourceData }) => {
   const [html, setHtml] = useState<string | null>(null);
@@ -14,7 +24,7 @@ export const ArchivedPageViewer = ({ source }: { source: SourceData }) => {
     let active = true;
     api.downloadSource(source.id_source)
       .then(({ blob }) => blob.text())
-      .then((text) => { if (active) setHtml(text); })
+      .then((text) => { if (active) setHtml(rewriteMedia(text)); })
       .catch(() => { if (active) setError(true); });
     return () => { active = false; };
   }, [source.id_source]);

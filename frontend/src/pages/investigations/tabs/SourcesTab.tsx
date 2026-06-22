@@ -3,8 +3,9 @@ import {
   Archive, Camera, FileCode, Film, Image as ImageIcon, FileQuestion,
   Download, Trash2, Eye, X, ExternalLink, ShieldCheck, Copy, Check, Clock, Filter, History,
   Upload, Paperclip, StickyNote, Loader2, Save, Search, ScanSearch, Target, Crosshair, ScanText,
+  ChevronRight, Info,
 } from 'lucide-react';
-import { api, type SourceData, type SourceType, type SourceHitsResult } from '../../../services/api';
+import { api, API_URL, type SourceData, type SourceType, type SourceHitsResult } from '../../../services/api';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { formatRelativeDate } from '../../../utils/date';
@@ -258,10 +259,123 @@ const SourceCard = ({
   );
 };
 
+// ── Médias embarqués d'une archive HTML ───────────────────────────────────────
+// Les médias d'une page (role=page_media) sont masqués de la liste principale et
+// listés ici, sous leur page parente : lecture/téléchargement, et choix par fichier
+// de les faire apparaître dans la liste centrale tout en restant rattachés.
+const EmbeddedMediaSection = ({ source, canEdit, onDownload, onUpdated, onReload, onOpenMedia }: {
+  source: SourceData;
+  canEdit: boolean;
+  onDownload: (s: SourceData) => void;
+  onUpdated: (s: SourceData, opts?: { silent?: boolean }) => void;
+  onReload: () => void;
+  onOpenMedia: (media: SourceData, parent: SourceData) => void;
+}) => {
+  const [media, setMedia] = useState<SourceData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [busyId, setBusyId] = useState<number | null>(null);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    api.listSourceMedia(source.id_source)
+      .then((d) => { if (active) setMedia(d.media); })
+      .catch(() => { if (active) setMedia([]); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [source.id_source]);
+
+  const toggleShow = async (m: SourceData) => {
+    setBusyId(m.id_source);
+    try {
+      const updated = await api.updateSource(m.id_source, { show_in_list: !m.show_in_list });
+      setMedia((prev) => prev.map((x) => (x.id_source === updated.id_source ? updated : x)));
+      onUpdated(updated, { silent: true });
+      onReload();
+    } catch (err) {
+      toast('error', err instanceof Error ? err.message : 'Mise à jour impossible');
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  if (loading) return <p className="text-text-dim text-xs py-3">Chargement des médias…</p>;
+  if (!media.length) return null;
+
+  return (
+    <div className="mt-4">
+      <div className="text-[11px] font-semibold text-text-default/50 uppercase tracking-wider mb-1.5 inline-flex items-center gap-1.5">
+        <Paperclip size={12} /> Médias de la page ({media.length})
+      </div>
+      <p className="text-[11px] text-text-dim mb-3">
+        Fichiers téléchargés avec cette page. Lisibles et téléchargeables ici ; cochez « Afficher dans la liste »
+        pour aussi les faire apparaître parmi les sources (ils restent rattachés à cette page).
+      </p>
+      <div className="space-y-2">
+        {media.map((m) => {
+          const viewUrl = `${API_URL}/sources/${m.id_source}/view?sig=${m.view_sig}`;
+          const isImg = m.mime_type.startsWith('image/');
+          const isVid = m.mime_type.startsWith('video/');
+          const isAud = m.mime_type.startsWith('audio/');
+          return (
+            <div key={m.id_source} className="rounded-lg border border-border-subtle bg-input-bg p-2.5">
+              <div className="flex items-start gap-3">
+                <div className="w-14 h-14 shrink-0 rounded-md overflow-hidden bg-black/20 flex items-center justify-center">
+                  {isImg ? <img src={viewUrl} alt={m.title} className="w-full h-full object-cover" />
+                    : isVid ? <Film size={20} className="text-text-dim" />
+                    : <FileQuestion size={20} className="text-text-dim" />}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm text-text-default truncate" title={m.title}>{m.title}</p>
+                  <p className="text-[11px] text-text-dim">{m.mime_type} · {formatBytes(m.size_bytes)}</p>
+                  <p className="mt-1 font-mono text-[10px] text-text-muted break-all flex items-center gap-1" title={`SHA-256 : ${m.content_hash}`}>
+                    <ShieldCheck size={11} className="text-emerald-400 shrink-0" />
+                    <span className="truncate">{m.content_hash}</span>
+                  </p>
+                  {isVid && <video src={viewUrl} controls className="mt-1.5 max-w-full max-h-44 rounded" />}
+                  {isAud && <audio src={viewUrl} controls className="mt-1.5 w-full" />}
+                  <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+                    <button
+                      onClick={() => onOpenMedia(m, source)}
+                      className="text-[11px] text-[var(--theme-primary)] hover:underline inline-flex items-center gap-1"
+                    >
+                      <Info size={11} /> En savoir plus
+                    </button>
+                    <button
+                      onClick={() => onDownload(m)}
+                      className="text-[11px] text-[var(--theme-primary)] hover:underline inline-flex items-center gap-1"
+                    >
+                      <Download size={11} /> Télécharger
+                    </button>
+                    {canEdit && (
+                      <label className="text-[11px] text-text-dim inline-flex items-center gap-1.5 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={m.show_in_list}
+                          disabled={busyId === m.id_source}
+                          onChange={() => toggleShow(m)}
+                          className="accent-[var(--theme-primary)]"
+                        />
+                        Afficher dans la liste
+                      </label>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 // ── Preview panel ─────────────────────────────────────────────────────────────
 
 const SourcePreviewPanel = ({
-  source, open, onClose, onDownload, canEdit, onUpdated,
+  source, open, onClose, onDownload, canEdit, onUpdated, onReload,
+  onOpenMedia, breadcrumbParent, onCrumbNavigate,
 }: {
   source: SourceData | null;
   open: boolean;
@@ -269,6 +383,10 @@ const SourcePreviewPanel = ({
   onDownload: (s: SourceData) => void;
   canEdit: boolean;
   onUpdated: (s: SourceData, opts?: { silent?: boolean }) => void;
+  onReload: () => void;
+  onOpenMedia: (media: SourceData, parent: SourceData) => void;
+  breadcrumbParent: SourceData | null;
+  onCrumbNavigate: (parent: SourceData) => void;
 }) => {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -376,10 +494,25 @@ const SourcePreviewPanel = ({
       >
         <div className="flex items-start justify-between px-6 pt-6 pb-4 border-b border-border-subtle shrink-0">
           <div className="min-w-0 flex-1 pr-4">
-            <div className="flex items-center gap-2 mb-1">
-              <Eye size={14} className="text-primary shrink-0" />
-              <span className="text-xs font-semibold text-text-dim uppercase tracking-wider">Aperçu de la source</span>
-            </div>
+            {breadcrumbParent ? (
+              <nav className="flex items-center gap-1.5 mb-1 text-xs min-w-0" aria-label="Fil d'Ariane">
+                <button
+                  onClick={() => onCrumbNavigate(breadcrumbParent)}
+                  className="inline-flex items-center gap-1 text-[var(--theme-primary)] hover:underline truncate max-w-[55%]"
+                  title={breadcrumbParent.title}
+                >
+                  <History size={12} className="shrink-0" />
+                  <span className="truncate">{breadcrumbParent.title}</span>
+                </button>
+                <ChevronRight size={12} className="text-text-dim shrink-0" />
+                <span className="text-text-dim truncate">Média</span>
+              </nav>
+            ) : (
+              <div className="flex items-center gap-2 mb-1">
+                <Eye size={14} className="text-primary shrink-0" />
+                <span className="text-xs font-semibold text-text-dim uppercase tracking-wider">Aperçu de la source</span>
+              </div>
+            )}
             <h2 className="text-base font-bold text-text-default truncate">{source?.title ?? '…'}</h2>
           </div>
           <button onClick={onClose} className="text-text-dim hover:text-text-default transition-colors p-1 shrink-0">
@@ -395,6 +528,14 @@ const SourcePreviewPanel = ({
                 Page archivée (HTML autonome, rendu fidèle)
               </div>
               <ArchivedPageViewer source={source} />
+              <EmbeddedMediaSection
+                source={source}
+                canEdit={canEdit}
+                onDownload={onDownload}
+                onUpdated={onUpdated}
+                onReload={onReload}
+                onOpenMedia={onOpenMedia}
+              />
             </div>
           ) : (
           <div className="rounded-xl bg-input-bg border border-border-subtle overflow-hidden mb-5 flex items-center justify-center min-h-[160px]">
@@ -780,6 +921,8 @@ export const SourcesTab = ({ investigationId, userPermission, openSourceId, onSo
   const [loading, setLoading] = useState(true);
   const [previewSource, setPreviewSource] = useState<SourceData | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
+  // Page parente d'un media consulte via « En savoir plus » (fil d'Ariane).
+  const [breadcrumbParent, setBreadcrumbParent] = useState<SourceData | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
 
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
@@ -868,8 +1011,20 @@ export const SourcesTab = ({ investigationId, userPermission, openSourceId, onSo
   };
 
   const handlePreview = (source: SourceData) => {
+    setBreadcrumbParent(null);
     setPreviewSource(source);
     setPreviewOpen(true);
+  };
+
+  const handleOpenMedia = (media: SourceData, parent: SourceData) => {
+    setBreadcrumbParent(parent);
+    setPreviewSource(media);
+    setPreviewOpen(true);
+  };
+
+  const handleCrumbNavigate = (parent: SourceData) => {
+    setBreadcrumbParent(null);
+    setPreviewSource(parent);
   };
 
   const handleUpload = useCallback(async (params: { file: File; title: string; source_url?: string; notes?: string }) => {
@@ -957,6 +1112,10 @@ export const SourcesTab = ({ investigationId, userPermission, openSourceId, onSo
         onDownload={handleDownload}
         canEdit={writable}
         onUpdated={handleUpdated}
+        onReload={fetchSources}
+        onOpenMedia={handleOpenMedia}
+        breadcrumbParent={breadcrumbParent}
+        onCrumbNavigate={handleCrumbNavigate}
       />
 
       <UploadDialog
