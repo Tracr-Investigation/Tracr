@@ -73,6 +73,7 @@
     fd.append('source_type', opts.sourceType);
     fd.append('captured_at', opts.capturedAt);
     if (opts.captureGroup) fd.append('capture_group', opts.captureGroup);
+    if (opts.role) fd.append('role', opts.role);
     if (opts.pageMetadata) fd.append('page_metadata', JSON.stringify(opts.pageMetadata));
 
     const res = await fetch(`${apiUrl}/investigations/${opts.investigationId}/sources`, {

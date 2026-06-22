@@ -12,6 +12,7 @@ const els = {
   captureFull: $('captureFull'), captureVisible: $('captureVisible'),
   captureRegion: $('captureRegion'), captureMhtml: $('captureMhtml'),
   captureBoth: $('captureBoth'), captureHtml: $('captureHtml'),
+  embedMedia: $('embedMedia'),
   captureStatus: $('captureStatus'),
 };
 
@@ -194,6 +195,174 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // Limite de hauteur (px appareil) pour rester sous les limites du canvas.
 const MAX_DEVICE_HEIGHT = 16000;
 
+// Archive HTML hybride : images <= ce seuil inlinées en data: URI (1 fichier,
+// robuste) ; au-dela (et toute video/audio) stockées en source compagnon liee
+// par capture_group et referencee via une URL signee.
+const IMG_INLINE_MAX = 2 * 1024 * 1024; // 2 Mo
+const MEDIA_FETCH_TIMEOUT = 20000; // ms par media
+// Marqueur ecrit dans le HTML pour un media compagnon ; le viewer le reecrit en
+// URL d'API reelle au moment de l'affichage (decouple l'URL d'API de capture).
+const MEDIA_PLACEHOLDER_PREFIX = 'tracr-media:'; // tracr-media:<id_source>:<view_sig>
+
+function mediaBasename(url) {
+  try {
+    const path = new URL(url).pathname;
+    return decodeURIComponent(path.substring(path.lastIndexOf('/') + 1)) || 'media';
+  } catch { return 'media'; }
+}
+
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = reject;
+    r.readAsDataURL(blob);
+  });
+}
+
+async function fetchMediaBlob(url) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), MEDIA_FETCH_TIMEOUT);
+  try {
+    const r = await fetch(url, { signal: ctrl.signal });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return await r.blob();
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+// Choisit le meilleur candidat d'un srcset (plus grande largeur `w`, sinon le
+// dernier — souvent la plus haute resolution).
+function pickFromSrcset(srcset) {
+  let best = null, bestW = -1;
+  for (const part of srcset.split(',')) {
+    const [u, d] = part.trim().split(/\s+/);
+    if (!u) continue;
+    const w = d && d.endsWith('w') ? parseInt(d, 10) : 0;
+    if (w >= bestW) { bestW = w; best = u; }
+  }
+  return best;
+}
+
+// Toutes les facons de referencer une image de fond en CSS : on capture l'URL.
+const CSS_URL_RE = /url\(\s*(['"]?)([^'")]+)\1\s*\)/g;
+
+// Embarque les medias d'une archive HTML (hybride) — objectif : retrouver TOUTES
+// les images (elements, lazy-load, srcset, <picture>, fonds CSS inline et <style>),
+// + video/audio. Pour chaque URL absolue : telecharge le binaire puis, selon taille
+// et type, l'inline en data: URI (petites images) ou l'upload en source compagnon
+// (meme capture_group, role=page_media -> masque de la liste) et remplace l'URL par
+// un placeholder signe. Echecs reseau non bloquants : URL d'origine conservee.
+async function embedPageMedia(html, ctx) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const stats = { inlined: 0, companion: 0, failed: 0 };
+  const base = ctx.sourceUrl || undefined;
+  const abs = (u) => { try { return new URL(u, base).href; } catch { return u; } };
+
+  // Resolveur a cache : une URL n'est telechargee/uploadee qu'une fois, quel que
+  // soit le nombre d'elements ou de regles CSS qui la referencent. Retourne le
+  // remplacement (data: URI ou placeholder) ou null si echec.
+  const cache = new Map();
+  async function resolve(rawUrl) {
+    const url = abs(rawUrl);
+    if (!/^https?:/i.test(url)) return null; // data:/blob:/non resoluble
+    if (cache.has(url)) return cache.get(url);
+    let repl = null;
+    try {
+      const blob = await fetchMediaBlob(url);
+      const mime = blob.type || 'application/octet-stream';
+      if (mime.startsWith('image/') && blob.size <= IMG_INLINE_MAX) {
+        repl = await blobToDataUrl(blob);
+        stats.inlined += 1;
+      } else {
+        const res = await uploadSource(cfg.apiUrl, cfg.token, {
+          investigationId: ctx.investigationId,
+          title: mediaBasename(url),
+          sourceUrl: ctx.sourceUrl || url,
+          sourceType: 'media',
+          mime,
+          blob,
+          capturedAt: ctx.capturedAt,
+          captureGroup: ctx.captureGroup,
+          role: 'page_media',
+          pageMetadata: { role: 'page_media', media_url: url, page_url: ctx.sourceUrl || null },
+        });
+        repl = `${MEDIA_PLACEHOLDER_PREFIX}${res.id_source}:${res.view_sig}`;
+        stats.companion += 1;
+      }
+    } catch (err) {
+      if (err.message === 'SESSION_EXPIRED') throw err;
+      stats.failed += 1; // injoignable / upload raté : on garde l'URL d'origine
+    }
+    cache.set(url, repl);
+    return repl;
+  }
+
+  // 1) Normalise <img> (lazy-load + srcset) en un seul `src` exploitable hors-ligne.
+  doc.querySelectorAll('img').forEach((im) => {
+    if (!im.getAttribute('src')) {
+      const lazy = im.getAttribute('data-src') || im.getAttribute('data-original')
+        || im.getAttribute('data-lazy-src') || im.getAttribute('data-lazy');
+      if (lazy) im.setAttribute('src', abs(lazy));
+    }
+    if (!im.getAttribute('src')) {
+      const ss = im.getAttribute('srcset') || im.getAttribute('data-srcset');
+      const pick = ss && pickFromSrcset(ss);
+      if (pick) im.setAttribute('src', abs(pick));
+    }
+    im.removeAttribute('srcset');
+    im.removeAttribute('sizes');
+    im.removeAttribute('loading');
+  });
+  doc.querySelectorAll('picture source').forEach((s) => s.remove()); // art-direction externe
+
+  // 2) Elements media : (element, attribut, url). Toutes ces URLs sont a embarquer.
+  const elementOps = [];
+  const pushEl = (el, attr) => {
+    const u = el.getAttribute(attr);
+    if (u && !u.startsWith('data:')) elementOps.push({ el, attr, url: u });
+  };
+  doc.querySelectorAll('img[src]').forEach((el) => pushEl(el, 'src'));
+  doc.querySelectorAll('video[poster]').forEach((el) => pushEl(el, 'poster'));
+  doc.querySelectorAll('video[src], audio[src]').forEach((el) => pushEl(el, 'src'));
+  doc.querySelectorAll('video source[src], audio source[src]').forEach((el) => pushEl(el, 'src'));
+
+  for (const op of elementOps) {
+    const repl = await resolve(op.url);
+    if (repl) op.el.setAttribute(op.attr, repl);
+  }
+
+  // 3) Fonds CSS : attributs style="...url()..." + contenu des <style>. On reecrit
+  //    chaque url() par son data: URI / placeholder (resolu via le meme cache).
+  const rewriteCssUrls = async (css) => {
+    const urls = new Set();
+    let m;
+    CSS_URL_RE.lastIndex = 0;
+    while ((m = CSS_URL_RE.exec(css)) !== null) {
+      if (!m[2].startsWith('data:')) urls.add(m[2]);
+    }
+    const map = new Map();
+    for (const u of urls) {
+      const repl = await resolve(u);
+      if (repl) map.set(u, repl);
+    }
+    if (!map.size) return css;
+    return css.replace(CSS_URL_RE, (full, q, u) => (map.has(u) ? `url("${map.get(u)}")` : full));
+  };
+
+  for (const styled of doc.querySelectorAll('[style*="url("]')) {
+    styled.setAttribute('style', await rewriteCssUrls(styled.getAttribute('style')));
+  }
+  for (const styleEl of doc.querySelectorAll('style')) {
+    if (styleEl.textContent.includes('url(')) {
+      styleEl.textContent = await rewriteCssUrls(styleEl.textContent);
+    }
+  }
+
+  return { html: '<!DOCTYPE html>\n' + doc.documentElement.outerHTML, stats };
+}
+
 function loadImage(dataUrl) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -342,7 +511,7 @@ function absolutizeCss(cssText, baseUrl) {
 // Capture « page autonome » (SingleFile-style) : un seul fichier HTML avec tout le
 // CSS inliné, les URLs absolutisées → s'affiche directement dans une iframe, sans
 // moteur de rejeu. Le CSS cross-origin est récupéré côté extension (host perms).
-async function doSelfContainedHtml(captureGroup) {
+async function doSelfContainedHtml(captureGroup, ctx) {
   const [{ result }] = await chrome.scripting.executeScript({
     target: { tabId: activeTab.id },
     func: () => {
@@ -384,6 +553,13 @@ async function doSelfContainedHtml(captureGroup) {
         im.removeAttribute('loading');
       });
       docEl.querySelectorAll('source[srcset]').forEach((so) => so.setAttribute('srcset', absSrcset(so.getAttribute('srcset'))));
+      // Medias temporels : on absolutise pour qu'embedPageMedia puisse les telecharger.
+      docEl.querySelectorAll('video[poster]').forEach((v) => {
+        const p = v.getAttribute('poster'); if (p) v.setAttribute('poster', abs(p));
+      });
+      docEl.querySelectorAll('video[src], audio[src], video source[src], audio source[src]').forEach((m) => {
+        const s = m.getAttribute('src'); if (s) m.setAttribute('src', abs(s));
+      });
       docEl.querySelectorAll('a[href]').forEach((a) => {
         const h = a.getAttribute('href');
         if (h && !h.startsWith('#')) a.setAttribute('href', abs(h));
@@ -405,8 +581,14 @@ async function doSelfContainedHtml(captureGroup) {
   let html = result.html;
   if (extra) html = html.replace(/<\/head>/i, `<style>${extra}</style></head>`);
 
+  // Si l'option est decochee, les medias restent en lien externe.
+  let stats = null;
+  if (ctx.embedMedia) {
+    ({ html, stats } = await embedPageMedia(html, { ...ctx, captureGroup }));
+  }
+
   const blob = new Blob([html], { type: 'text/html' });
-  return { blob, sourceType: 'web_archive', mime: 'text/html', captureGroup };
+  return { blob, sourceType: 'web_archive', mime: 'text/html', captureGroup, mediaStats: stats };
 }
 
 async function doMhtml(captureGroup) {
@@ -426,7 +608,11 @@ async function runCapture(kinds) {
   const title = els.titleInput.value.trim() || 'Capture';
   const sourceUrl = activeTab?.url || '';
   const capturedAt = new Date().toISOString();
-  const captureGroup = kinds.length > 1 ? crypto.randomUUID() : null;
+  const embedMedia = els.embedMedia.checked;
+  // Un groupe est requis si plusieurs captures, ou si l'archive HTML embarque des
+  // medias compagnons a rattacher.
+  const needsGroup = kinds.length > 1 || (kinds.includes('html') && embedMedia);
+  const captureGroup = needsGroup ? crypto.randomUUID() : null;
 
   const KIND_LABEL = { full: 'capture', visible: 'capture', mhtml: 'MHTML', html: 'page' };
 
@@ -437,8 +623,10 @@ async function runCapture(kinds) {
       let part;
       if (kind === 'full') part = await captureFullPage(captureGroup);
       else if (kind === 'visible') part = await doVisibleScreenshot(captureGroup);
-      else if (kind === 'html') part = await doSelfContainedHtml(captureGroup);
+      else if (kind === 'html') part = await doSelfContainedHtml(captureGroup, { investigationId: inv.id, sourceUrl, capturedAt, embedMedia });
       else part = await doMhtml(captureGroup);
+      const meta = pageMetadata();
+      if (part.mediaStats) meta.media = part.mediaStats;
       await uploadSource(cfg.apiUrl, cfg.token, {
         investigationId: inv.id,
         title: kinds.length > 1 ? `${title} (${KIND_LABEL[kind]})` : title,
@@ -448,7 +636,7 @@ async function runCapture(kinds) {
         blob: part.blob,
         capturedAt,
         captureGroup: part.captureGroup,
-        pageMetadata: pageMetadata(),
+        pageMetadata: meta,
       });
     }
     await store.set({ lastInvestigationId: inv.id, lastInvestigationTitle: inv.title });

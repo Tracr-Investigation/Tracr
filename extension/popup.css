@@ -66,6 +66,26 @@ input, select {
 input::placeholder { color: var(--text-dim); }
 input:focus, select:focus { border-color: var(--primary); }
 select { cursor: pointer; }
+/* La liste deroulante herite sinon d'un fond blanc OS -> texte blanc illisible.
+   --bg-input est quasi transparent : on force un fond solide sur les options. */
+select option { background: var(--bg-card); color: var(--text-default); }
+
+/* La checkbox doit échapper au width:100% de la règle input générique. */
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  color: var(--text-dim);
+  font-size: 11.5px;
+  cursor: pointer;
+}
+.check input {
+  width: auto;
+  margin: 0;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
 
 button {
   cursor: pointer;
