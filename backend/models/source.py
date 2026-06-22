@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import JSON, BigInteger, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, BigInteger, Boolean, Column, DateTime, ForeignKey, Integer, String, Text
 from sqlmodel import Field, SQLModel
 from zoneinfo import ZoneInfo
 
@@ -33,6 +33,19 @@ class InvestigationSource(SQLModel, table=True):
     title: str = Field(sa_column=Column(String(255), nullable=False))
     source_url: str = Field(sa_column=Column(Text, nullable=False))
     source_type: str = Field(sa_column=Column(String(20), nullable=False))
+    # Role d'une source rattachee a une autre. "page_media" = image/video/audio
+    # embarque(e) dans une archive HTML : masque(e) de la liste principale par
+    # defaut (lie au parent via capture_group), sauf si show_in_list.
+    role: Optional[str] = Field(
+        default=None,
+        sa_column=Column(String(20), nullable=True, index=True),
+    )
+    # Un media de page (role=page_media) que l'enqueteur a choisi de faire
+    # apparaitre quand meme dans la liste principale, tout en restant rattache.
+    show_in_list: bool = Field(
+        default=False,
+        sa_column=Column(Boolean, nullable=False, server_default="false"),
+    )
     mime_type: str = Field(sa_column=Column(String(100), nullable=False))
     size_bytes: int = Field(sa_column=Column(BigInteger, nullable=False))
     content_hash: str = Field(sa_column=Column(String(64), nullable=False, index=True))

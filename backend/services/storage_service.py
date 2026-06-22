@@ -83,6 +83,29 @@ def get_object(object_name: str) -> bytes:
         response.release_conn()
 
 
+def get_object_range(object_name: str, offset: int, length: int) -> bytes:
+    """Recupere une plage d'octets d'un objet (requetes HTTP Range : lecture/seek
+    video et audio dans le viewer).
+
+    Args:
+        object_name (str): cle de l'objet.
+        offset (int): position de depart (octets).
+        length (int): nombre d'octets a lire.
+
+    Returns:
+        bytes: la tranche demandee.
+    """
+    client = get_client()
+    response = client.get_object(
+        settings.MINIO_BUCKET, object_name, offset=offset, length=length
+    )
+    try:
+        return response.read()
+    finally:
+        response.close()
+        response.release_conn()
+
+
 def remove_object(object_name: str) -> None:
     """Supprime un objet du bucket (silencieux si absent).
 

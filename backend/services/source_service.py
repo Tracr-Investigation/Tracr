@@ -12,6 +12,7 @@ from datetime import datetime
 from typing import Optional
 from zoneinfo import ZoneInfo
 
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from config import settings
@@ -22,6 +23,11 @@ from services import ocr_service, storage_service, text_extraction_service
 # Types de capture acceptes. `manual_file` = fichier ajoute manuellement par
 # l'enqueteur (hors extension : document, image, PDF deposes a la main).
 SOURCE_TYPES = frozenset({"page_screenshot", "page_mhtml", "media", "web_archive", "manual_file"})
+
+# Role d'une source embarquee dans une archive HTML (image/video/audio de la page).
+# Masquee de la liste principale par defaut, rattachee au parent via capture_group.
+PAGE_MEDIA_ROLE = "page_media"
+ROLES = frozenset({PAGE_MEDIA_ROLE})
 
 # Extension de fichier conseillee par type MIME courant (pour la cle de stockage)
 _EXT_BY_MIME = {
@@ -69,6 +75,10 @@ def is_valid_type(source_type: str) -> bool:
     return source_type in SOURCE_TYPES
 
 
+def is_valid_role(role: Optional[str]) -> bool:
+    return role is None or role in ROLES
+
+
 def _storage_key(id_investigation: int, mime_type: str) -> str:
     ext = _EXT_BY_MIME.get(mime_type, "")
     return f"sources/{id_investigation}/{uuid.uuid4().hex}{ext}"
@@ -88,6 +98,7 @@ def create_source(
     capture_group: Optional[str] = None,
     page_metadata: Optional[dict] = None,
     notes: Optional[str] = None,
+    role: Optional[str] = None,
 ) -> InvestigationSource:
     """Calcule le hash, depose le binaire dans MinIO et persiste la source.
 
@@ -102,20 +113,26 @@ def create_source(
 
     storage_service.put_object(storage_key, content, mime_type)
 
-    extracted_text, text_status = text_extraction_service.extract_text(
-        content, mime_type, source_type
-    )
-
-    # OCR immediat sur les images sans texte natif : la source est persistee
-    # directement avec sa version oceriseee (pas d'etape manuelle ulterieure).
-    # On reutilise les bytes deja en main (pas de re-telechargement MinIO).
-    if text_status == text_extraction_service.STATUS_PENDING_OCR:
-        ocr_text = ocr_service.ocr_image(content)
-        extracted_text = ocr_text
-        text_status = (
-            text_extraction_service.STATUS_EXTRACTED if ocr_text
-            else text_extraction_service.STATUS_NONE
+    # Les medias embarques d'une page (role=page_media) ne sont pas analyses :
+    # ils ne doivent pas generer de hits ni encombrer l'OCR (anti-spam). Le
+    # contenu textuel pertinent vient de l'archive HTML parente.
+    if role == PAGE_MEDIA_ROLE:
+        extracted_text, text_status = None, text_extraction_service.STATUS_NONE
+    else:
+        extracted_text, text_status = text_extraction_service.extract_text(
+            content, mime_type, source_type
         )
+
+        # OCR immediat sur les images sans texte natif : la source est persistee
+        # directement avec sa version oceriseee (pas d'etape manuelle ulterieure).
+        # On reutilise les bytes deja en main (pas de re-telechargement MinIO).
+        if text_status == text_extraction_service.STATUS_PENDING_OCR:
+            ocr_text = ocr_service.ocr_image(content)
+            extracted_text = ocr_text
+            text_status = (
+                text_extraction_service.STATUS_EXTRACTED if ocr_text
+                else text_extraction_service.STATUS_NONE
+            )
 
     source = InvestigationSource(
         id_investigation=id_investigation,
@@ -133,6 +150,7 @@ def create_source(
         extracted_text=extracted_text,
         text_status=text_status,
         captured_at=captured_at,
+        role=role,
     )
     db.add(source)
     db.commit()
@@ -146,13 +164,17 @@ def update_source(
     *,
     title: Optional[str] = None,
     notes: Optional[str] = None,
+    show_in_list: Optional[bool] = None,
 ) -> InvestigationSource:
-    """Met a jour les champs editables d'une source (titre, notes).
-    Le binaire et l'empreinte restent immuables (integrite de la preuve)."""
+    """Met a jour les champs editables d'une source (titre, notes, visibilite
+    d'un media de page dans la liste). Le binaire et l'empreinte restent
+    immuables (integrite de la preuve)."""
     if title is not None and title.strip():
         source.title = title.strip()
     if notes is not None:
         source.notes = notes.strip() or None
+    if show_in_list is not None:
+        source.show_in_list = show_in_list
     db.add(source)
     db.commit()
     db.refresh(source)
@@ -206,12 +228,43 @@ def run_ocr(db: Session, source: InvestigationSource) -> InvestigationSource:
 
 
 def list_sources(db: Session, id_investigation: int) -> list[dict]:
-    """Liste les sources d'une enquete, plus recentes d'abord."""
+    """Liste les sources d'une enquete, plus recentes d'abord. Les medias
+    embarques d'une page (role=page_media) sont masques par defaut pour ne pas
+    noyer la liste, sauf ceux explicitement promus (show_in_list).
+
+    NB: on garde une source des que son role n'est PAS page_media. Le role est
+    NULL pour toutes les sources classiques : il faut traiter ce NULL
+    explicitement (en SQL `NULL = 'x'` vaut NULL, pas False), sinon un `NOT(...)`
+    eliminerait toutes les lignes a role NULL."""
+    visible = or_(
+        InvestigationSource.role.is_(None),
+        InvestigationSource.role != PAGE_MEDIA_ROLE,
+        InvestigationSource.show_in_list.is_(True),
+    )
     rows = (
         db.query(InvestigationSource, User.pseudo)
         .outerjoin(User, User.id_user == InvestigationSource.created_by)
         .filter(InvestigationSource.id_investigation == id_investigation)
+        .filter(visible)
         .order_by(InvestigationSource.captured_at.desc())
+        .all()
+    )
+    return [_to_dict(s, pseudo) for s, pseudo in rows]
+
+
+def list_embedded_media(db: Session, parent: InvestigationSource) -> list[dict]:
+    """Liste les medias embarques d'une archive HTML : les sources page_media
+    partageant le meme capture_group que le parent. Vide si le parent n'a pas
+    de groupe (capture sans media)."""
+    if not parent.capture_group:
+        return []
+    rows = (
+        db.query(InvestigationSource, User.pseudo)
+        .outerjoin(User, User.id_user == InvestigationSource.created_by)
+        .filter(InvestigationSource.id_investigation == parent.id_investigation)
+        .filter(InvestigationSource.capture_group == parent.capture_group)
+        .filter(InvestigationSource.role == PAGE_MEDIA_ROLE)
+        .order_by(InvestigationSource.captured_at.asc())
         .all()
     )
     return [_to_dict(s, pseudo) for s, pseudo in rows]
@@ -232,6 +285,12 @@ def source_detail(db: Session, source: InvestigationSource) -> dict:
 def get_content(source: InvestigationSource) -> bytes:
     """Recupere le binaire de la capture depuis MinIO."""
     return storage_service.get_object(source.storage_key)
+
+
+def get_content_range(source: InvestigationSource, offset: int, length: int) -> bytes:
+    """Recupere une plage d'octets du binaire (requetes HTTP Range : lecture et
+    seek des medias video/audio compagnons depuis le viewer)."""
+    return storage_service.get_object_range(source.storage_key, offset, length)
 
 
 def delete_source(db: Session, source: InvestigationSource) -> None:
@@ -258,6 +317,8 @@ def _to_dict(source: InvestigationSource, author_pseudo: Optional[str]) -> dict:
         "size_bytes": source.size_bytes,
         "content_hash": source.content_hash,
         "capture_group": source.capture_group,
+        "role": source.role,
+        "show_in_list": source.show_in_list,
         "page_metadata": source.page_metadata,
         "notes": source.notes,
         "text_status": source.text_status,

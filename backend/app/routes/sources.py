@@ -36,6 +36,7 @@ sources_router = APIRouter(prefix="/sources")
 class SourceUpdate(BaseModel):
     title: str | None = None
     notes: str | None = None
+    show_in_list: bool | None = None
 
 
 def get_current_user(payload: dict = Depends(verify_token), db: Session = Depends(get_db)):
@@ -95,6 +96,7 @@ async def create_source(
     capture_group: str | None = Form(None),
     page_metadata: str | None = Form(None),
     notes: str | None = Form(None),
+    role: str | None = Form(None),
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -104,6 +106,9 @@ async def create_source(
 
     if not source_service.is_valid_type(source_type):
         raise HTTPException(status_code=422, detail="Invalid source_type")
+
+    if not source_service.is_valid_role(role):
+        raise HTTPException(status_code=422, detail="Invalid role")
 
     if not title.strip():
         raise HTTPException(status_code=422, detail="Title is required")
@@ -145,6 +150,7 @@ async def create_source(
         capture_group=capture_group,
         page_metadata=metadata_dict,
         notes=notes,
+        role=role,
     )
 
     ip = request.client.host if request.client else None
@@ -181,7 +187,9 @@ async def update_source(
     if body.title is not None and not body.title.strip():
         raise HTTPException(status_code=422, detail="Title cannot be empty")
 
-    source = source_service.update_source(db, source, title=body.title, notes=body.notes)
+    source = source_service.update_source(
+        db, source, title=body.title, notes=body.notes, show_in_list=body.show_in_list
+    )
 
     ip = request.client.host if request.client else None
     log_service.create_log(
@@ -191,6 +199,19 @@ async def update_source(
         ip_address=ip,
     )
     return source_service.source_detail(db, source)
+
+
+@sources_router.get("/{source_id}/media")
+async def list_source_media(
+    source_id: int,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Liste les medias embarques d'une archive HTML (memes capture_group,
+    role=page_media). Permet de les afficher sous la page parente sans encombrer
+    la liste principale des sources."""
+    source, _ = _load_source_with_access(db, source_id, user.id_user)
+    return {"media": source_service.list_embedded_media(db, source)}
 
 
 @sources_router.get("/{source_id}/hits")
@@ -281,20 +302,67 @@ async def download_source(
     return Response(content=data, media_type=source.mime_type, headers=headers)
 
 
+def _parse_range(range_header: str, file_size: int) -> tuple[int, int] | None:
+    """Parse un en-tete `Range: bytes=start-end` simple. Retourne (start, end)
+    inclusifs et bornes, ou None si invalide/non gerable."""
+    if not range_header or not range_header.startswith("bytes="):
+        return None
+    start_str, _, end_str = range_header[len("bytes="):].partition("-")
+    try:
+        if start_str == "":
+            # suffixe : bytes=-N -> N derniers octets
+            length = int(end_str)
+            if length <= 0:
+                return None
+            start = max(file_size - length, 0)
+            end = file_size - 1
+        else:
+            start = int(start_str)
+            end = int(end_str) if end_str else file_size - 1
+    except ValueError:
+        return None
+    end = min(end, file_size - 1)
+    if start > end or start < 0:
+        return None
+    return start, end
+
+
 @sources_router.get("/{source_id}/view")
 async def view_source(
     source_id: int,
     sig: str,
+    request: Request,
     db: Session = Depends(get_db),
 ):
     """Sert le contenu via une signature HMAC stable (pas d'auth utilisateur).
-    Permet d'embarquer une image/capture dans un document en `<img src=http...>`.
+    Permet d'embarquer une image/capture dans un document en `<img src=http...>`
+    ou de lire/seek un media compagnon (video/audio) depuis le viewer via Range.
     """
     source = source_service.get_source(db, source_id)
     if not source:
         raise HTTPException(status_code=404, detail="Source not found")
     if not source_service.verify_view_signature(source, sig):
         raise HTTPException(status_code=403, detail="Invalid signature")
+
+    cache = "private, max-age=86400"
+    rng = _parse_range(request.headers.get("range", ""), source.size_bytes)
+    if rng is not None:
+        start, end = rng
+        try:
+            data = source_service.get_content_range(source, start, end - start + 1)
+        except Exception:
+            raise HTTPException(status_code=502, detail="Storage unavailable")
+        return Response(
+            content=data,
+            status_code=206,
+            media_type=source.mime_type,
+            headers={
+                "Content-Range": f"bytes {start}-{end}/{source.size_bytes}",
+                "Accept-Ranges": "bytes",
+                "Cache-Control": cache,
+            },
+        )
+
     try:
         data = source_service.get_content(source)
     except Exception:
@@ -302,7 +370,7 @@ async def view_source(
     return Response(
         content=data,
         media_type=source.mime_type,
-        headers={"Cache-Control": "private, max-age=86400"},
+        headers={"Accept-Ranges": "bytes", "Cache-Control": cache},
     )
 
 
