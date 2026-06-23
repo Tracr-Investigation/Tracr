@@ -1,7 +1,9 @@
+import asyncio
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import Session
 
-from services import user_service, log_service, status_service, category_service
+from services import user_service, log_service, status_service, category_service, update_service
 from utils.security import verify_token
 from utils.schemas import StatusCreateRequest, StatusUpdateRequest, CategoryCreateRequest, CategoryUpdateRequest, AdminResetPasswordRequest, AdminCreateUserRequest
 from app.dependencies import get_db
@@ -20,6 +22,62 @@ def verify_admin(payload: dict = Depends(verify_token), db: Session = Depends(ge
         raise HTTPException(status_code=403, detail="Access denied")
 
     return user
+
+
+def verify_superadmin(payload: dict = Depends(verify_token), db: Session = Depends(get_db)):
+    """Dependency that restricts access to super-admin only (code updates)."""
+    user = user_service.get_user_by_id(db, payload["user_id"])
+    if not user or not user.is_active:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    role = user_service.get_user_role(db, user.id_user)
+    if role != "super-admin":
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    return user
+
+
+@router.get("/update/status")
+async def get_update_status(
+        force: bool = False,
+        user=Depends(verify_superadmin),
+):
+    """État de mise à jour du code par rapport à GitHub (lecture seule)."""
+    return await asyncio.to_thread(update_service.get_update_status, force)
+
+
+@router.post("/update/apply")
+async def apply_update(
+        request: Request,
+        admin=Depends(verify_superadmin),
+        db: Session = Depends(get_db),
+):
+    """Demande l'application de la mise à jour (exécutée par l'agent hôte)."""
+    status = await asyncio.to_thread(update_service.get_update_status, True)
+
+    if status.get("error") in ("rate_limited", "github_unreachable"):
+        raise HTTPException(status_code=503, detail="Cannot reach GitHub to determine target version")
+    if not status.get("known"):
+        raise HTTPException(status_code=409, detail="Current version unknown, cannot apply update")
+    if status.get("up_to_date"):
+        raise HTTPException(status_code=400, detail="Already up to date")
+
+    target_sha = status.get("latest_sha")
+    try:
+        apply_state = await asyncio.to_thread(
+            update_service.request_apply, admin.id_user, admin.pseudo, target_sha
+        )
+    except update_service.UpdateInProgressError:
+        raise HTTPException(status_code=409, detail="An update is already pending or running")
+
+    ip = request.client.host if request.client else None
+    log_service.create_log(
+        db, category="admin", action="update_apply_requested",
+        id_user=admin.id_user,
+        detail=f"Requested code update to {target_sha}",
+        ip_address=ip,
+    )
+    return apply_state
 
 
 @router.get("/users")

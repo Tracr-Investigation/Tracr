@@ -35,6 +35,15 @@ class Settings(BaseSettings):
     MINIO_SECURE: bool = False
     MAX_SOURCE_SIZE_MB: int = 200
 
+    # Mise à jour du code depuis GitHub (admin)
+    GITHUB_REPO: str = "Tracr-Investigation/Tracr"
+    GITHUB_BRANCH: str = "main"
+    GITHUB_TOKEN: str | None = None
+    # SHA du commit déployé (fallback si le fichier d'état partagé est absent)
+    GIT_SHA: str | None = None
+    # Fichier d'état partagé écrit par l'agent hôte (Phase 2)
+    UPDATE_STATE_FILE: str = "/app/update/state.json"
+
     class Config:
         env_file = "../.env"
         case_sensitive = True
