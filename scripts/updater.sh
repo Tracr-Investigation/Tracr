@@ -1,17 +1,7 @@
 #!/usr/bin/env sh
-# Agent de mise à jour Tracr (Phase 2) — tourne SUR L'HÔTE, pas dans un conteneur.
-#
-# Responsabilités :
-#   1. Maintenir update/state.json à jour (SHA déployé + statut).
-#   2. Quand update/request.json apparaît (écrit par le backend via l'admin),
-#      sauvegarder la base, faire git pull, reconstruire/redémarrer la stack,
-#      puis consigner le résultat.
-#
-# Le conteneur backend n'a aucun privilège hôte : toute la mécanique privilégiée
-# (git, docker) vit ici, côté hôte. Installé via systemd timer (~30 s).
+# Agent de mise à jour Tracr : applique les demandes émises depuis l'admin.
 set -eu
 
-# Racine du dépôt = parent du dossier scripts/ contenant ce fichier.
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 REPO_DIR=$(cd "$SCRIPT_DIR/.." && pwd)
 
@@ -24,27 +14,16 @@ LOCK="$UPDATE_DIR/.lock"
 
 BRANCH="${GITHUB_BRANCH:-main}"
 HEALTH_URL="${HEALTH_URL:-http://localhost:8000/health}"
-
-# docker compose v2 (plugin) par défaut ; surchargeable via $DC.
 DC="${DC:-docker compose}"
-
-# Service(s) à reconstruire/redémarrer. Par défaut : "backend" seul.
-#  - le backend doit redémarrer (migrations Alembic + pas de --reload en compose) ;
-#  - frontend / websocket / docs sont bind-mountés et rechargent à chaud (Vite HMR),
-#    inutile de les reconstruire — et les reconstruire couperait la page qui suit
-#    la progression de la mise à jour.
-# Surchargeable via $SERVICES si une image (deps/Dockerfile) doit vraiment être rebâtie.
-SERVICES="${SERVICES:-backend}"
+# Conteneur(s) à redémarrer après le pull (jamais reconstruire : voir étape 3).
+RESTART="${RESTART:-tracr_backend}"
 
 mkdir -p "$UPDATE_DIR" "$BACKUP_DIR"
-# Le dossier d'échange doit être inscriptible par le conteneur (uid 1001) pour
-# qu'il puisse y déposer request.json ; les backups restent privés.
 chmod 777 "$UPDATE_DIR" 2>/dev/null || true
 chmod 700 "$BACKUP_DIR" 2>/dev/null || true
 
 now() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 log() { echo "[$(now)] $*" >> "$LOG"; }
-
 current_sha() { git -C "$REPO_DIR" rev-parse HEAD 2>/dev/null || echo ""; }
 
 # write_state STATUS MESSAGE TARGET STARTED FINISHED
@@ -64,38 +43,21 @@ EOF
   mv "$tmp" "$STATE"
 }
 
-# Empêche le chevauchement de deux exécutions (le timer peut refirer pendant un build).
+# Verrou anti-chevauchement.
 exec 9>"$LOCK"
-if ! flock -n 9; then
-  exit 0
-fi
+flock -n 9 || exit 0
 
-# Pas de demande en attente : on rafraîchit l'état idle, MAIS on préserve le
-# dernier résultat terminal (done/failed) pour que l'admin puisse le voir — le
-# frontend le masquera de lui-même passé quelques minutes (via finished_at).
+# Pas de demande : refresh idle, en conservant un dernier résultat done/failed.
 if [ ! -f "$REQUEST" ]; then
   PREV=$(sed -n 's/.*"status"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$STATE" 2>/dev/null || true)
-  if [ "$PREV" != "done" ] && [ "$PREV" != "failed" ]; then
-    write_state "idle" "" "" "" ""
-  fi
+  [ "$PREV" = "done" ] || [ "$PREV" = "failed" ] || write_state "idle" "" "" "" ""
   exit 0
 fi
 
-# --- Une demande de mise à jour est présente ---------------------------------
 STARTED=$(now)
 TARGET=$(sed -n 's/.*"target_sha"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$REQUEST" 2>/dev/null || echo "")
-log "Demande de mise à jour reçue (cible: ${TARGET:-?})"
+log "Demande reçue (cible: ${TARGET:-?})"
 write_state "running" "Mise à jour en cours" "$TARGET" "$STARTED" ""
-
-# Identifiants Postgres pour le dump. On NE source PAS .env (un .env en CRLF
-# Windows casserait `sh` : chaque \r serait exécuté comme une commande). On
-# extrait juste les deux variables utiles en supprimant les \r ; à défaut, on
-# retombe sur l'environnement (injecté par env_file) puis sur des valeurs par défaut.
-read_env() {
-  grep -E "^$1=" "$REPO_DIR/.env" 2>/dev/null | head -n1 | cut -d= -f2- | tr -d '\r\n"'
-}
-PG_USER="$(read_env POSTGRES_USER)"; : "${PG_USER:=${POSTGRES_USER:-postgres}}"
-PG_DB="$(read_env POSTGRES_DB)";     : "${PG_DB:=${POSTGRES_DB:-postgres}}"
 
 fail() {
   log "ÉCHEC: $1"
@@ -104,47 +66,40 @@ fail() {
   exit 0
 }
 
-# 1) Sauvegarde de la base avant migrations.
+# Identifiants Postgres pour le dump (sans sourcer .env : un .env CRLF casserait sh).
+read_env() { grep -E "^$1=" "$REPO_DIR/.env" 2>/dev/null | head -n1 | cut -d= -f2- | tr -d '\r\n"'; }
+PG_USER="$(read_env POSTGRES_USER)"; : "${PG_USER:=${POSTGRES_USER:-postgres}}"
+PG_DB="$(read_env POSTGRES_DB)";     : "${PG_DB:=${POSTGRES_DB:-postgres}}"
+
+# 1) Sauvegarde de la base.
 BACKUP_FILE="$BACKUP_DIR/db_$(date -u +%Y%m%d_%H%M%S).sql"
 log "Sauvegarde base -> $BACKUP_FILE"
-if ! $DC -f "$REPO_DIR/docker-compose.yml" exec -T postgres \
-     pg_dump -U "$PG_USER" "$PG_DB" > "$BACKUP_FILE" 2>>"$LOG"; then
-  fail "Échec de la sauvegarde de la base"
-fi
+$DC -f "$REPO_DIR/docker-compose.yml" exec -T postgres pg_dump -U "$PG_USER" "$PG_DB" > "$BACKUP_FILE" 2>>"$LOG" \
+  || fail "Échec de la sauvegarde de la base"
 
-# 2) Récupération du code (fast-forward only : refuse si l'historique a divergé).
-#    safe.directory : le dépôt est monté en volume (bind mount Windows notamment),
-#    git refuserait sinon d'opérer sur un dépôt « appartenant à un autre utilisateur ».
+# 2) Récupération du code (fast-forward only).
 git config --global --add safe.directory "$REPO_DIR" 2>/dev/null || true
-log "git fetch + pull --ff-only origin $BRANCH"
-if ! git -C "$REPO_DIR" fetch --quiet origin "$BRANCH" 2>>"$LOG"; then
-  fail "git fetch a échoué"
-fi
-if ! git -C "$REPO_DIR" merge --ff-only "origin/$BRANCH" >>"$LOG" 2>&1; then
-  fail "git pull --ff-only impossible (modifications locales ou historique divergent)"
-fi
+log "git fetch + merge --ff-only origin/$BRANCH"
+git -C "$REPO_DIR" fetch --quiet origin "$BRANCH" 2>>"$LOG" || fail "git fetch a échoué"
+git -C "$REPO_DIR" merge --ff-only "origin/$BRANCH" >>"$LOG" 2>&1 \
+  || fail "git merge --ff-only impossible (dépôt local modifié ou divergent)"
 
-# 3) Reconstruction + redémarrage (les migrations Alembic tournent au démarrage du backend).
-log "docker compose up -d --build $SERVICES"
+# 3) Redémarrage du backend : réexécute les migrations Alembic et recharge le code
+#    bind-mounté. On NE fait PAS "compose up --build" — lancé depuis ce conteneur, il
+#    résoudrait les bind mounts vers des chemins inexistants sur l'hôte et casserait /app.
+log "docker restart $RESTART"
 # shellcheck disable=SC2086
-if ! $DC -f "$REPO_DIR/docker-compose.yml" up -d --build $SERVICES >>"$LOG" 2>&1; then
-  fail "docker compose up --build a échoué"
-fi
+docker restart $RESTART >>"$LOG" 2>&1 || fail "redémarrage du backend impossible"
 
-# 4) Attente du healthcheck backend.
+# 4) Attente du retour à la santé du backend.
 log "Attente du backend ($HEALTH_URL)"
 i=0
 while [ "$i" -lt 60 ]; do
-  if curl -fsS "$HEALTH_URL" >/dev/null 2>&1; then
-    break
-  fi
-  i=$((i + 1))
-  sleep 2
+  curl -fsS "$HEALTH_URL" >/dev/null 2>&1 && break
+  i=$((i + 1)); sleep 2
 done
-if [ "$i" -ge 60 ]; then
-  fail "Le backend n'est pas redevenu sain après la mise à jour"
-fi
+[ "$i" -lt 60 ] || fail "Le backend n'est pas redevenu sain"
 
-log "Mise à jour terminée -> $(current_sha)"
+log "Terminé -> $(current_sha)"
 write_state "done" "Mise à jour appliquée" "$TARGET" "$STARTED" "$(now)"
 rm -f "$REQUEST"
