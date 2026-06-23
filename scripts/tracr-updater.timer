@@ -1,5 +1,5 @@
 [Unit]
-Description=Tracr — déclenche l'agent de mise à jour périodiquement
+Description=Tracr - déclenche l'agent de mise à jour périodiquement
 
 [Timer]
 # Première vérification 30 s après le boot, puis toutes les 30 s.

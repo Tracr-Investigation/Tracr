@@ -1,5 +1,5 @@
 [Unit]
-Description=Tracr — agent de mise à jour (applique les demandes depuis l'admin)
+Description=Tracr - agent de mise à jour (applique les demandes depuis l'admin)
 After=docker.service
 Requires=docker.service
 

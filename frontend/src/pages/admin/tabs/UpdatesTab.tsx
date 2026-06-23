@@ -277,11 +277,11 @@ export const UpdatesTab = () => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
             <div className="bg-card/30 border border-border-subtle rounded-xl p-4">
               <p className="text-text-muted text-xs mb-1">{t('admin.updates.currentSha')}</p>
-              <p className="text-text-default font-mono text-sm">{data.current_sha ?? '—'}</p>
+              <p className="text-text-default font-mono text-sm">{data.current_sha ?? '-'}</p>
             </div>
             <div className="bg-card/30 border border-border-subtle rounded-xl p-4">
               <p className="text-text-muted text-xs mb-1">{t('admin.updates.latestSha')} ({data.branch})</p>
-              <p className="text-text-default font-mono text-sm">{data.latest_sha ?? '—'}</p>
+              <p className="text-text-default font-mono text-sm">{data.latest_sha ?? '-'}</p>
             </div>
             <div className="bg-card/30 border border-border-subtle rounded-xl p-4">
               <p className="text-text-muted text-xs mb-1">{t('admin.updates.checkedAt')}</p>
@@ -330,7 +330,7 @@ export const UpdatesTab = () => {
                     <div className="min-w-0 flex-1">
                       <p className="text-text-default text-sm truncate">{c.message}</p>
                       <p className="text-text-muted text-xs mt-0.5">
-                        {c.author ?? '—'} · {formatDate(c.date)}
+                        {c.author ?? '-'} · {formatDate(c.date)}
                       </p>
                     </div>
                   </li>
