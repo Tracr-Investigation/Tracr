@@ -1,0 +1,5 @@
+# Les scripts shell et le Dockerfile de l'updater doivent rester en LF, sinon
+# CRLF casse l'interpréteur dans le conteneur Linux (bad interpreter / syntaxe).
+*.sh text eol=lf
+Dockerfile text eol=lf
+updater/Dockerfile text eol=lf
