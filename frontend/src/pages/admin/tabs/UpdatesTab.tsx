@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { api, type UpdateStatusData, type UpdateApplyState } from '../../../services/api';
+import { SidePanel } from '../../../components/SidePanel';
 import {
   RefreshCw, GitCommit, CheckCircle2, AlertTriangle, ArrowDownToLine,
   Database, Package, Box, ExternalLink, HelpCircle, Loader2, XCircle,
@@ -39,42 +40,52 @@ const ApplyBanner = ({ apply }: { apply: UpdateApplyState }) => {
   );
 };
 
-const ConfirmModal = ({ data, onClose, onConfirm }: {
-  data: UpdateStatusData; onClose: () => void; onConfirm: () => void;
+const ConfirmPanel = ({ open, data, onClose, onConfirm }: {
+  open: boolean; data: UpdateStatusData; onClose: () => void; onConfirm: () => void;
 }) => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
 
+  // Réinitialise l'état du bouton à chaque ouverture.
+  useEffect(() => { if (open) setLoading(false); }, [open]);
+
   const confirm = async () => {
     setLoading(true);
-    try { await onConfirm(); } finally { setLoading(false); }
+    try { await onConfirm(); } catch { setLoading(false); }
   };
 
   return (
-    <div className="fixed inset-0 bg-overlay flex items-center justify-center z-50" onClick={onClose}>
-      <div className="bg-card/30 border border-border-subtle rounded-xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-        <h3 className="text-lg font-semibold text-text-default mb-3">{t('admin.updates.confirmTitle')}</h3>
-        <p className="text-text-muted text-sm mb-4">
-          {t('admin.updates.confirmBody', { count: data.ahead_by ?? 0, sha: data.latest_sha ?? '' })}
-        </p>
-        {(data.flags.migrations || data.flags.deps || data.flags.rebuild) && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            {data.flags.migrations && <FlagBadge icon={Database} label={t('admin.updates.flagMigrations')} />}
-            {data.flags.deps && <FlagBadge icon={Package} label={t('admin.updates.flagDeps')} />}
-            {data.flags.rebuild && <FlagBadge icon={Box} label={t('admin.updates.flagRebuild')} />}
+    <SidePanel open={open} onClose={onClose} title={t('admin.updates.confirmTitle')}>
+      <div className="flex-1 overflow-y-auto flex flex-col min-h-0">
+        <div className="px-6 py-5 space-y-4 flex-1">
+          <p className="text-text-muted text-sm">
+            {t('admin.updates.confirmBody', { count: data.ahead_by ?? 0, sha: data.latest_sha ?? '' })}
+          </p>
+
+          {(data.flags.migrations || data.flags.deps || data.flags.rebuild) && (
+            <div className="flex flex-wrap gap-2">
+              {data.flags.migrations && <FlagBadge icon={Database} label={t('admin.updates.flagMigrations')} />}
+              {data.flags.deps && <FlagBadge icon={Package} label={t('admin.updates.flagDeps')} />}
+              {data.flags.rebuild && <FlagBadge icon={Box} label={t('admin.updates.flagRebuild')} />}
+            </div>
+          )}
+
+          <div className="flex items-start gap-2 p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+            <AlertTriangle size={16} className="text-amber-400 mt-0.5 shrink-0" />
+            <p className="text-text-muted text-xs">{t('admin.updates.confirmWarning')}</p>
           </div>
-        )}
-        <p className="text-text-dim text-xs mb-6">{t('admin.updates.confirmWarning')}</p>
-        <div className="flex justify-end gap-3">
-          <button onClick={onClose} disabled={loading} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-card/30 border border-border-subtle text-text-muted hover:bg-primary/10 hover:text-text-default disabled:opacity-40 transition-all">
+        </div>
+
+        <div className="flex justify-end gap-3 px-6 py-4 border-t border-border-subtle shrink-0">
+          <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-card/30 border border-border-subtle text-text-muted hover:bg-primary/10 hover:text-text-default disabled:opacity-40 transition-all">
             {t('admin.updates.cancel')}
           </button>
-          <button onClick={confirm} disabled={loading} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-text-default border border-primary/30 hover:bg-primary/30 disabled:opacity-40 transition-all">
+          <button type="button" onClick={confirm} disabled={loading} className="px-4 py-2.5 rounded-xl text-sm font-medium bg-primary/20 text-text-default border border-primary/30 hover:bg-primary/30 disabled:opacity-40 transition-all">
             {loading ? t('admin.updates.applying') : t('admin.updates.confirmApply')}
           </button>
         </div>
       </div>
-    </div>
+    </SidePanel>
   );
 };
 
@@ -121,9 +132,14 @@ export const UpdatesTab = () => {
   }, [applyStatus]);
 
   const handleApply = async () => {
-    const apply = await api.applyUpdate();
-    setData((prev) => (prev ? { ...prev, apply } : prev));
-    setConfirmOpen(false);
+    try {
+      const apply = await api.applyUpdate();
+      setData((prev) => (prev ? { ...prev, apply } : prev));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setConfirmOpen(false);
+    }
   };
 
   const formatDate = (dateStr: string | null) => {
@@ -302,8 +318,8 @@ export const UpdatesTab = () => {
         </>
       )}
 
-      {confirmOpen && data && (
-        <ConfirmModal data={data} onClose={() => setConfirmOpen(false)} onConfirm={handleApply} />
+      {data && (
+        <ConfirmPanel open={confirmOpen} data={data} onClose={() => setConfirmOpen(false)} onConfirm={handleApply} />
       )}
     </div>
   );
