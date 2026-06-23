@@ -47,10 +47,16 @@ EOF
 exec 9>"$LOCK"
 flock -n 9 || exit 0
 
-# Pas de demande : refresh idle, en conservant un dernier résultat done/failed.
+# Pas de demande : on rafraîchit TOUJOURS current_sha (état réel du code déployé).
+# On ne conserve un dernier résultat done/failed que si HEAD n'a pas bougé depuis —
+# sinon un échec passé gèlerait current_sha et fausserait la détection.
 if [ ! -f "$REQUEST" ]; then
   PREV=$(sed -n 's/.*"status"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$STATE" 2>/dev/null || true)
-  [ "$PREV" = "done" ] || [ "$PREV" = "failed" ] || write_state "idle" "" "" "" ""
+  PREV_SHA=$(sed -n 's/.*"current_sha"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$STATE" 2>/dev/null || true)
+  if { [ "$PREV" = "done" ] || [ "$PREV" = "failed" ]; } && [ "$PREV_SHA" = "$(current_sha)" ]; then
+    exit 0
+  fi
+  write_state "idle" "" "" "" ""
   exit 0
 fi
 
