@@ -83,12 +83,15 @@ log "Sauvegarde base -> $BACKUP_FILE"
 $DC -f "$REPO_DIR/docker-compose.yml" exec -T postgres pg_dump -U "$PG_USER" "$PG_DB" > "$BACKUP_FILE" 2>>"$LOG" \
   || fail "Échec de la sauvegarde de la base"
 
-# 2) Récupération du code (fast-forward only).
+# 2) Récupération du code : on aligne EXACTEMENT le dépôt sur origin/$BRANCH.
+#    reset --hard (plutôt que pull/merge) garantit l'application même si le working
+#    tree a dérivé (ex. fins de ligne sous Windows). N'affecte que les fichiers
+#    suivis : .env et update/ sont gitignorés, donc préservés.
 git config --global --add safe.directory "$REPO_DIR" 2>/dev/null || true
-log "git fetch + merge --ff-only origin/$BRANCH"
+log "git fetch + reset --hard origin/$BRANCH"
 git -C "$REPO_DIR" fetch --quiet origin "$BRANCH" 2>>"$LOG" || fail "git fetch a échoué"
-git -C "$REPO_DIR" merge --ff-only "origin/$BRANCH" >>"$LOG" 2>&1 \
-  || fail "git merge --ff-only impossible (dépôt local modifié ou divergent)"
+git -C "$REPO_DIR" reset --hard "origin/$BRANCH" >>"$LOG" 2>&1 \
+  || fail "git reset --hard impossible"
 
 log "docker restart $RESTART"
 # shellcheck disable=SC2086
