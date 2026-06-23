@@ -77,7 +77,7 @@ Les tâches permettent d'organiser et d'assigner du travail à l'équipe.
 |---|---|
 | Titre | Intitulé court de la tâche (obligatoire) |
 | Description | Détail ou instructions (facultatif) |
-| Statut | À faire / En cours / Terminé |
+| Statut | À faire / En cours / Bloqué / En revue / À valider / Terminé |
 | Priorité | Basse / Normale / Haute / Urgente |
 | Assignée à | Un membre de l'équipe ou personne |
 | Date d'échéance | Date limite (facultative) |
@@ -90,10 +90,12 @@ Les tâches permettent d'organiser et d'assigner du travail à l'équipe.
 - Haute : orange
 - Urgente : rouge (les tâches en retard sont également mises en évidence en rouge)
 
+**Vues :** l'onglet propose une vue **Kanban** (une colonne par statut, glisser-déposer) et une vue **Liste**.
+
 **Filtres de l'onglet Tâches :**
 
 - Visibilité : toutes, partagées, privées
-- Statut : tout, à faire, en cours, terminé
+- Statut : tout, à faire, en cours, bloqué, en revue, à valider, terminé
 
 **Commentaires :** chaque tâche peut recevoir des commentaires (réponses) de tous les membres de l'enquête.
 
@@ -137,11 +139,31 @@ L'onglet Sources conserve des captures et archives de pages web associées à l'
 
 **Intégrité des fichiers :** chaque source est accompagnée d'une empreinte SHA-256 permettant de vérifier qu'elle n'a pas été modifiée depuis son enregistrement. Cliquez sur l'empreinte pour la copier.
 
-**Ajout de sources :** les sources sont ajoutées depuis le navigateur via l'extension Tracr. Un lien d'installation est affiché dans l'onglet si l'extension n'est pas détectée.
+**Ajout de sources :**
+- Depuis le navigateur via l'**extension Tracr** (capture, MHTML, médias, archive). Un lien d'installation est affiché dans l'onglet si l'extension n'est pas détectée.
+- Par **téléversement manuel** d'un fichier directement depuis l'onglet.
+
+**Texte extrait :** le texte des pages est extrait automatiquement (avec **OCR** pour les images) et indexé, ce qui alimente la détection des **sélecteurs** (voir ci-dessous).
+
+**Notes :** vous pouvez ajouter des notes à chaque source pour documenter son contexte.
 
 **Filtres disponibles :** captures, pages MHTML, archives, médias ou tout afficher.
 
 **Actions :** téléchargement, aperçu en plein écran, suppression (propriétaire de l'enquête ou créateur de la source).
+
+---
+
+### Sélecteurs
+
+Les **sélecteurs** sont des identifiants à surveiller dans l'enquête (e-mail, pseudonyme, domaine, téléphone, etc.). Tracr les recherche automatiquement dans le **texte des sources archivées** et signale chaque occurrence comme un **hit**.
+
+**Ajouter un sélecteur :**
+1. Choisissez son **type**, saisissez sa **valeur**, et optionnellement un **libellé** et des **notes**.
+2. Validez : le sélecteur est ajouté et la recherche dans les sources est lancée.
+
+**Hits (occurrences) :** chaque sélecteur indique dans combien de sources il apparaît. Cliquez sur un hit pour ouvrir la source correspondante et voir l'occurrence en contexte.
+
+*Création et suppression réservées aux niveaux éditeur, manager et propriétaire.*
 
 ---
 

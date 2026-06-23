@@ -78,7 +78,22 @@ Click the **Open** button or the direct link to access the full-screen editor.
 
 ## PDF export
 
-From the editor, use the export button to generate a PDF file of the document. The PDF is rendered server-side (WeasyPrint) and includes full formatting.
+From the editor, use the export button to generate a PDF file of the document. The PDF is rendered server-side (WeasyPrint) and includes full formatting, as well as:
+
+- a **cover page** (image set in the investigation settings, or a default visual);
+- an **automatic table of contents** with page numbers;
+- a **TLP/PAP marking** repeated in the footer according to the chosen dissemination level.
+
+---
+
+## Document backups
+
+Tracr keeps **versions** of every document:
+
+- **Manual backups**: triggered by you at a specific moment.
+- **Automatic backups**: created periodically in the background, with smart retention (older backups are gradually thinned out).
+
+You can **restore** a previous version and **pin** an important backup so it is kept indefinitely.
 
 ---
 

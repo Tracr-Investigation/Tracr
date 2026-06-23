@@ -17,6 +17,7 @@ import { DocumentDetail } from './pages/investigations/DocumentDetail';
 import { Templates } from './pages/templates/Templates';
 import { Settings } from './pages/settings/Settings';
 import { Admin } from './pages/admin/Admin';
+import { Docs } from './pages/docs/Docs';
 import { Notifications } from './pages/notifications/Notifications';
 import { ForceChangePassword } from './pages/force-change-password/ForceChangePassword';
 import { NotFound } from './pages/not-found/NotFound';
@@ -136,6 +137,22 @@ function App() {
               <AdminRoute>
                 <Admin />
               </AdminRoute>
+            }
+          />
+          <Route
+            path="/docs"
+            element={
+              <ProtectedRoute>
+                <Docs />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/docs/:slug"
+            element={
+              <ProtectedRoute>
+                <Docs />
+              </ProtectedRoute>
             }
           />
           <Route path="*" element={<NotFound />} />

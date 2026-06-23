@@ -77,7 +77,7 @@ Tasks let you organize and assign work to the team.
 |---|---|
 | Title | Short label for the task (required) |
 | Description | Details or instructions (optional) |
-| Status | To do / In progress / Done |
+| Status | To do / In progress / Blocked / In review / To validate / Done |
 | Priority | Low / Normal / High / Urgent |
 | Assigned to | A team member or nobody |
 | Due date | Deadline (optional) |
@@ -90,10 +90,12 @@ Tasks let you organize and assign work to the team.
 - High: orange
 - Urgent: red (overdue tasks are also highlighted in red)
 
+**Views:** the tab offers a **Kanban** view (one column per status, drag-and-drop) and a **List** view.
+
 **Task tab filters:**
 
 - Visibility: all, shared, private
-- Status: all, to do, in progress, done
+- Status: all, to do, in progress, blocked, in review, to validate, done
 
 **Comments:** each task can receive comments from all members of the investigation.
 
@@ -137,11 +139,31 @@ The Sources tab stores captures and web page archives associated with the invest
 
 **File integrity:** each source includes a SHA-256 hash to verify it has not been modified since it was saved. Click the hash to copy it.
 
-**Adding sources:** sources are added from the browser via the Tracr extension. An installation link is shown in the tab if the extension is not detected.
+**Adding sources:**
+- From the browser via the **Tracr extension** (screenshot, MHTML, media, archive). An installation link is shown in the tab if the extension is not detected.
+- By **manual upload** of a file directly from the tab.
+
+**Extracted text:** page text is automatically extracted (with **OCR** for images) and indexed, which powers **selector** detection (see below).
+
+**Notes:** you can add notes to each source to document its context.
 
 **Available filters:** screenshots, MHTML pages, archives, media, or show all.
 
 **Actions:** download, full-screen preview, deletion (investigation owner or source creator).
+
+---
+
+### Selectors
+
+**Selectors** are identifiers to watch within the investigation (email, username, domain, phone, etc.). Tracr automatically searches for them in the **text of archived sources** and flags each occurrence as a **hit**.
+
+**Add a selector:**
+1. Choose its **type**, enter its **value**, and optionally a **label** and **notes**.
+2. Confirm: the selector is added and the search across sources is launched.
+
+**Hits (occurrences):** each selector shows how many sources it appears in. Click a hit to open the corresponding source and see the occurrence in context.
+
+*Creation and deletion are restricted to editor, manager and owner levels.*
 
 ---
 

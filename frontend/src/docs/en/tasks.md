@@ -15,11 +15,20 @@ Tasks let you organize and track work within an investigation. They are managed 
 |---|---|
 | Title | Short label (required, 255 characters max) |
 | Description | Details or instructions (optional, 2000 characters max) |
-| Status | To do / In progress / Done |
+| Status | To do / In progress / Blocked / In review / To validate / Done |
 | Priority | Low / Normal / High / Urgent |
 | Assigned to | A member of the investigation or nobody |
 | Due date | Deadline (optional) |
 | Visibility | Private or Shared |
+
+---
+
+## List and Kanban views
+
+The **Tasks** tab offers two views, switchable from the top right:
+
+- **Kanban** (default): one column per status. **Drag** a task from one column to another to change its status.
+- **List**: a classic sortable, filterable table.
 
 ---
 
@@ -46,7 +55,7 @@ Tasks whose due date has passed are highlighted in red in the list, regardless o
 ## Task tab filters
 
 - **Visibility**: all, shared, private
-- **Status**: all, to do, in progress, done
+- **Status**: all, to do, in progress, blocked, in review, to validate, done
 
 ---
 

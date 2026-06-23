@@ -76,5 +76,23 @@ Administration → **Logs**. Consultez l'historique de toutes les actions effect
 **Fonctionnalités du journal :**
 - Recherche textuelle dans les détails des logs
 - Filtre par catégorie de log
-- Option pour masquer les actions de consultation (lecture seule)
+- Option pour masquer les actions de consultation (lecture seule) - **activée par défaut**
 - Pagination (15 entrées par page)
+
+---
+
+## Mises à jour de l'application
+
+*Onglet réservé au **super-administrateur**.*
+
+L'onglet **Mises à jour** compare le code déployé à la branche du dépôt GitHub du projet et affiche :
+- l'état : à jour, ou nombre de commits de retard ;
+- la liste des commits à appliquer ;
+- les impacts détectés : migrations de base de données, dépendances, reconstruction d'image.
+
+**Appliquer une mise à jour :**
+1. Cliquez sur **Vérifier** pour rafraîchir l'état.
+2. Si des changements sont disponibles, cliquez sur **Mettre à jour** et confirmez dans le panneau latéral.
+3. L'application sauvegarde la base, récupère le code et redémarre. Une **page de maintenance** s'affiche pour tous les utilisateurs pendant l'opération, puis l'application revient automatiquement.
+
+Lorsqu'une mise à jour modifie les **dépendances** ou l'**infrastructure** (Dockerfile, docker-compose), elle ne peut pas être appliquée en un clic : un avertissement indique la commande à exécuter manuellement sur le serveur (`git pull && docker compose up -d --build`).

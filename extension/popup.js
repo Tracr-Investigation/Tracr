@@ -233,7 +233,7 @@ async function fetchMediaBlob(url) {
 }
 
 // Choisit le meilleur candidat d'un srcset (plus grande largeur `w`, sinon le
-// dernier — souvent la plus haute resolution).
+// dernier - souvent la plus haute resolution).
 function pickFromSrcset(srcset) {
   let best = null, bestW = -1;
   for (const part of srcset.split(',')) {
@@ -248,12 +248,6 @@ function pickFromSrcset(srcset) {
 // Toutes les facons de referencer une image de fond en CSS : on capture l'URL.
 const CSS_URL_RE = /url\(\s*(['"]?)([^'")]+)\1\s*\)/g;
 
-// Embarque les medias d'une archive HTML (hybride) — objectif : retrouver TOUTES
-// les images (elements, lazy-load, srcset, <picture>, fonds CSS inline et <style>),
-// + video/audio. Pour chaque URL absolue : telecharge le binaire puis, selon taille
-// et type, l'inline en data: URI (petites images) ou l'upload en source compagnon
-// (meme capture_group, role=page_media -> masque de la liste) et remplace l'URL par
-// un placeholder signe. Echecs reseau non bloquants : URL d'origine conservee.
 async function embedPageMedia(html, ctx) {
   const doc = new DOMParser().parseFromString(html, 'text/html');
   const stats = { inlined: 0, companion: 0, failed: 0 };

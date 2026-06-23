@@ -15,6 +15,17 @@ La page **Paramètres** est accessible depuis la barre latérale. Elle est organ
 
 Renseignez votre mot de passe actuel, puis votre nouveau mot de passe (deux fois pour confirmation). Un indicateur de force du mot de passe s'affiche en temps réel.
 
+### Authentification à deux facteurs (2FA)
+
+L'authentification à deux facteurs renforce la sécurité de votre compte en demandant un code à usage unique (TOTP) en plus du mot de passe à chaque connexion.
+
+**Activer le 2FA :**
+1. Suivez l'assistant de configuration : un **QR code** s'affiche.
+2. Scannez-le avec une application d'authentification (Google Authenticator, Authy, etc.).
+3. Saisissez le code à 6 chiffres généré pour confirmer l'activation.
+
+Depuis l'onglet **Sécurité**, vous pouvez ensuite **reconfigurer** ou **désactiver** le 2FA en confirmant avec votre mot de passe actuel.
+
 ### Codes de récupération
 
 Les codes de récupération permettent de retrouver l'accès à votre compte si vous oubliez votre mot de passe.

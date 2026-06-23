@@ -76,5 +76,23 @@ Administration → **Logs**. View the history of all actions performed on the pl
 **Log features:**
 - Text search in log details
 - Filter by log category
-- Option to hide read-only (consultation) actions
+- Option to hide read-only (consultation) actions - **enabled by default**
 - Pagination (15 entries per page)
+
+---
+
+## Application updates
+
+*Tab restricted to the **super-administrator**.*
+
+The **Updates** tab compares the deployed code with the project's GitHub branch and shows:
+- the status: up to date, or the number of commits behind;
+- the list of commits to apply;
+- the detected impacts: database migrations, dependencies, image rebuild.
+
+**Apply an update:**
+1. Click **Check** to refresh the status.
+2. If changes are available, click **Update** and confirm in the side panel.
+3. The application backs up the database, pulls the code and restarts. A **maintenance page** is shown to all users during the operation, then the app comes back automatically.
+
+When an update changes **dependencies** or **infrastructure** (Dockerfile, docker-compose), it cannot be applied in one click: a warning shows the command to run manually on the server (`git pull && docker compose up -d --build`).

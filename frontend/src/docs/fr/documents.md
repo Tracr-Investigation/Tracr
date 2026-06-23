@@ -78,7 +78,22 @@ Cliquez sur le bouton **Ouvrir** ou sur le lien direct pour accéder à l'édite
 
 ## Export PDF
 
-Depuis l'éditeur, utilisez le bouton d'export pour générer un fichier PDF du document. Le PDF est rendu côté serveur (WeasyPrint) et inclut la mise en forme complète.
+Depuis l'éditeur, utilisez le bouton d'export pour générer un fichier PDF du document. Le PDF est rendu côté serveur (WeasyPrint) et inclut la mise en forme complète, ainsi que :
+
+- une **page de couverture** (image définie dans les paramètres de l'enquête, ou visuel par défaut) ;
+- un **sommaire automatique** avec numéros de page ;
+- un **marquage TLP/PAP** rappelé en pied de page selon le niveau de diffusion choisi.
+
+---
+
+## Sauvegardes du document
+
+Tracr conserve des **versions** de chaque document :
+
+- **Sauvegardes manuelles** : déclenchées par vous à un moment précis.
+- **Sauvegardes automatiques** : créées périodiquement en arrière-plan, avec une rétention intelligente (les sauvegardes anciennes sont progressivement éclaircies).
+
+Vous pouvez **restaurer** une version antérieure et **épingler** une sauvegarde importante pour qu'elle soit conservée indéfiniment.
 
 ---
 

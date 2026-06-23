@@ -15,11 +15,20 @@ Les tâches permettent d'organiser et de suivre le travail au sein d'une enquêt
 |---|---|
 | Titre | Intitulé court (obligatoire, 255 caractères max) |
 | Description | Détails ou instructions (facultatif, 2000 caractères max) |
-| Statut | À faire / En cours / Terminé |
+| Statut | À faire / En cours / Bloqué / En revue / À valider / Terminé |
 | Priorité | Basse / Normale / Haute / Urgente |
 | Assignée à | Un membre de l'enquête ou personne |
 | Date d'échéance | Date limite (facultative) |
 | Visibilité | Privée ou Partagée |
+
+---
+
+## Vues Liste et Kanban
+
+L'onglet **Tâches** propose deux vues, basculables en haut à droite :
+
+- **Kanban** (par défaut) : une colonne par statut. Faites **glisser** une tâche d'une colonne à l'autre pour changer son statut.
+- **Liste** : un tableau classique, trié et filtrable.
 
 ---
 
@@ -46,7 +55,7 @@ Les tâches dont la date d'échéance est dépassée sont mises en évidence en 
 ## Filtres de l'onglet Tâches
 
 - **Visibilité** : toutes, partagées, privées
-- **Statut** : tout, à faire, en cours, terminé
+- **Statut** : tout, à faire, en cours, bloqué, en revue, à valider, terminé
 
 ---
 

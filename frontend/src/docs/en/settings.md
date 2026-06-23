@@ -15,6 +15,17 @@ The **Settings** page is accessible from the sidebar. It is organized into three
 
 Enter your current password, then your new password (twice for confirmation). A password strength indicator is displayed in real time.
 
+### Two-factor authentication (2FA)
+
+Two-factor authentication strengthens your account's security by requiring a one-time code (TOTP) in addition to your password at each login.
+
+**Enable 2FA:**
+1. Follow the setup wizard: a **QR code** is displayed.
+2. Scan it with an authenticator app (Google Authenticator, Authy, etc.).
+3. Enter the generated 6-digit code to confirm activation.
+
+From the **Security** tab, you can then **reconfigure** or **disable** 2FA by confirming with your current password.
+
 ### Recovery codes
 
 Recovery codes let you regain access to your account if you forget your password.

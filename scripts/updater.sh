@@ -84,9 +84,6 @@ git -C "$REPO_DIR" fetch --quiet origin "$BRANCH" 2>>"$LOG" || fail "git fetch a
 git -C "$REPO_DIR" merge --ff-only "origin/$BRANCH" >>"$LOG" 2>&1 \
   || fail "git merge --ff-only impossible (dépôt local modifié ou divergent)"
 
-# 3) Redémarrage du backend : réexécute les migrations Alembic et recharge le code
-#    bind-mounté. On NE fait PAS "compose up --build" — lancé depuis ce conteneur, il
-#    résoudrait les bind mounts vers des chemins inexistants sur l'hôte et casserait /app.
 log "docker restart $RESTART"
 # shellcheck disable=SC2086
 docker restart $RESTART >>"$LOG" 2>&1 || fail "redémarrage du backend impossible"
