@@ -18,6 +18,13 @@ const ApplyBanner = ({ apply }: { apply: UpdateApplyState }) => {
   const { t } = useTranslation();
   if (apply.status === 'idle') return null;
 
+  // Un résultat terminal (done/failed) est conservé côté agent ; on ne l'affiche
+  // que s'il est récent (< 15 min) pour ne pas montrer un vieux message au chargement.
+  if (apply.status === 'done' || apply.status === 'failed') {
+    const ts = apply.finished_at ? new Date(apply.finished_at).getTime() : 0;
+    if (!ts || Date.now() - ts > 15 * 60 * 1000) return null;
+  }
+
   const config = {
     pending: { icon: Loader2, spin: true, cls: 'bg-amber-500/10 border-amber-500/30 text-amber-400' },
     running: { icon: Loader2, spin: true, cls: 'bg-primary/10 border-primary/30 text-primary' },
