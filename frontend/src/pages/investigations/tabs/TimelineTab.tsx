@@ -7,7 +7,9 @@ import {
     Link2,
     Network,
     AlertCircle,
-    ChevronDown,
+    ChevronLeft,
+    ChevronRight,
+    ListFilter,
 } from 'lucide-react';
 import {api} from '../../../services/api';
 import {formatRelativeDate} from '../../../utils/date';
@@ -72,43 +74,106 @@ function formatAction(category: string, action: string): string {
     return map[`${category}.${action}`] ?? action.replace(/_/g, ' ');
 }
 
-const BATCH_SIZE = 50;
+const PAGE_SIZE = 20;
 
 export const TimelineTab = ({investigationId}: {investigationId: number}) => {
     const {t} = useTranslation();
     const [events, setEvents] = useState<TimelineEvent[]>([]);
     const [total, setTotal] = useState(0);
+    const [categories, setCategories] = useState<string[]>([]);
+    const [category, setCategory] = useState('');
+    const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(true);
-    const [loadingMore, setLoadingMore] = useState(false);
     const [error, setError] = useState('');
+
+    const categoryLabel = (cat: string) =>
+        CATEGORY_CONFIG[cat] ? t(`investigationDetail.timeline.cat.${cat}`) : cat;
 
     const fetchEvents = useCallback(async () => {
         setLoading(true);
         setError('');
         try {
-            const data = await api.getTimeline(investigationId, 0, BATCH_SIZE);
+            const data = await api.getTimeline(investigationId, (page - 1) * PAGE_SIZE, PAGE_SIZE, category);
             setEvents(data.events);
             setTotal(data.total);
+            setCategories(data.categories);
         } catch (err) {
             setError(err instanceof Error ? err.message : t('investigationDetail.timeline.errorLoad'));
         } finally {
             setLoading(false);
         }
-    }, [investigationId]);
+    }, [investigationId, page, category, t]);
 
     useEffect(() => {
         fetchEvents();
     }, [fetchEvents]);
 
-    const loadMore = async () => {
-        setLoadingMore(true);
-        try {
-            const data = await api.getTimeline(investigationId, events.length, BATCH_SIZE);
-            setEvents(prev => [...prev, ...data.events]);
-        } finally {
-            setLoadingMore(false);
-        }
+    const onCategoryChange = (value: string) => {
+        setCategory(value);
+        setPage(1);
     };
+
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+    // Barre de filtre : un chip par catégorie (icône + couleur), plus le chip « Tout ».
+    const filterBar = categories.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 mb-6">
+            <button
+                onClick={() => onCategoryChange('')}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                    category === ''
+                        ? 'bg-primary/15 text-primary border-primary/40'
+                        : 'bg-card/30 text-text-muted border-border-subtle hover:text-text-default hover:border-primary/40'
+                }`}
+            >
+                <ListFilter size={13}/>
+                {t('investigationDetail.timeline.allCategories')}
+            </button>
+            {categories.map((c) => {
+                const cfg = getCategoryConfig(c);
+                const Icon = cfg.icon;
+                const active = category === c;
+                return (
+                    <button
+                        key={c}
+                        onClick={() => onCategoryChange(c)}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                            active
+                                ? `${cfg.bg} ${cfg.color} border-current`
+                                : 'bg-card/30 text-text-muted border-border-subtle hover:text-text-default hover:border-primary/40'
+                        }`}
+                    >
+                        <Icon size={13}/>
+                        {categoryLabel(c)}
+                    </button>
+                );
+            })}
+        </div>
+    );
+
+    const pagination = totalPages > 1 && (
+        <div className="flex items-center justify-center gap-3 mt-6">
+            <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                className="p-2 rounded-lg border border-border text-text-muted hover:text-text-default hover:border-primary/40 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                title={t('investigationDetail.timeline.prev')}
+            >
+                <ChevronLeft size={16}/>
+            </button>
+            <span className="text-sm text-text-muted">
+                {t('investigationDetail.timeline.page', {page, total: totalPages})}
+            </span>
+            <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                className="p-2 rounded-lg border border-border text-text-muted hover:text-text-default hover:border-primary/40 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                title={t('investigationDetail.timeline.next')}
+            >
+                <ChevronRight size={16}/>
+            </button>
+        </div>
+    );
 
     if (loading) {
         return (
@@ -135,7 +200,8 @@ export const TimelineTab = ({investigationId}: {investigationId: number}) => {
         );
     }
 
-    if (events.length === 0) {
+    // Aucun événement du tout (et aucun filtre) : état vide pleine page.
+    if (events.length === 0 && !category) {
         return (
             <div className="pt-6 text-center py-16">
                 <div className="w-12 h-12 rounded-full bg-border flex items-center justify-center mx-auto mb-4">
@@ -149,19 +215,23 @@ export const TimelineTab = ({investigationId}: {investigationId: number}) => {
 
     return (
         <div className="pt-6">
+            {filterBar}
+
             <HelpTooltip helpKey="timeline.overview">
+            {events.length === 0 ? (
+                <p className="text-center text-text-muted text-sm py-12">{t('investigationDetail.timeline.noResults')}</p>
+            ) : (
             <div className="relative">
                 {/* Vertical line */}
                 <div className="absolute left-[15px] top-0 bottom-0 w-px bg-border-subtle"/>
 
                 <div className="space-y-1">
-                    {events.map((event, idx) => {
+                    {events.map((event) => {
                         const cfg = getCategoryConfig(event.category);
                         const Icon = cfg.icon;
-                        const isLast = idx === events.length - 1;
 
                         return (
-                            <div key={event.id_log} className={`relative flex gap-4 group ${isLast ? '' : ''}`}>
+                            <div key={event.id_log} className="relative flex gap-4 group">
                                 {/* Icon dot */}
                                 <div className={`relative z-10 w-8 h-8 rounded-full ${cfg.bg} flex items-center justify-center shrink-0 mt-0.5 border border-border`}>
                                     <Icon size={14} className={cfg.color}/>
@@ -194,23 +264,13 @@ export const TimelineTab = ({investigationId}: {investigationId: number}) => {
                     })}
                 </div>
             </div>
+            )}
             </HelpTooltip>
 
-            {events.length < total && (
-                <div className="flex justify-center mt-4">
-                    <button
-                        onClick={loadMore}
-                        disabled={loadingMore}
-                        className="flex items-center gap-2 px-4 py-2 text-sm text-text-muted hover:text-text-default border border-border hover:border-primary/40 rounded-lg transition-all disabled:opacity-40"
-                    >
-                        <ChevronDown size={14}/>
-                        {loadingMore ? '...' : t('investigationDetail.timeline.showMore', {count: total - events.length})}
-                    </button>
-                </div>
-            )}
+            {pagination}
 
             <p className="text-center text-text-dim text-xs mt-6">
-                {t('investigationDetail.timeline.total_other', {count: total})}
+                {t('investigationDetail.timeline.total', {count: total})}
             </p>
         </div>
     );

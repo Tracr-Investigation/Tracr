@@ -310,7 +310,20 @@
       "total_one": "{{count}} événement au total",
       "total_other": "{{count}} événements au total",
       "by": "par",
-      "errorLoad": "Erreur de chargement de la chronologie"
+      "errorLoad": "Erreur de chargement de la chronologie",
+      "allCategories": "Toutes les catégories",
+      "noResults": "Aucun événement pour ce filtre",
+      "page": "Page {{page}} / {{total}}",
+      "prev": "Précédent",
+      "next": "Suivant",
+      "cat": {
+        "investigation": "Enquête",
+        "document": "Document",
+        "task": "Tâche",
+        "collaboration": "Collaboration",
+        "entity": "Entité",
+        "category": "Catégorie"
+      }
     },
     "collaborators": {
       "inviteTitle": "Inviter un collaborateur",
@@ -599,6 +612,15 @@
       "confirmBody_other": "{{count}} commits vont être appliqués jusqu'à {{sha}}.",
       "confirmWarning": "Le serveur va se reconstruire et redémarrer ; l'application sera brièvement indisponible. Une sauvegarde de la base est effectuée au préalable.",
       "confirmApply": "Appliquer",
+      "backups": {
+        "title": "Sauvegardes de la base",
+        "empty": "Aucune sauvegarde pour le moment.",
+        "download": "Télécharger",
+        "delete": "Supprimer",
+        "confirmDelete": "Supprimer ?",
+        "confirmYes": "Oui",
+        "confirmNo": "Non"
+      },
       "apply": {
         "pending": "Mise à jour en file d'attente - l'agent va démarrer.",
         "running": "Mise à jour en cours…",

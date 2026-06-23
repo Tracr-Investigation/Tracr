@@ -310,7 +310,20 @@
       "total_one": "{{count}} event total",
       "total_other": "{{count}} events total",
       "by": "by",
-      "errorLoad": "Error loading timeline"
+      "errorLoad": "Error loading timeline",
+      "allCategories": "All categories",
+      "noResults": "No event for this filter",
+      "page": "Page {{page}} / {{total}}",
+      "prev": "Previous",
+      "next": "Next",
+      "cat": {
+        "investigation": "Investigation",
+        "document": "Document",
+        "task": "Task",
+        "collaboration": "Collaboration",
+        "entity": "Entity",
+        "category": "Category"
+      }
     },
     "collaborators": {
       "inviteTitle": "Invite a collaborator",
@@ -599,6 +612,15 @@
       "confirmBody_other": "{{count}} commits will be applied up to {{sha}}.",
       "confirmWarning": "The server will rebuild and restart; the app will be briefly unavailable. A database backup is taken beforehand.",
       "confirmApply": "Apply",
+      "backups": {
+        "title": "Database backups",
+        "empty": "No backup yet.",
+        "download": "Download",
+        "delete": "Delete",
+        "confirmDelete": "Delete?",
+        "confirmYes": "Yes",
+        "confirmNo": "No"
+      },
       "apply": {
         "pending": "Update queued - the agent will start shortly.",
         "running": "Update in progress…",

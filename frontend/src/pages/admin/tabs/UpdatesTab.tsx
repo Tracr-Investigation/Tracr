@@ -1,11 +1,17 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { api, type UpdateStatusData, type UpdateApplyState } from '../../../services/api';
+import { api, type UpdateStatusData, type UpdateApplyState, type UpdateBackup } from '../../../services/api';
 import { SidePanel } from '../../../components/SidePanel';
 import {
   RefreshCw, GitCommit, CheckCircle2, AlertTriangle, ArrowDownToLine,
-  Database, Package, Box, ExternalLink, HelpCircle, Loader2, XCircle,
+  Database, Package, Box, ExternalLink, HelpCircle, Loader2, XCircle, Download, Trash2,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+
+const formatBytes = (bytes: number): string => {
+  if (bytes < 1024) return `${bytes} o`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} Ko`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
+};
 
 const FlagBadge = ({ icon: Icon, label }: { icon: typeof Database; label: string }) => (
   <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-500/15 text-amber-400 border border-amber-500/30">
@@ -103,6 +109,8 @@ export const UpdatesTab = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [backups, setBackups] = useState<UpdateBackup[]>([]);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchStatus = useCallback(async (force = false) => {
@@ -118,7 +126,35 @@ export const UpdatesTab = () => {
     }
   }, []);
 
-  useEffect(() => { fetchStatus(); }, [fetchStatus]);
+  const fetchBackups = useCallback(async () => {
+    try {
+      setBackups((await api.getDbBackups()).backups);
+    } catch { /* liste indisponible : on ignore */ }
+  }, []);
+
+  useEffect(() => { fetchStatus(); fetchBackups(); }, [fetchStatus, fetchBackups]);
+
+  const handleDownloadBackup = async (name: string) => {
+    try {
+      const { blob } = await api.downloadDbBackup(name);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = name; a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    }
+  };
+
+  const handleDeleteBackup = async (name: string) => {
+    try {
+      await api.deleteDbBackup(name);
+      setConfirmDelete(null);
+      fetchBackups();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    }
+  };
 
   // Tant qu'une application est en attente / en cours, on rafraîchit l'état régulièrement.
   const applyStatus = data?.apply.status;
@@ -133,10 +169,12 @@ export const UpdatesTab = () => {
       clearInterval(pollRef.current);
       pollRef.current = null;
     }
+    // Une mise à jour terminée a produit un nouveau dump : on rafraîchit la liste.
+    if (applyStatus === 'done') fetchBackups();
     return () => {
       if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
     };
-  }, [applyStatus]);
+  }, [applyStatus, fetchBackups]);
 
   const handleApply = async () => {
     try {
@@ -340,6 +378,48 @@ export const UpdatesTab = () => {
           </div>
         </>
       )}
+
+      {/* Sauvegardes SQL de la base (créées avant chaque mise à jour) */}
+      <div className="mt-8 bg-card/30 border border-border-subtle rounded-xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-border flex items-center gap-2">
+          <Database size={16} className="text-text-muted" />
+          <span className="text-sm font-medium text-text-default">{t('admin.updates.backups.title')}</span>
+        </div>
+        {backups.length === 0 ? (
+          <div className="px-6 py-10 text-center text-text-muted text-sm">{t('admin.updates.backups.empty')}</div>
+        ) : (
+          <ul>
+            {backups.map((b) => (
+              <li key={b.name} className="px-6 py-3 border-b border-border-subtle last:border-0 hover:bg-card/20 transition-colors flex items-center gap-4">
+                <div className="min-w-0 flex-1">
+                  <p className="text-text-default text-sm font-mono truncate">{b.name}</p>
+                  <p className="text-text-muted text-xs mt-0.5">{formatBytes(b.size_bytes)} · {formatDate(b.created_at)}</p>
+                </div>
+                {confirmDelete === b.name ? (
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-xs text-text-muted">{t('admin.updates.backups.confirmDelete')}</span>
+                    <button onClick={() => handleDeleteBackup(b.name)} className="px-2.5 py-1 rounded-lg text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 transition-all">
+                      {t('admin.updates.backups.confirmYes')}
+                    </button>
+                    <button onClick={() => setConfirmDelete(null)} className="px-2.5 py-1 rounded-lg text-xs font-medium bg-card/30 border border-border-subtle text-text-muted hover:text-text-default transition-all">
+                      {t('admin.updates.backups.confirmNo')}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button onClick={() => handleDownloadBackup(b.name)} title={t('admin.updates.backups.download')} className="p-2 rounded-lg bg-card/30 border border-border-subtle text-text-muted hover:bg-primary/20 hover:text-text-default transition-all">
+                      <Download size={14} />
+                    </button>
+                    <button onClick={() => setConfirmDelete(b.name)} title={t('admin.updates.backups.delete')} className="p-2 rounded-lg bg-card border border-red-500/20 text-text-muted hover:bg-red-500/20 hover:text-red-400 transition-all">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       {data && (
         <ConfirmPanel open={confirmOpen} data={data} onClose={() => setConfirmOpen(false)} onConfirm={handleApply} />

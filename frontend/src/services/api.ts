@@ -35,6 +35,12 @@ export interface UpdateCommit {
     url: string | null;
 }
 
+export interface UpdateBackup {
+    name: string;
+    size_bytes: number;
+    created_at: string;
+}
+
 export type UpdateApplyStatus = 'idle' | 'pending' | 'running' | 'done' | 'failed';
 
 export interface UpdateApplyState {
@@ -452,6 +458,40 @@ export const api = {
             throw new Error(parseApiError(data.detail, 'Error applying update'));
         }
 
+        return data;
+    },
+
+    getDbBackups: async (): Promise<{ backups: UpdateBackup[] }> => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/admin/update/backups`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching backups'));
+        return data;
+    },
+
+    downloadDbBackup: async (name: string) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/admin/update/backups/${encodeURIComponent(name)}/download`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            throw new Error(parseApiError(data.detail, 'Download failed'));
+        }
+        const blob = await response.blob();
+        return { blob, filename: name };
+    },
+
+    deleteDbBackup: async (name: string) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/admin/update/backups/${encodeURIComponent(name)}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` },
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(parseApiError(data.detail, 'Delete failed'));
         return data;
     },
 
@@ -1798,9 +1838,10 @@ export const api = {
 
     // --- Timeline ---
 
-    getTimeline: async (investigationId: number, skip = 0, limit = 50) => {
+    getTimeline: async (investigationId: number, skip = 0, limit = 50, category = '') => {
         const token = localStorage.getItem('token');
         const params = new URLSearchParams({skip: String(skip), limit: String(limit)});
+        if (category) params.set('category', category);
         const response = await fetch(`${API_URL}/investigations/${investigationId}/timeline?${params}`, {
             headers: {'Authorization': `Bearer ${token}`},
         });
@@ -1817,6 +1858,7 @@ export const api = {
                 created_at: string | null;
             }>;
             total: number;
+            categories: string[];
         };
     },
 
