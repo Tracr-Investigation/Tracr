@@ -173,7 +173,7 @@ export const Sidebar = () => {
         { icon: FileText,        label: t('sidebar.templates'),       path: '/templates' },
         { icon: Settings,        label: t('sidebar.settings'),        path: '/settings', alert: mfaPending },
         ...(isAdmin ? [{ icon: Shield, label: t('sidebar.administration'), path: '/admin' }] : []),
-        { icon: BookOpen,        label: t('sidebar.help'),            href: '/docs/' },
+        { icon: BookOpen,        label: t('sidebar.help'),            path: '/docs' },
     ];
 
     const initials = user?.pseudo ? user.pseudo.slice(0, 2).toUpperCase() : 'U';

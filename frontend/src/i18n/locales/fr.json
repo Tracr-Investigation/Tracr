@@ -3,6 +3,13 @@
     "title": "Mise à jour en cours",
     "message": "L'application est en cours de mise à jour. Merci de revenir dans quelques instants."
   },
+  "docs": {
+    "notFound": "Page de documentation introuvable.",
+    "categories": {
+      "features": "Fonctionnalités",
+      "interface": "Interface"
+    }
+  },
   "sidebar": {
     "dashboard": "Tableau de bord",
     "investigations": "Enquêtes",
@@ -593,7 +600,7 @@
       "confirmWarning": "Le serveur va se reconstruire et redémarrer ; l'application sera brièvement indisponible. Une sauvegarde de la base est effectuée au préalable.",
       "confirmApply": "Appliquer",
       "apply": {
-        "pending": "Mise à jour en file d'attente — l'agent va démarrer.",
+        "pending": "Mise à jour en file d'attente - l'agent va démarrer.",
         "running": "Mise à jour en cours…",
         "done": "Mise à jour appliquée avec succès.",
         "failed": "La mise à jour a échoué."

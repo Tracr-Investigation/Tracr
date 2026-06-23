@@ -3,6 +3,13 @@
     "title": "Update in progress",
     "message": "The application is being updated. Please come back in a few moments."
   },
+  "docs": {
+    "notFound": "Documentation page not found.",
+    "categories": {
+      "features": "Features",
+      "interface": "Interface"
+    }
+  },
   "sidebar": {
     "dashboard": "Dashboard",
     "investigations": "Investigations",
@@ -593,7 +600,7 @@
       "confirmWarning": "The server will rebuild and restart; the app will be briefly unavailable. A database backup is taken beforehand.",
       "confirmApply": "Apply",
       "apply": {
-        "pending": "Update queued — the agent will start shortly.",
+        "pending": "Update queued - the agent will start shortly.",
         "running": "Update in progress…",
         "done": "Update applied successfully.",
         "failed": "The update failed."
