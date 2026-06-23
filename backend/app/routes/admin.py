@@ -62,6 +62,13 @@ async def apply_update(
     if status.get("up_to_date"):
         raise HTTPException(status_code=400, detail="Already up to date")
 
+    flags = status.get("flags", {})
+    if flags.get("rebuild") or flags.get("deps"):
+        raise HTTPException(
+            status_code=409,
+            detail="This update changes dependencies or infrastructure and requires a manual rebuild on the host (git pull && docker compose up -d --build)",
+        )
+
     target_sha = status.get("latest_sha")
     try:
         apply_state = await asyncio.to_thread(

@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app.dependencies import limiter, engine
 from app.routes import auth, admin, investigations, tasks
 from app.routes import notifications, documents, templates, geocode, entities, sources, selectors
-from services import document_service
+from services import document_service, update_service
 from socketio import ASGIApp as SocketASGIApp
 from app.socketio_server import sio
 
@@ -95,6 +95,13 @@ async def add_security_headers(request: Request, call_next):
 @fastapi_app.get("/health")
 async def health():
     return {"status": "ok"}
+
+
+@fastapi_app.get("/maintenance")
+async def maintenance():
+    """État public : une mise à jour est-elle en cours ? (pour la page de maintenance)"""
+    apply_state = await asyncio.to_thread(update_service.get_apply_state)
+    return {"active": apply_state["status"] in ("pending", "running")}
 
 
 fastapi_app.include_router(auth.router)
