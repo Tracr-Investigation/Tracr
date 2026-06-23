@@ -28,9 +28,13 @@ HEALTH_URL="${HEALTH_URL:-http://localhost:8000/health}"
 # docker compose v2 (plugin) par défaut ; surchargeable via $DC.
 DC="${DC:-docker compose}"
 
-# Services à reconstruire/redémarrer. On exclut volontairement "updater" : un
-# conteneur ne doit pas se recréer lui-même en plein milieu de l'opération.
-SERVICES="${SERVICES:-backend websocket frontend docs}"
+# Service(s) à reconstruire/redémarrer. Par défaut : "backend" seul.
+#  - le backend doit redémarrer (migrations Alembic + pas de --reload en compose) ;
+#  - frontend / websocket / docs sont bind-mountés et rechargent à chaud (Vite HMR),
+#    inutile de les reconstruire — et les reconstruire couperait la page qui suit
+#    la progression de la mise à jour.
+# Surchargeable via $SERVICES si une image (deps/Dockerfile) doit vraiment être rebâtie.
+SERVICES="${SERVICES:-backend}"
 
 mkdir -p "$UPDATE_DIR" "$BACKUP_DIR"
 # Le dossier d'échange doit être inscriptible par le conteneur (uid 1001) pour
@@ -66,9 +70,14 @@ if ! flock -n 9; then
   exit 0
 fi
 
-# Pas de demande en attente : on rafraîchit simplement l'état (idle) et on sort.
+# Pas de demande en attente : on rafraîchit l'état idle, MAIS on préserve le
+# dernier résultat terminal (done/failed) pour que l'admin puisse le voir — le
+# frontend le masquera de lui-même passé quelques minutes (via finished_at).
 if [ ! -f "$REQUEST" ]; then
-  write_state "idle" "" "" "" ""
+  PREV=$(sed -n 's/.*"status"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$STATE" 2>/dev/null || true)
+  if [ "$PREV" != "done" ] && [ "$PREV" != "failed" ]; then
+    write_state "idle" "" "" "" ""
+  fi
   exit 0
 fi
 
@@ -78,10 +87,15 @@ TARGET=$(sed -n 's/.*"target_sha"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$
 log "Demande de mise à jour reçue (cible: ${TARGET:-?})"
 write_state "running" "Mise à jour en cours" "$TARGET" "$STARTED" ""
 
-# Charge les identifiants Postgres pour le dump.
-if [ -f "$REPO_DIR/.env" ]; then
-  set -a; . "$REPO_DIR/.env"; set +a
-fi
+# Identifiants Postgres pour le dump. On NE source PAS .env (un .env en CRLF
+# Windows casserait `sh` : chaque \r serait exécuté comme une commande). On
+# extrait juste les deux variables utiles en supprimant les \r ; à défaut, on
+# retombe sur l'environnement (injecté par env_file) puis sur des valeurs par défaut.
+read_env() {
+  grep -E "^$1=" "$REPO_DIR/.env" 2>/dev/null | head -n1 | cut -d= -f2- | tr -d '\r\n"'
+}
+PG_USER="$(read_env POSTGRES_USER)"; : "${PG_USER:=${POSTGRES_USER:-postgres}}"
+PG_DB="$(read_env POSTGRES_DB)";     : "${PG_DB:=${POSTGRES_DB:-postgres}}"
 
 fail() {
   log "ÉCHEC: $1"
@@ -94,7 +108,7 @@ fail() {
 BACKUP_FILE="$BACKUP_DIR/db_$(date -u +%Y%m%d_%H%M%S).sql"
 log "Sauvegarde base -> $BACKUP_FILE"
 if ! $DC -f "$REPO_DIR/docker-compose.yml" exec -T postgres \
-     pg_dump -U "${POSTGRES_USER:-postgres}" "${POSTGRES_DB:-postgres}" > "$BACKUP_FILE" 2>>"$LOG"; then
+     pg_dump -U "$PG_USER" "$PG_DB" > "$BACKUP_FILE" 2>>"$LOG"; then
   fail "Échec de la sauvegarde de la base"
 fi
 
