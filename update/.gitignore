@@ -1,0 +1,8 @@
+# Dossier d'état partagé entre le backend (conteneur) et l'agent de mise à jour (hôte).
+# Les fichiers d'état runtime ne sont pas versionnés ; seul ce .gitignore l'est.
+state.json
+request.json
+backups/
+updater.log
+.lock
+*.tmp

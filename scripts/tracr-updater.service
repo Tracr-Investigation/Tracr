@@ -1,0 +1,12 @@
+[Unit]
+Description=Tracr — agent de mise à jour (applique les demandes depuis l'admin)
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+# Adapter le chemin à l'emplacement du dépôt cloné sur le serveur.
+WorkingDirectory=/opt/tracr
+ExecStart=/opt/tracr/scripts/updater.sh
+# L'agent a besoin de git + docker ; exécuté par un utilisateur membre du groupe docker.
+User=root

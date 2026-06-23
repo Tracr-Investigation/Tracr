@@ -101,6 +101,39 @@ alembic upgrade head
 python -m uvicorn app.main:app --reload
 ```
  
+## Mises à jour depuis l'administration
+
+L'interface d'administration (onglet **Mises à jour**, réservé au super-admin) compare le code déployé à la branche `main` du dépôt GitHub et affiche les commits à appliquer, ainsi que les impacts (migrations base de données, dépendances, reconstruction d'image).
+
+Pour des raisons de sécurité, le conteneur backend n'a **aucun privilège sur l'hôte** : il se contente d'écrire une demande dans `update/request.json`. L'application réelle (`git pull` + reconstruction + redémarrage + migrations) est exécutée par un **conteneur dédié `updater`** qui pilote la stack via le socket Docker.
+
+### Activation (aucune installation)
+
+L'agent `updater` fait partie de `docker-compose.yml` : il démarre avec la stack et fonctionne **sous Windows (Docker Desktop), Linux et macOS** sans rien installer.
+
+```bash
+docker compose up -d
+```
+
+Le dossier `update/` (canal d'échange monté dans le backend et l'updater) reçoit `state.json` / `request.json` ; les sauvegardes de base sont écrites dans `update/backups/` et les logs de l'agent dans `update/updater.log`.
+
+> ⚠️ Le conteneur `updater` monte le socket Docker (`/var/run/docker.sock`), ce qui équivaut à un accès root sur l'hôte. C'est le compromis nécessaire pour qu'un conteneur puisse reconstruire la stack de façon portable. Il est volontairement minimal et n'agit que sur une demande émise par un super-admin authentifié. Si vous ne voulez pas exposer le socket, retirez le service `updater` du compose : l'onglet **Mises à jour** reste alors pleinement fonctionnel en lecture (détection + aperçu), seul le bouton « Mettre à jour » restera en attente.
+
+> `COMPOSE_PROJECT_NAME` (dans `.env`) doit être identique pour la stack et l'updater, sinon l'agent piloterait une autre stack.
+
+### Alternative durcie (Linux, sans socket Docker)
+
+Sur un serveur Linux, on peut préférer ne pas exposer le socket Docker. Le même script peut alors tourner sur l'hôte via systemd (retirer le service `updater` du compose) :
+
+```bash
+chmod +x scripts/updater.sh
+# Adapter WorkingDirectory et ExecStart (par défaut /opt/tracr) dans le service
+sudo cp scripts/tracr-updater.service /etc/systemd/system/
+sudo cp scripts/tracr-updater.timer   /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now tracr-updater.timer
+```
+
 ## Tests
  
 ### Backend  tests fonctionnels (pytest)

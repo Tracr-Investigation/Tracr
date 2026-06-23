@@ -435,7 +435,8 @@
       "logs": "Journaux",
       "statuses": "Statuts",
       "categories": "Catégories",
-      "templateCategories": "Catégories de modèles"
+      "templateCategories": "Catégories de modèles",
+      "updates": "Mises à jour"
     },
     "users": {
       "searchPlaceholder": "Rechercher par nom d'utilisateur...",
@@ -552,6 +553,45 @@
       "delete": "Supprimer",
       "editTooltip": "Modifier",
       "deleteTooltip": "Supprimer"
+    },
+    "updates": {
+      "loading": "Vérification des mises à jour...",
+      "refresh": "Vérifier",
+      "statusLabel": "Statut du code",
+      "upToDate": "À jour",
+      "behindBy": "{{count}} commit en retard",
+      "behindBy_other": "{{count}} commits en retard",
+      "unknownLabel": "Version locale",
+      "unknownTitle": "Version inconnue",
+      "errorLabel": "Erreur",
+      "errors": {
+        "rate_limited": "Limite de l'API GitHub atteinte",
+        "github_unreachable": "GitHub injoignable"
+      },
+      "currentSha": "Commit déployé",
+      "latestSha": "Dernier commit",
+      "checkedAt": "Vérifié le",
+      "impactLabel": "Cette mise à jour implique :",
+      "flagMigrations": "Migrations base de données",
+      "flagDeps": "Dépendances reconstruites",
+      "flagRebuild": "Reconstruction d'image",
+      "viewOnGithub": "Voir la comparaison sur GitHub",
+      "commitsTitle": "Commits à appliquer",
+      "noCommits": "Aucun nouveau commit",
+      "applyButton": "Mettre à jour",
+      "applying": "Envoi...",
+      "cancel": "Annuler",
+      "confirmTitle": "Appliquer la mise à jour ?",
+      "confirmBody": "{{count}} commit va être appliqué jusqu'à {{sha}}.",
+      "confirmBody_other": "{{count}} commits vont être appliqués jusqu'à {{sha}}.",
+      "confirmWarning": "Le serveur va se reconstruire et redémarrer ; l'application sera brièvement indisponible. Une sauvegarde de la base est effectuée au préalable.",
+      "confirmApply": "Appliquer",
+      "apply": {
+        "pending": "Mise à jour en file d'attente — l'agent va démarrer.",
+        "running": "Mise à jour en cours…",
+        "done": "Mise à jour appliquée avec succès.",
+        "failed": "La mise à jour a échoué."
+      }
     }
   },
   "notifications": {
