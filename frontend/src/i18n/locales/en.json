@@ -435,7 +435,8 @@
       "logs": "Logs",
       "statuses": "Statuses",
       "categories": "Categories",
-      "templateCategories": "Template categories"
+      "templateCategories": "Template categories",
+      "updates": "Updates"
     },
     "users": {
       "searchPlaceholder": "Search by username...",
@@ -552,6 +553,45 @@
       "delete": "Delete",
       "editTooltip": "Edit",
       "deleteTooltip": "Delete"
+    },
+    "updates": {
+      "loading": "Checking for updates...",
+      "refresh": "Check",
+      "statusLabel": "Code status",
+      "upToDate": "Up to date",
+      "behindBy": "{{count}} commit behind",
+      "behindBy_other": "{{count}} commits behind",
+      "unknownLabel": "Local version",
+      "unknownTitle": "Unknown version",
+      "errorLabel": "Error",
+      "errors": {
+        "rate_limited": "GitHub API rate limit reached",
+        "github_unreachable": "GitHub unreachable"
+      },
+      "currentSha": "Deployed commit",
+      "latestSha": "Latest commit",
+      "checkedAt": "Checked at",
+      "impactLabel": "This update involves:",
+      "flagMigrations": "Database migrations",
+      "flagDeps": "Dependencies rebuilt",
+      "flagRebuild": "Image rebuild",
+      "viewOnGithub": "View comparison on GitHub",
+      "commitsTitle": "Commits to apply",
+      "noCommits": "No new commits",
+      "applyButton": "Update",
+      "applying": "Sending...",
+      "cancel": "Cancel",
+      "confirmTitle": "Apply the update?",
+      "confirmBody": "{{count}} commit will be applied up to {{sha}}.",
+      "confirmBody_other": "{{count}} commits will be applied up to {{sha}}.",
+      "confirmWarning": "The server will rebuild and restart; the app will be briefly unavailable. A database backup is taken beforehand.",
+      "confirmApply": "Apply",
+      "apply": {
+        "pending": "Update queued — the agent will start shortly.",
+        "running": "Update in progress…",
+        "done": "Update applied successfully.",
+        "failed": "The update failed."
+      }
     }
   },
   "notifications": {

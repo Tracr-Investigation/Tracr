@@ -6,11 +6,14 @@ import { LogsTab } from './tabs/LogsTab';
 import { StatusesTab } from './tabs/StatusesTab';
 import { CategoriesTab } from './tabs/CategoriesTab';
 import { TemplateCategoriesTab } from './tabs/TemplateCategoriesTab';
-import { Users, ScrollText, CircleDot, Tag, Layers } from 'lucide-react';
+import { UpdatesTab } from './tabs/UpdatesTab';
+import { Users, ScrollText, CircleDot, Tag, Layers, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../contexts/AuthContext';
 
 export const Admin = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
   usePageTitle(t('sidebar.administration'));
 
   const TABS: TabItem[] = [
@@ -44,6 +47,15 @@ export const Admin = () => {
       icon: Layers,
       content: <TemplateCategoriesTab />,
     },
+    // Mise à jour du code : réservée au super-admin.
+    ...(user?.role === 'super-admin'
+      ? [{
+          id: 'updates',
+          label: t('admin.tabs.updates'),
+          icon: RefreshCw,
+          content: <UpdatesTab />,
+        }]
+      : []),
   ];
 
   return (

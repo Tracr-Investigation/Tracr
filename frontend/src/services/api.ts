@@ -27,6 +27,45 @@ export interface RelationData {
     created_at: string | null;
 }
 
+export interface UpdateCommit {
+    sha: string;
+    message: string;
+    author: string | null;
+    date: string | null;
+    url: string | null;
+}
+
+export type UpdateApplyStatus = 'idle' | 'pending' | 'running' | 'done' | 'failed';
+
+export interface UpdateApplyState {
+    status: UpdateApplyStatus;
+    message: string | null;
+    target_sha: string | null;
+    requested_by: string | null;
+    requested_at: string | null;
+    started_at: string | null;
+    finished_at: string | null;
+    log_tail: string | null;
+}
+
+export interface UpdateStatusData {
+    repo: string;
+    branch: string;
+    current_sha: string | null;
+    latest_sha: string | null;
+    checked_at: string;
+    known: boolean;
+    up_to_date: boolean | null;
+    ahead_by: number | null;
+    behind_by: number | null;
+    commits: UpdateCommit[];
+    flags: { migrations: boolean; deps: boolean; rebuild: boolean };
+    compare_url: string | null;
+    error: 'current_sha_unknown' | 'rate_limited' | 'github_unreachable' | null;
+    apply: UpdateApplyState;
+    cached: boolean;
+}
+
 export {API_URL};
 
 export type SourceType = 'page_screenshot' | 'page_mhtml' | 'media' | 'web_archive' | 'manual_file';
@@ -375,6 +414,42 @@ export const api = {
 
         if (!response.ok) {
             throw new Error(parseApiError(data.detail, 'Error fetching users'));
+        }
+
+        return data;
+    },
+
+    getUpdateStatus: async (force: boolean = false): Promise<UpdateStatusData> => {
+        const token = localStorage.getItem('token');
+        const params = force ? '?force=true' : '';
+        const response = await fetch(`${API_URL}/admin/update/status${params}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error fetching update status'));
+        }
+
+        return data;
+    },
+
+    applyUpdate: async (): Promise<UpdateApplyState> => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/admin/update/apply`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(parseApiError(data.detail, 'Error applying update'));
         }
 
         return data;
