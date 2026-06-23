@@ -26,7 +26,7 @@ export const LogsTab = () => {
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [category, setCategory] = useState('');
     const [categories, setCategories] = useState<string[]>([]);
-    const [excludeReads, setExcludeReads] = useState(false);
+    const [excludeReads, setExcludeReads] = useState(true);
     const [loading, setLoading] = useState(true);
     const limit = 15;
 
