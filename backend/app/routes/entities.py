@@ -44,13 +44,15 @@ async def get_timeline(
     investigation_id: int,
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=50, ge=1, le=200),
+    category: str = Query(default=""),
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     _check_access(db, investigation_id, user.id_user)
-    events = log_service.get_timeline_for_investigation(db, investigation_id, skip=skip, limit=limit)
-    total = log_service.count_timeline_for_investigation(db, investigation_id)
-    return {"events": events, "total": total}
+    events = log_service.get_timeline_for_investigation(db, investigation_id, skip=skip, limit=limit, category=category)
+    total = log_service.count_timeline_for_investigation(db, investigation_id, category=category)
+    categories = log_service.get_timeline_categories(db, investigation_id)
+    return {"events": events, "total": total, "categories": categories}
 
 
 # --- Graph ---

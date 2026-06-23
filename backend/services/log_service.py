@@ -118,16 +118,21 @@ def get_timeline_for_investigation(
     investigation_id: int,
     skip: int = 0,
     limit: int = 50,
+    category: str = "",
 ) -> list[dict]:
     """Get activity timeline for a specific investigation, excluding read-only consultations"""
-    rows = (
+    query = (
         db.query(Log, User.pseudo)
         .outerjoin(User, Log.id_user == User.id_user)
         .filter(
             Log.id_investigation == investigation_id,
             Log.category != "consultation",
         )
-        .order_by(Log.created_at.desc())
+    )
+    if category:
+        query = query.filter(Log.category == category)
+    rows = (
+        query.order_by(Log.created_at.desc())
         .offset(skip)
         .limit(limit)
         .all()
@@ -146,12 +151,26 @@ def get_timeline_for_investigation(
     ]
 
 
-def count_timeline_for_investigation(db: Session, investigation_id: int) -> int:
-    return (
-        db.query(Log)
+def count_timeline_for_investigation(db: Session, investigation_id: int, category: str = "") -> int:
+    query = db.query(Log).filter(
+        Log.id_investigation == investigation_id,
+        Log.category != "consultation",
+    )
+    if category:
+        query = query.filter(Log.category == category)
+    return query.count()
+
+
+def get_timeline_categories(db: Session, investigation_id: int) -> list[str]:
+    """Catégories distinctes présentes dans la timeline d'une enquête."""
+    rows = (
+        db.query(Log.category)
         .filter(
             Log.id_investigation == investigation_id,
             Log.category != "consultation",
         )
-        .count()
+        .distinct()
+        .order_by(Log.category)
+        .all()
     )
+    return [r[0] for r in rows]
