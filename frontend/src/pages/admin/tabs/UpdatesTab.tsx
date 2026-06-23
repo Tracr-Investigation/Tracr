@@ -221,7 +221,10 @@ export const UpdatesTab = () => {
   }
 
   const applyInProgress = applyStatus === 'pending' || applyStatus === 'running';
-  const canApply = !!data && data.known && !data.up_to_date && !applyInProgress;
+  // Un changement de dépendances ou d'infra impose une reconstruction d'image,
+  // que l'agent (restart seul) ne peut pas faire : il faut un rebuild manuel sur l'hôte.
+  const needsRebuild = !!data && (data.flags.rebuild || data.flags.deps);
+  const canApply = !!data && data.known && !data.up_to_date && !applyInProgress && !needsRebuild;
 
   return (
     <div>
@@ -253,6 +256,19 @@ export const UpdatesTab = () => {
       </div>
 
       {error && <p className="text-red-400 text-sm mb-6">{error}</p>}
+
+      {data && data.known && !data.up_to_date && needsRebuild && (
+        <div className="flex items-start gap-3 px-4 py-3 rounded-xl border border-amber-500/30 bg-amber-500/10 mb-6">
+          <AlertTriangle size={18} className="text-amber-400 mt-0.5 shrink-0" />
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-amber-400">{t('admin.updates.rebuildRequiredTitle')}</p>
+            <p className="text-text-muted text-xs mt-1">{t('admin.updates.rebuildRequiredBody')}</p>
+            <code className="inline-block mt-2 px-3 py-1.5 rounded-lg bg-input-bg border border-border text-text-default font-mono text-xs">
+              git pull &amp;&amp; docker compose up -d --build
+            </code>
+          </div>
+        </div>
+      )}
 
       {data && (
         <>

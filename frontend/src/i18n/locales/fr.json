@@ -1,4 +1,8 @@
 {
+  "maintenance": {
+    "title": "Mise à jour en cours",
+    "message": "L'application est en cours de mise à jour. Merci de revenir dans quelques instants."
+  },
   "sidebar": {
     "dashboard": "Tableau de bord",
     "investigations": "Enquêtes",
@@ -579,6 +583,8 @@
       "commitsTitle": "Commits à appliquer",
       "noCommits": "Aucun nouveau commit",
       "applyButton": "Mettre à jour",
+      "rebuildRequiredTitle": "Reconstruction manuelle requise",
+      "rebuildRequiredBody": "Cette mise à jour modifie des dépendances ou l'infrastructure : elle ne peut pas être appliquée en un clic. Exécutez sur le serveur :",
       "applying": "Envoi...",
       "cancel": "Annuler",
       "confirmTitle": "Appliquer la mise à jour ?",

@@ -1,4 +1,8 @@
 {
+  "maintenance": {
+    "title": "Update in progress",
+    "message": "The application is being updated. Please come back in a few moments."
+  },
   "sidebar": {
     "dashboard": "Dashboard",
     "investigations": "Investigations",
@@ -579,6 +583,8 @@
       "commitsTitle": "Commits to apply",
       "noCommits": "No new commits",
       "applyButton": "Update",
+      "rebuildRequiredTitle": "Manual rebuild required",
+      "rebuildRequiredBody": "This update changes dependencies or infrastructure: it cannot be applied in one click. Run on the server:",
       "applying": "Sending...",
       "cancel": "Cancel",
       "confirmTitle": "Apply the update?",
