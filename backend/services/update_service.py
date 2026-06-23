@@ -249,6 +249,46 @@ def get_apply_state() -> dict:
     }
 
 
+def _backups_dir() -> Path:
+    return _update_dir() / "backups"
+
+
+def list_backups() -> list[dict]:
+    """Liste les dumps SQL présents, du plus récent au plus ancien."""
+    d = _backups_dir()
+    if not d.is_dir():
+        return []
+    items = []
+    for f in d.glob("*.sql"):
+        try:
+            st = f.stat()
+        except OSError:
+            continue
+        items.append({
+            "name": f.name,
+            "size_bytes": st.st_size,
+            "created_at": datetime.fromtimestamp(st.st_mtime, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        })
+    items.sort(key=lambda b: b["name"], reverse=True)
+    return items
+
+
+def backup_path(name: str) -> Optional[Path]:
+    """Chemin d'un backup, validé contre le path-traversal. None si invalide/absent."""
+    if not name or name != Path(name).name or not name.endswith(".sql"):
+        return None
+    p = _backups_dir() / name
+    return p if p.is_file() else None
+
+
+def delete_backup(name: str) -> bool:
+    p = backup_path(name)
+    if not p:
+        return False
+    p.unlink()
+    return True
+
+
 def request_apply(user_id: int, pseudo: str, target_sha: str) -> dict:
     """Écrit la demande de mise à jour. Lève UpdateInProgressError si déjà en cours."""
     current = get_apply_state()

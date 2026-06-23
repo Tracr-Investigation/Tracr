@@ -1,6 +1,7 @@
 import asyncio
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import FileResponse
 from sqlmodel import Session
 
 from services import user_service, log_service, status_service, category_service, update_service
@@ -85,6 +86,38 @@ async def apply_update(
         ip_address=ip,
     )
     return apply_state
+
+
+@router.get("/update/backups")
+async def list_db_backups(user=Depends(verify_superadmin)):
+    """Liste les sauvegardes SQL de la base (créées avant chaque mise à jour)."""
+    return {"backups": await asyncio.to_thread(update_service.list_backups)}
+
+
+@router.get("/update/backups/{name}/download")
+async def download_db_backup(name: str, user=Depends(verify_superadmin)):
+    path = update_service.backup_path(name)
+    if not path:
+        raise HTTPException(status_code=404, detail="Backup not found")
+    return FileResponse(str(path), media_type="application/sql", filename=name)
+
+
+@router.delete("/update/backups/{name}")
+async def delete_db_backup(
+        name: str,
+        request: Request,
+        admin=Depends(verify_superadmin),
+        db: Session = Depends(get_db),
+):
+    deleted = await asyncio.to_thread(update_service.delete_backup, name)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Backup not found")
+    ip = request.client.host if request.client else None
+    log_service.create_log(
+        db, category="admin", action="update_backup_delete",
+        id_user=admin.id_user, detail=f"Deleted DB backup {name}", ip_address=ip,
+    )
+    return {"detail": "Backup deleted"}
 
 
 @router.get("/users")
