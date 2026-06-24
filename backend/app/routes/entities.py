@@ -13,6 +13,7 @@ router = APIRouter(prefix="/investigations")
 
 
 def get_current_user(payload: dict = Depends(verify_token), db: Session = Depends(get_db)):
+    """Goal: resolve and validate the authenticated user from the JWT. Input: token payload, db. Output: User (401 if not found/inactive)."""
     user = user_service.get_user_by_id(db, payload["user_id"])
     if not user or not user.is_active:
         raise HTTPException(status_code=401, detail="User not found")
@@ -20,6 +21,7 @@ def get_current_user(payload: dict = Depends(verify_token), db: Session = Depend
 
 
 def _check_access(db: Session, investigation_id: int, user_id: int):
+    """Goal: ensure the investigation exists and the user is owner/collaborator. Input: db, investigation_id, user_id. Output: (investigation, permission) (403/404 on errors)."""
     investigation = investigation_service.get_investigation_by_id(db, investigation_id)
     if not investigation:
         raise HTTPException(status_code=404, detail="Investigation not found")
@@ -32,6 +34,7 @@ def _check_access(db: Session, investigation_id: int, user_id: int):
 
 
 def _require_write(permission: str):
+    """Goal: enforce write permission (owner/manager/editeur). Input: permission. Output: None (403 if read-only)."""
     if permission not in ("owner", "manager", "editeur"):
         raise HTTPException(status_code=403, detail="Insufficient permissions")
 
@@ -48,6 +51,7 @@ async def get_timeline(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: return an investigation's paginated activity timeline + categories. Input: investigation_id, skip, limit, category, auth, db. Output: {"events", "total", "categories"}."""
     _check_access(db, investigation_id, user.id_user)
     events = log_service.get_timeline_for_investigation(db, investigation_id, skip=skip, limit=limit, category=category)
     total = log_service.count_timeline_for_investigation(db, investigation_id, category=category)
@@ -64,6 +68,7 @@ async def get_graph(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: return the investigation's entity graph (nodes + edges). Input: investigation_id, auth, db. Output: graph dict."""
     _check_access(db, investigation_id, user.id_user)
     return entity_service.get_graph(db, investigation_id)
 
@@ -98,6 +103,7 @@ async def list_entities(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: list the investigation's entities. Input: investigation_id, auth, db. Output: {"entities"}."""
     _check_access(db, investigation_id, user.id_user)
     return {"entities": entity_service.get_entities(db, investigation_id)}
 
@@ -110,6 +116,7 @@ async def create_entity(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: create an entity (type-validated) in the graph. Input: investigation_id, body, auth, db. Output: entity dict (403/422 on errors)."""
     _, permission = _check_access(db, investigation_id, user.id_user)
     _require_write(permission)
 
@@ -149,6 +156,7 @@ async def update_entity(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: update an entity (label/value/notes/color/position). Input: investigation_id, entity_id, body, auth, db. Output: entity dict (403/404 on errors)."""
     _, permission = _check_access(db, investigation_id, user.id_user)
     _require_write(permission)
 
@@ -185,6 +193,7 @@ async def reset_entity_positions(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: clear all entity positions (re-layout). Input: investigation_id, auth, db. Output: {"detail"} with count."""
     _, permission = _check_access(db, investigation_id, user.id_user)
     _require_write(permission)
     count = entity_service.reset_positions(db, investigation_id)
@@ -207,6 +216,7 @@ async def delete_entity(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: delete an entity. Input: investigation_id, entity_id, auth, db. Output: {"detail"} (403/404 on errors)."""
     _, permission = _check_access(db, investigation_id, user.id_user)
     _require_write(permission)
 
@@ -246,6 +256,7 @@ async def list_relations(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: list the investigation's relations. Input: investigation_id, auth, db. Output: {"relations"}."""
     _check_access(db, investigation_id, user.id_user)
     return {"relations": entity_service.get_relations(db, investigation_id)}
 
@@ -258,6 +269,7 @@ async def create_relation(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: link two entities with a relation. Input: investigation_id, body (source/target/label), auth, db. Output: relation dict (400/403/404 on errors)."""
     _, permission = _check_access(db, investigation_id, user.id_user)
     _require_write(permission)
 
@@ -299,6 +311,7 @@ async def update_relation(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: update a relation's label. Input: investigation_id, relation_id, body, auth, db. Output: relation dict (403/404 on errors)."""
     _, permission = _check_access(db, investigation_id, user.id_user)
     _require_write(permission)
 
@@ -318,6 +331,7 @@ async def delete_relation(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: delete a relation. Input: investigation_id, relation_id, auth, db. Output: {"detail"} (403/404 on errors)."""
     _, permission = _check_access(db, investigation_id, user.id_user)
     _require_write(permission)
 

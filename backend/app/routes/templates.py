@@ -13,6 +13,7 @@ router = APIRouter(prefix="/templates")
 
 
 def get_current_user(payload: dict = Depends(verify_token), db: Session = Depends(get_db)):
+    """Goal: resolve and validate the authenticated user from the JWT. Input: token payload, db. Output: User (401 if not found/inactive)."""
     user = user_service.get_user_by_id(db, payload["user_id"])
     if not user or not user.is_active:
         raise HTTPException(status_code=401, detail="User not found")
@@ -20,6 +21,7 @@ def get_current_user(payload: dict = Depends(verify_token), db: Session = Depend
 
 
 def require_admin(user=Depends(get_current_user), db: Session = Depends(get_db)):
+    """Goal: ensure the user has an admin role. Input: auth, db. Output: User (403 if not admin)."""
     role = user_service.get_user_role(db, user.id_user)
     if role not in ("admin", "super-admin"):
         raise HTTPException(status_code=403, detail="Admin only")
@@ -33,6 +35,7 @@ async def list_template_categories(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: list template categories. Input: auth, db. Output: {"categories"}."""
     return {"categories": template_service.list_template_categories(db)}
 
 
@@ -44,6 +47,7 @@ async def create_template_category(
     user=Depends(require_admin),
     db: Session = Depends(get_db),
 ):
+    """Goal: create a template category (admin). Input: body (name/color/icon), auth, db. Output: the created category."""
     cat = template_service.create_template_category(db, body.name, body.color, body.icon)
     log_service.create_log(
         db, category="template", action="create_category",
@@ -63,6 +67,7 @@ async def update_template_category(
     user=Depends(require_admin),
     db: Session = Depends(get_db),
 ):
+    """Goal: update a template category (admin). Input: cat_id, body, auth, db. Output: the updated category (404 if not found)."""
     cat = template_service.get_template_category(db, cat_id)
     if not cat:
         raise HTTPException(status_code=404, detail="Category not found")
@@ -84,6 +89,7 @@ async def delete_template_category(
     user=Depends(require_admin),
     db: Session = Depends(get_db),
 ):
+    """Goal: delete a template category (admin). Input: cat_id, auth, db. Output: {"detail"} (404 if not found)."""
     cat = template_service.get_template_category(db, cat_id)
     if not cat:
         raise HTTPException(status_code=404, detail="Category not found")
@@ -105,6 +111,7 @@ async def list_templates(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: list templates visible to the user. Input: auth, db. Output: {"templates"}."""
     return {"templates": template_service.list_templates(db, user.id_user)}
 
 
@@ -116,6 +123,7 @@ async def create_template(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: create a template. Input: body, auth, db. Output: the created template detail."""
     template = template_service.create_template(
         db,
         name=body.name,
@@ -140,6 +148,7 @@ async def get_template(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: fetch a template detail if viewable. Input: template_id, auth, db. Output: template detail (404 if not found/not allowed)."""
     template = template_service.get_template(db, template_id)
     if not template:
         raise HTTPException(status_code=404, detail="Template not found")
@@ -157,6 +166,7 @@ async def update_template(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: update a template (creator or admin). Input: template_id, body, auth, db. Output: updated detail (403/404/422 on errors)."""
     template = template_service.get_template(db, template_id)
     if not template:
         raise HTTPException(status_code=404, detail="Template not found")
@@ -190,6 +200,7 @@ async def delete_template(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: delete a template (creator or admin). Input: template_id, auth, db. Output: {"detail"} (403/404 on errors)."""
     template = template_service.get_template(db, template_id)
     if not template:
         raise HTTPException(status_code=404, detail="Template not found")

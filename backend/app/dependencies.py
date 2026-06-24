@@ -10,5 +10,6 @@ limiter = Limiter(key_func=get_remote_address, enabled=settings.RATE_LIMIT_ENABL
 
 
 def get_db():
+    """Goal: yield a DB session (FastAPI dependency), closed afterwards. Input: none. Output: Session (generator)."""
     with Session(engine) as session:
         yield session

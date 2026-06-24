@@ -28,7 +28,7 @@ AUTO_BACKUP_INTERVAL_SECONDS = 600
 
 
 def _run_auto_backup_sweep() -> None:
-    """Exécution synchrone d'un balayage de backup (lancée dans un thread)."""
+    """Goal: run one document auto-backup sweep synchronously (called in a thread). Input: none. Output: None."""
     with Session(engine) as db:
         created = document_service.auto_backup_sweep(db)
         if created:
@@ -36,6 +36,7 @@ def _run_auto_backup_sweep() -> None:
 
 
 async def _auto_backup_loop() -> None:
+    """Goal: background loop running an auto-backup sweep every 10 min. Input: none. Output: None (runs forever)."""
     while True:
         await asyncio.sleep(AUTO_BACKUP_INTERVAL_SECONDS)
         try:
@@ -47,6 +48,7 @@ async def _auto_backup_loop() -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """Goal: app lifespan — start the auto-backup loop on startup, cancel it on shutdown. Input: app (FastAPI). Output: async context (yields control)."""
     task = asyncio.create_task(_auto_backup_loop())
     try:
         yield
@@ -64,6 +66,7 @@ fastapi_app.state.limiter = limiter
 
 @fastapi_app.exception_handler(RateLimitExceeded)
 async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    """Goal: handle rate-limit errors with a 429 JSON response. Input: request, exc (RateLimitExceeded). Output: JSONResponse (429)."""
     return JSONResponse(
         status_code=429,
         content={"detail": "Too many attempts. Please try again later."},
@@ -83,6 +86,7 @@ fastapi_app.add_middleware(
 
 @fastapi_app.middleware("http")
 async def add_security_headers(request: Request, call_next):
+    """Goal: middleware adding security headers to every response. Input: request, call_next. Output: Response (with security headers)."""
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
@@ -94,12 +98,13 @@ async def add_security_headers(request: Request, call_next):
 
 @fastapi_app.get("/health")
 async def health():
+    """Goal: health check. Input: none. Output: {"status": "ok"}."""
     return {"status": "ok"}
 
 
 @fastapi_app.get("/maintenance")
 async def maintenance():
-    """État public : une mise à jour est-elle en cours ? (pour la page de maintenance)"""
+    """Goal: public state — is an update in progress? (for the maintenance page). Input: none. Output: {"active": bool}."""
     apply_state = await asyncio.to_thread(update_service.get_apply_state)
     return {"active": apply_state["status"] in ("pending", "running")}
 

@@ -11,6 +11,7 @@ sio = socketio.AsyncServer(
 
 @sio.event
 async def connect(sid, environ, auth):
+    """Goal: authenticate the Socket.IO client via JWT and join its user room. Input: sid, environ, auth (with token). Output: None (refuses connection if invalid)."""
     if not auth or "token" not in auth:
         raise socketio.exceptions.ConnectionRefusedError("Token manquant")
 
@@ -29,6 +30,7 @@ async def connect(sid, environ, auth):
 
 @sio.event
 async def disconnect(sid):
+    """Goal: leave the user room on disconnect. Input: sid. Output: None."""
     session = await sio.get_session(sid)
     user_id = session.get("user_id")
     if user_id:
@@ -36,4 +38,5 @@ async def disconnect(sid):
 
 
 async def emit_notification(user_id: int, data: dict):
+    """Goal: push a real-time notification to a user's room. Input: user_id, data (dict). Output: None."""
     await sio.emit("new_notification", data, room=f"user_{user_id}")

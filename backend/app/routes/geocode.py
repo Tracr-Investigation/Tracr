@@ -13,6 +13,7 @@ class GeocodeRequest(BaseModel):
 
 @router.post("/geocode")
 async def geocode(body: GeocodeRequest, _: dict = Depends(verify_token)):
+    """Goal: geocode a postal address into coordinates. Input: body (address), auth token. Output: geocoding result (400 if empty, 404 if not found)."""
     if not body.address.strip():
         raise HTTPException(status_code=400, detail="Address is required")
     result = geocode_address(body.address.strip())

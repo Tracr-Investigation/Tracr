@@ -13,7 +13,7 @@ router = APIRouter(prefix="/admin")
 
 
 def verify_admin(payload: dict = Depends(verify_token), db: Session = Depends(get_db)):
-    """Dependency that verifies the user is admin or super-admin"""
+    """Goal: ensure the user is admin or super-admin. Input: token payload, db. Output: User (401/403 on errors)."""
     user = user_service.get_user_by_id(db, payload["user_id"])
     if not user or not user.is_active:
         raise HTTPException(status_code=401, detail="User not found")
@@ -26,7 +26,7 @@ def verify_admin(payload: dict = Depends(verify_token), db: Session = Depends(ge
 
 
 def verify_superadmin(payload: dict = Depends(verify_token), db: Session = Depends(get_db)):
-    """Dependency that restricts access to super-admin only (code updates)."""
+    """Goal: restrict access to super-admin only (code updates). Input: token payload, db. Output: User (401/403 on errors)."""
     user = user_service.get_user_by_id(db, payload["user_id"])
     if not user or not user.is_active:
         raise HTTPException(status_code=401, detail="User not found")
@@ -43,7 +43,7 @@ async def get_update_status(
         force: bool = False,
         user=Depends(verify_superadmin),
 ):
-    """État de mise à jour du code par rapport à GitHub (lecture seule)."""
+    """Goal: code update status vs GitHub (read-only). Input: force, auth. Output: status dict."""
     return await asyncio.to_thread(update_service.get_update_status, force)
 
 
@@ -53,7 +53,7 @@ async def apply_update(
         admin=Depends(verify_superadmin),
         db: Session = Depends(get_db),
 ):
-    """Demande l'application de la mise à jour (exécutée par l'agent hôte)."""
+    """Goal: request applying the update (run by the host agent). Input: request, auth, db. Output: apply state (400/409/503 on errors)."""
     status = await asyncio.to_thread(update_service.get_update_status, True)
 
     if status.get("error") in ("rate_limited", "github_unreachable"):
@@ -90,12 +90,13 @@ async def apply_update(
 
 @router.get("/update/backups")
 async def list_db_backups(user=Depends(verify_superadmin)):
-    """Liste les sauvegardes SQL de la base (créées avant chaque mise à jour)."""
+    """Goal: list the DB SQL backups (made before each update). Input: auth. Output: {"backups"}."""
     return {"backups": await asyncio.to_thread(update_service.list_backups)}
 
 
 @router.get("/update/backups/{name}/download")
 async def download_db_backup(name: str, user=Depends(verify_superadmin)):
+    """Goal: download a DB SQL backup file. Input: name, auth. Output: file Response (404 if not found)."""
     path = update_service.backup_path(name)
     if not path:
         raise HTTPException(status_code=404, detail="Backup not found")
@@ -109,6 +110,7 @@ async def delete_db_backup(
         admin=Depends(verify_superadmin),
         db: Session = Depends(get_db),
 ):
+    """Goal: delete a DB SQL backup. Input: name, auth, db. Output: {"detail"} (404 if not found)."""
     deleted = await asyncio.to_thread(update_service.delete_backup, name)
     if not deleted:
         raise HTTPException(status_code=404, detail="Backup not found")
@@ -128,6 +130,7 @@ async def get_admin_users(
         user=Depends(verify_admin),
         db: Session = Depends(get_db),
 ):
+    """Goal: list users (paginated, searchable). Input: page, limit, search, auth, db. Output: {"users", "total", "filtered", "page", "limit"}."""
     skip = (page - 1) * limit
     users = user_service.get_users_paginated(db, skip, limit, search)
     total = user_service.count_users(db)
@@ -143,6 +146,7 @@ async def create_admin_user(
         admin=Depends(verify_admin),
         db: Session = Depends(get_db),
 ):
+    """Goal: create an admin user. Input: body (pseudo/password), auth, db. Output: {"id_user", "pseudo", "role"} (409 if pseudo taken)."""
     existing = user_service.get_user_by_pseudo(db, body.pseudo)
     if existing:
         raise HTTPException(status_code=409, detail="This username is already taken")
@@ -169,6 +173,7 @@ async def delete_user(
         admin=Depends(verify_admin),
         db: Session = Depends(get_db),
 ):
+    """Goal: hard-delete a user (not super-admin, not self). Input: user_id, auth, db. Output: {"detail"} (400/403/404 on errors)."""
     target = user_service.get_user_by_id(db, user_id)
     if not target:
         raise HTTPException(status_code=404, detail="User not found")
@@ -200,6 +205,7 @@ async def admin_reset_user_password(
         admin=Depends(verify_admin),
         db: Session = Depends(get_db),
 ):
+    """Goal: reset a user's password (admin). Input: user_id, body, auth, db. Output: {"detail"} (403/404 on errors)."""
     target = user_service.get_user_by_id(db, user_id)
     if not target:
         raise HTTPException(status_code=404, detail="User not found")
@@ -229,6 +235,7 @@ async def get_admin_logs(
         user=Depends(verify_admin),
         db: Session = Depends(get_db),
 ):
+    """Goal: list audit logs (paginated, filterable). Input: page, limit, category, search, exclude_reads, auth, db. Output: {"logs", "total", "filtered", "page", "limit", "categories"}."""
     skip = (page - 1) * limit
     logs = log_service.get_logs_paginated(db, skip, limit, category, search, exclude_reads)
     total = log_service.count_logs(db, exclude_reads=exclude_reads)
@@ -250,6 +257,7 @@ async def get_admin_statuses(
         user=Depends(verify_admin),
         db: Session = Depends(get_db),
 ):
+    """Goal: list investigation statuses. Input: auth, db. Output: {"statuses", "total"}."""
     statuses = status_service.get_all_statuses(db)
     total = status_service.count_statuses(db)
     return {"statuses": statuses, "total": total}
@@ -261,6 +269,7 @@ async def create_admin_status(
         user=Depends(verify_admin),
         db: Session = Depends(get_db),
 ):
+    """Goal: create an investigation status. Input: body (name/color), auth, db. Output: the created status."""
     status = status_service.create_status(db, name=body.name, color=body.color)
     return {"id_status": status.id_status, "name": status.name, "color": status.color}
 
@@ -272,6 +281,7 @@ async def update_admin_status(
         user=Depends(verify_admin),
         db: Session = Depends(get_db),
 ):
+    """Goal: update an investigation status. Input: status_id, body, auth, db. Output: the updated status (404 if not found)."""
     status = status_service.get_status_by_id(db, status_id)
     if not status:
         raise HTTPException(status_code=404, detail="Status not found")
@@ -285,6 +295,7 @@ async def delete_admin_status(
         user=Depends(verify_admin),
         db: Session = Depends(get_db),
 ):
+    """Goal: delete an investigation status. Input: status_id, auth, db. Output: {"detail"} (404 if not found)."""
     status = status_service.get_status_by_id(db, status_id)
     if not status:
         raise HTTPException(status_code=404, detail="Status not found")
@@ -297,6 +308,7 @@ async def get_admin_categories(
         user=Depends(verify_admin),
         db: Session = Depends(get_db),
 ):
+    """Goal: list investigation categories. Input: auth, db. Output: {"categories", "total"}."""
     categories = category_service.get_all_categories(db)
     total = category_service.count_categories(db)
     return {"categories": categories, "total": total}
@@ -309,6 +321,7 @@ async def create_admin_category(
         user=Depends(verify_admin),
         db: Session = Depends(get_db),
 ):
+    """Goal: create an investigation category. Input: body (name/color/icon), auth, db. Output: the created category."""
     cat = category_service.create_category(db, name=body.name, color=body.color, icon=body.icon)
     ip = request.client.host if request.client else None
     log_service.create_log(
@@ -326,6 +339,7 @@ async def update_admin_category(
         user=Depends(verify_admin),
         db: Session = Depends(get_db),
 ):
+    """Goal: update an investigation category. Input: category_id, body, auth, db. Output: the updated category (404 if not found)."""
     cat = category_service.get_category_by_id(db, category_id)
     if not cat:
         raise HTTPException(status_code=404, detail="Category not found")
@@ -345,6 +359,7 @@ async def delete_admin_category(
         user=Depends(verify_admin),
         db: Session = Depends(get_db),
 ):
+    """Goal: delete an investigation category. Input: category_id, auth, db. Output: {"detail"} (404 if not found)."""
     cat = category_service.get_category_by_id(db, category_id)
     if not cat:
         raise HTTPException(status_code=404, detail="Category not found")

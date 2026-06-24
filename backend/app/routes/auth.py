@@ -11,7 +11,7 @@ router = APIRouter()
 
 
 def _login_success(db: Session, user, ip: str | None) -> dict:
-    """Emet le jeton d'acces complet (mot de passe + MFA valides)."""
+    """Goal: emit the full access token (password + MFA validated). Input: db, user, ip. Output: session dict (token, role, language...)."""
     token = create_token(user.id_user)
     user_service.update_last_login(db, user)
     role = user_service.get_user_role(db, user.id_user)
@@ -30,6 +30,7 @@ def _login_success(db: Session, user, ip: str | None) -> dict:
 @router.post("/login")
 @limiter.limit("5/minute")
 async def login(request: Request, body: LoginRequest, db: Session = Depends(get_db)):
+    """Goal: authenticate by password; if MFA on, return an MFA challenge. Input: request, body (pseudo/password), db. Output: session dict or {"mfa_required", "mfa_token"} (401 if invalid)."""
     ip = request.client.host if request.client else None
     user = user_service.authenticate_user(db, body.pseudo, body.password)
     if not user:
@@ -46,6 +47,7 @@ async def login(request: Request, body: LoginRequest, db: Session = Depends(get_
 @router.post("/login/mfa")
 @limiter.limit("5/minute")
 async def login_mfa(request: Request, body: MfaLoginRequest, db: Session = Depends(get_db)):
+    """Goal: complete login by validating the TOTP code. Input: request, body (mfa_token, code), db. Output: session dict (401 if invalid/expired)."""
     ip = request.client.host if request.client else None
     user_id = verify_mfa_challenge_token(body.mfa_token)
     if not user_id:
@@ -67,6 +69,7 @@ async def login_mfa(request: Request, body: MfaLoginRequest, db: Session = Depen
 async def register(
     request: Request, body: RegisterRequest, db: Session = Depends(get_db)
 ):
+    """Goal: create an account and return its token + recovery words. Input: request, body (pseudo/password), db. Output: session dict with recovery_words (409 if pseudo taken)."""
     ip = request.client.host if request.client else None
     existing = user_service.get_user_by_pseudo(db, body.pseudo)
     if existing:
@@ -95,6 +98,7 @@ async def register(
 
 @router.get("/me")
 async def get_me(request: Request, payload: dict = Depends(verify_token), db: Session = Depends(get_db)):
+    """Goal: return the current session's user info. Input: request, auth, db. Output: user dict (401 if invalid)."""
     user = user_service.get_user_by_id(db, payload["user_id"])
     if not user or not user.is_active:
         raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -118,6 +122,7 @@ async def get_me(request: Request, payload: dict = Depends(verify_token), db: Se
 
 @router.get("/me/mfa/status")
 async def mfa_status(payload: dict = Depends(verify_token), db: Session = Depends(get_db)):
+    """Goal: return whether MFA is enabled for the user. Input: auth, db. Output: {"mfa_enabled"}."""
     user = user_service.get_user_by_id(db, payload["user_id"])
     if not user or not user.is_active:
         raise HTTPException(status_code=401, detail="User not found")
@@ -130,7 +135,7 @@ async def mfa_setup(
     payload: dict = Depends(verify_token),
     db: Session = Depends(get_db),
 ):
-    """Genere un nouveau secret TOTP (non encore actif) et renvoie le QR a scanner."""
+    """Goal: generate a new (inactive) TOTP secret and return the QR to scan. Input: request, auth, db. Output: setup data (400 if MFA already on)."""
     user = user_service.get_user_by_id(db, payload["user_id"])
     if not user or not user.is_active:
         raise HTTPException(status_code=401, detail="User not found")
@@ -152,7 +157,7 @@ async def mfa_enable(
     payload: dict = Depends(verify_token),
     db: Session = Depends(get_db),
 ):
-    """Confirme l'enrolment : valide un premier code et active le MFA."""
+    """Goal: confirm enrolment — validate a first code and enable MFA. Input: request, body (code), auth, db. Output: {"mfa_enabled": True} (400 if invalid)."""
     user = user_service.get_user_by_id(db, payload["user_id"])
     if not user or not user.is_active:
         raise HTTPException(status_code=401, detail="User not found")
@@ -173,8 +178,7 @@ async def mfa_disable(
     payload: dict = Depends(verify_token),
     db: Session = Depends(get_db),
 ):
-    """Reinitialise le MFA (verifie par mot de passe). L'utilisateur devra le
-    re-enroler puisque le MFA est obligatoire."""
+    """Goal: reset MFA (password-verified); user must re-enrol. Input: request, body (password), auth, db. Output: {"mfa_enabled": False} (400 if wrong password)."""
     user = user_service.get_user_by_id(db, payload["user_id"])
     if not user or not user.is_active:
         raise HTTPException(status_code=401, detail="User not found")
@@ -195,6 +199,7 @@ async def update_language(
     payload: dict = Depends(verify_token),
     db: Session = Depends(get_db),
 ):
+    """Goal: update the user's UI language. Input: body (language), auth, db. Output: {"language"}."""
     user = user_service.get_user_by_id(db, payload["user_id"])
     if not user or not user.is_active:
         raise HTTPException(status_code=401, detail="User not found")
@@ -210,6 +215,7 @@ async def change_password(
     payload: dict = Depends(verify_token),
     db: Session = Depends(get_db),
 ):
+    """Goal: change the password after verifying the current one. Input: request, body, auth, db. Output: {"detail"} (400 if current is wrong)."""
     ip = request.client.host if request.client else None
     user = user_service.get_user_by_id(db, payload["user_id"])
     if not user or not user.is_active:
@@ -232,6 +238,7 @@ async def force_change_password(
     payload: dict = Depends(verify_token),
     db: Session = Depends(get_db),
 ):
+    """Goal: change the password when a forced change is pending. Input: request, body, auth, db. Output: {"detail"} (400 if not required)."""
     ip = request.client.host if request.client else None
     user = user_service.get_user_by_id(db, payload["user_id"])
     if not user or not user.is_active:
@@ -253,6 +260,7 @@ async def generate_recovery(
     payload: dict = Depends(verify_token),
     db: Session = Depends(get_db),
 ):
+    """Goal: (re)generate the recovery words (password required if one exists). Input: request, body, auth, db. Output: {"words"} (400 on wrong/missing password)."""
     ip = request.client.host if request.client else None
     user = user_service.get_user_by_id(db, payload["user_id"])
     if not user or not user.is_active:
@@ -278,6 +286,7 @@ async def recover_password(
     body: RecoverPasswordRequest,
     db: Session = Depends(get_db),
 ):
+    """Goal: reset the password from the recovery phrase and log in. Input: request, body (pseudo/phrase/new password), db. Output: session dict (400 if invalid phrase)."""
     ip = request.client.host if request.client else None
     user = user_service.verify_and_use_recovery(db, body.pseudo, body.recovery_phrase, body.new_password)
     if not user:
@@ -304,6 +313,7 @@ async def get_recovery_status(
     payload: dict = Depends(verify_token),
     db: Session = Depends(get_db),
 ):
+    """Goal: report whether the user has a recovery code and when. Input: auth, db. Output: {"has_recovery", "recovery_created_at"}."""
     user = user_service.get_user_by_id(db, payload["user_id"])
     if not user or not user.is_active:
         raise HTTPException(status_code=401, detail="User not found")
@@ -321,6 +331,7 @@ async def delete_account(
     payload: dict = Depends(verify_token),
     db: Session = Depends(get_db),
 ):
+    """Goal: deactivate the account after password check. Input: request, body (password), auth, db. Output: {"detail"} (400 if wrong password)."""
     ip = request.client.host if request.client else None
     user = user_service.get_user_by_id(db, payload["user_id"])
     if not user or not user.is_active:

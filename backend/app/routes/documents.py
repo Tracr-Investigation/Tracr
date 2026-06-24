@@ -27,6 +27,7 @@ docs_router = APIRouter(prefix="/documents")
 
 
 def get_current_user(payload: dict = Depends(verify_token), db: Session = Depends(get_db)):
+    """Goal: resolve and validate the authenticated user from the JWT. Input: token payload, db. Output: User (401 if not found/inactive)."""
     user = user_service.get_user_by_id(db, payload["user_id"])
     if not user or not user.is_active:
         raise HTTPException(status_code=401, detail="User not found")
@@ -34,7 +35,7 @@ def get_current_user(payload: dict = Depends(verify_token), db: Session = Depend
 
 
 def _check_investigation_access(db: Session, investigation_id: int, user_id: int):
-    """Retourne (investigation, permission). 404 si absente, 403 si non membre."""
+    """Goal: return (investigation, permission). 404 if missing, 403 if not a member. Input: db, investigation_id, user_id. Output: (investigation, permission)."""
     investigation = investigation_service.get_investigation_by_id(db, investigation_id)
     if not investigation:
         raise HTTPException(status_code=404, detail="Investigation not found")
@@ -45,7 +46,7 @@ def _check_investigation_access(db: Session, investigation_id: int, user_id: int
 
 
 def _load_document_with_access(db: Session, document_id: int, user_id: int):
-    """Charge le document + vérifie l'accès via son investigation."""
+    """Goal: load the document and check access via its investigation. Input: db, document_id, user_id. Output: (document, permission) (404 if not found)."""
     document = document_service.get_document(db, document_id)
     if not document:
         raise HTTPException(status_code=404, detail="Document not found")
@@ -61,6 +62,7 @@ async def list_documents(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: list an investigation's documents. Input: investigation_id, auth, db. Output: {"documents"}."""
     _check_investigation_access(db, investigation_id, user.id_user)
     documents = document_service.list_documents(db, investigation_id)
     ip = request.client.host if request.client else None
@@ -80,6 +82,7 @@ async def create_document(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: create a document (optionally pre-filled from a template). Input: investigation_id, body, auth, db. Output: document detail (403/404 on errors)."""
     _, permission = _check_investigation_access(db, investigation_id, user.id_user)
     if not document_service.can_write(permission):
         raise HTTPException(status_code=403, detail="Insufficient permissions to create documents")
@@ -121,6 +124,7 @@ async def get_document(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: return a document's detail. Input: document_id, auth, db. Output: document detail (403/404 on errors)."""
     document, _ = _load_document_with_access(db, document_id, user.id_user)
     ip = request.client.host if request.client else None
     log_service.create_log(
@@ -139,6 +143,7 @@ async def update_document(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: update a document (title and/or content). Input: document_id, body, auth, db. Output: document detail (403/422 on errors)."""
     document, permission = _load_document_with_access(db, document_id, user.id_user)
     if not document_service.can_write(permission):
         raise HTTPException(status_code=403, detail="Insufficient permissions to edit this document")
@@ -165,6 +170,7 @@ async def delete_document(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: delete a document. Input: document_id, auth, db. Output: {"detail"} (403/404 on errors)."""
     document, permission = _load_document_with_access(db, document_id, user.id_user)
     if not document_service.can_delete(permission, document, user.id_user):
         raise HTTPException(status_code=403, detail="Insufficient permissions to delete this document")
@@ -193,6 +199,7 @@ async def export_document(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: export a document as PDF (with optional TLP/PAP marking). Input: document_id, format, tlp, pap, auth, db. Output: PDF file Response (400/500 on errors)."""
     if format != "pdf":
         raise HTTPException(status_code=400, detail="format must be pdf")
 
@@ -232,6 +239,7 @@ async def list_comments(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: list a document's comments. Input: document_id, auth, db. Output: {"comments"}."""
     _load_document_with_access(db, document_id, user.id_user)
     comments = document_service.list_comments(db, document_id)
     return {"comments": comments}
@@ -244,6 +252,7 @@ async def create_comment(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: add a comment to a document. Input: document_id, body, auth, db. Output: the created comment (403 on insufficient perms)."""
     _, permission = _load_document_with_access(db, document_id, user.id_user)
     if not document_service.can_write(permission):
         raise HTTPException(status_code=403, detail="Insufficient permissions to comment")
@@ -276,6 +285,7 @@ async def toggle_resolve_comment(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: toggle a comment's resolved flag. Input: document_id, comment_id, auth, db. Output: {"id_comment", "resolved"} (403/404 on errors)."""
     _, permission = _load_document_with_access(db, document_id, user.id_user)
     if not document_service.can_write(permission):
         raise HTTPException(status_code=403, detail="Insufficient permissions")
@@ -295,6 +305,7 @@ async def create_backup(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: create a manual backup of a document. Input: document_id, auth, db. Output: {"id_backup", "created_at"} (403 on insufficient perms)."""
     document, permission = _load_document_with_access(db, document_id, user.id_user)
     if not document_service.can_write(permission):
         raise HTTPException(status_code=403, detail="Insufficient permissions")
@@ -311,6 +322,7 @@ async def list_backups(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: list a document's backups. Input: document_id, auth, db. Output: {"backups"} (403 on insufficient perms)."""
     document, permission = _load_document_with_access(db, document_id, user.id_user)
     if not document_service.can_write(permission):
         raise HTTPException(status_code=403, detail="Insufficient permissions")
@@ -324,6 +336,7 @@ async def get_backup(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: return a backup's full content. Input: document_id, backup_id, auth, db. Output: backup dict (403/404 on errors)."""
     document, permission = _load_document_with_access(db, document_id, user.id_user)
     if not document_service.can_write(permission):
         raise HTTPException(status_code=403, detail="Insufficient permissions")
@@ -348,6 +361,7 @@ async def toggle_pin_backup(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: pin/unpin a backup (protects it from retention). Input: document_id, backup_id, auth, db. Output: {"id_backup", "pinned"} (403/404/409 on errors)."""
     document, permission = _load_document_with_access(db, document_id, user.id_user)
     if not document_service.can_write(permission):
         raise HTTPException(status_code=403, detail="Insufficient permissions")
@@ -376,6 +390,7 @@ async def restore_backup(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: restore a document from a backup. Input: document_id, backup_id, auth, db. Output: document detail (403/404 on errors)."""
     document, permission = _load_document_with_access(db, document_id, user.id_user)
     if not document_service.can_write(permission):
         raise HTTPException(status_code=403, detail="Insufficient permissions")
@@ -396,6 +411,7 @@ async def delete_comment(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: delete a comment (author or owner). Input: document_id, comment_id, auth, db. Output: {"detail"} (403/404 on errors)."""
     _, permission = _load_document_with_access(db, document_id, user.id_user)
     comment = document_service.get_comment(db, comment_id)
     if not comment or comment.id_document != document_id:

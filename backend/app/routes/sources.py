@@ -40,6 +40,7 @@ class SourceUpdate(BaseModel):
 
 
 def get_current_user(payload: dict = Depends(verify_token), db: Session = Depends(get_db)):
+    """Goal: resolve and validate the authenticated user from the JWT. Input: token payload, db. Output: User (401 if not found/inactive)."""
     user = user_service.get_user_by_id(db, payload["user_id"])
     if not user or not user.is_active:
         raise HTTPException(status_code=401, detail="User not found")
@@ -47,7 +48,7 @@ def get_current_user(payload: dict = Depends(verify_token), db: Session = Depend
 
 
 def _check_investigation_access(db: Session, investigation_id: int, user_id: int):
-    """Retourne (investigation, permission). 404 si absente, 403 si non membre."""
+    """Goal: return (investigation, permission). 404 if missing, 403 if not a member. Input: db, investigation_id, user_id. Output: (investigation, permission)."""
     investigation = investigation_service.get_investigation_by_id(db, investigation_id)
     if not investigation:
         raise HTTPException(status_code=404, detail="Investigation not found")
@@ -58,7 +59,7 @@ def _check_investigation_access(db: Session, investigation_id: int, user_id: int
 
 
 def _load_source_with_access(db: Session, source_id: int, user_id: int):
-    """Charge la source + verifie l'acces via son enquete."""
+    """Goal: load the source and check access via its investigation. Input: db, source_id, user_id. Output: (source, permission) (404 if not found)."""
     source = source_service.get_source(db, source_id)
     if not source:
         raise HTTPException(status_code=404, detail="Source not found")
@@ -73,6 +74,7 @@ async def list_sources(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: list an investigation's archived sources. Input: investigation_id, auth, db. Output: {"sources"}."""
     _check_investigation_access(db, investigation_id, user.id_user)
     sources = source_service.list_sources(db, investigation_id)
     ip = request.client.host if request.client else None
@@ -100,6 +102,7 @@ async def create_source(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: archive an uploaded capture (validated type/role/size). Input: investigation_id, multipart form (file + metadata), auth, db. Output: source detail (403/413/422 on errors)."""
     _, permission = _check_investigation_access(db, investigation_id, user.id_user)
     if not source_service.can_write(permission):
         raise HTTPException(status_code=403, detail="Insufficient permissions to add sources")
@@ -169,6 +172,7 @@ async def get_source(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: return a source's metadata. Input: source_id, auth, db. Output: source detail (403/404 on errors)."""
     source, _ = _load_source_with_access(db, source_id, user.id_user)
     return source_service.source_detail(db, source)
 
@@ -181,6 +185,7 @@ async def update_source(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: update a source (title/notes/show_in_list). Input: source_id, body, auth, db. Output: source detail (403/422 on errors)."""
     source, permission = _load_source_with_access(db, source_id, user.id_user)
     if not source_service.can_write(permission):
         raise HTTPException(status_code=403, detail="Insufficient permissions to edit this source")
@@ -207,9 +212,7 @@ async def list_source_media(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Liste les medias embarques d'une archive HTML (memes capture_group,
-    role=page_media). Permet de les afficher sous la page parente sans encombrer
-    la liste principale des sources."""
+    """Goal: list the embedded media of an HTML archive (same capture_group, role=page_media). Input: source_id, auth, db. Output: {"media"}."""
     source, _ = _load_source_with_access(db, source_id, user.id_user)
     return {"media": source_service.list_embedded_media(db, source)}
 
@@ -220,7 +223,7 @@ async def get_source_hits(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Hits deja enregistres pour cette source (sans recalcul)."""
+    """Goal: return the source's already-stored hits (no recompute). Input: source_id, auth, db. Output: stored hits."""
     source, _ = _load_source_with_access(db, source_id, user.id_user)
     return hit_service.get_source_hits(db, source)
 
@@ -232,8 +235,7 @@ async def analyze_source(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """(Re)lance l'analyse de cette source contre les selecteurs de l'enquete et
-    enregistre les hits."""
+    """Goal: (re)run the analysis of this source against the investigation's selectors and store hits. Input: source_id, auth, db. Output: scan result (403 if read-only)."""
     source, permission = _load_source_with_access(db, source_id, user.id_user)
     if not source_service.can_write(permission):
         raise HTTPException(status_code=403, detail="Insufficient permissions to analyze this source")
@@ -256,8 +258,7 @@ async def ocr_source(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Lance l'OCR (Tesseract local) sur une source image, puis ré-analyse la
-    source contre les sélecteurs. Renvoie les hits mis à jour."""
+    """Goal: run OCR (local Tesseract) on an image source, then re-analyze it against the selectors. Input: source_id, auth, db. Output: updated hits (403/422 on errors)."""
     source, permission = _load_source_with_access(db, source_id, user.id_user)
     if not source_service.can_write(permission):
         raise HTTPException(status_code=403, detail="Insufficient permissions")
@@ -284,6 +285,7 @@ async def download_source(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: download the source's raw binary (as attachment). Input: source_id, auth, db. Output: file Response (502 if storage down)."""
     source, _ = _load_source_with_access(db, source_id, user.id_user)
     try:
         data = source_service.get_content(source)
@@ -303,8 +305,7 @@ async def download_source(
 
 
 def _parse_range(range_header: str, file_size: int) -> tuple[int, int] | None:
-    """Parse un en-tete `Range: bytes=start-end` simple. Retourne (start, end)
-    inclusifs et bornes, ou None si invalide/non gerable."""
+    """Goal: parse a simple `Range: bytes=start-end` header. Input: range_header, file_size. Output: inclusive (start, end) or None if invalid."""
     if not range_header or not range_header.startswith("bytes="):
         return None
     start_str, _, end_str = range_header[len("bytes="):].partition("-")
@@ -334,10 +335,7 @@ async def view_source(
     request: Request,
     db: Session = Depends(get_db),
 ):
-    """Sert le contenu via une signature HMAC stable (pas d'auth utilisateur).
-    Permet d'embarquer une image/capture dans un document en `<img src=http...>`
-    ou de lire/seek un media compagnon (video/audio) depuis le viewer via Range.
-    """
+    """Goal: serve content via a stable HMAC signature (no user auth), with Range support. Input: source_id, sig, request, db. Output: content Response (full or 206; 403/404/502 on errors)."""
     source = source_service.get_source(db, source_id)
     if not source:
         raise HTTPException(status_code=404, detail="Source not found")
@@ -381,6 +379,7 @@ async def delete_source(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: delete a source. Input: source_id, auth, db. Output: {"detail"} (403 on insufficient perms)."""
     source, permission = _load_source_with_access(db, source_id, user.id_user)
     if not source_service.can_delete(permission, source, user.id_user):
         raise HTTPException(status_code=403, detail="Insufficient permissions to delete this source")

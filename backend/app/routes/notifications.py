@@ -9,6 +9,7 @@ router = APIRouter(prefix="/notifications")
 
 
 def get_current_user(payload: dict = Depends(verify_token), db: Session = Depends(get_db)):
+    """Goal: resolve and validate the authenticated user from the JWT. Input: token payload, db. Output: User (401 if not found/inactive)."""
     user = user_service.get_user_by_id(db, payload["user_id"])
     if not user or not user.is_active:
         raise HTTPException(status_code=401, detail="User not found")
@@ -23,6 +24,7 @@ async def get_notifications(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: list the user's notifications + unread count (paginated). Input: skip, limit, auth, db. Output: {"notifications", "unread_count"}."""
     notifications = notification_service.get_notifications_by_user(db, user.id_user, skip, limit)
     unread_count = notification_service.count_unread(db, user.id_user)
     ip = request.client.host if request.client else None
@@ -39,6 +41,7 @@ async def get_unread_count(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: return the user's unread notifications count. Input: auth, db. Output: {"unread_count"}."""
     count = notification_service.count_unread(db, user.id_user)
     ip = request.client.host if request.client else None
     log_service.create_log(
@@ -55,6 +58,7 @@ async def mark_notification_read(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: mark one notification as read. Input: id_notification, auth, db. Output: the updated notification (404 if not found)."""
     result = notification_service.mark_as_read(db, id_notification, user.id_user)
     if not result:
         raise HTTPException(status_code=404, detail="Notification not found")
@@ -73,6 +77,7 @@ async def mark_all_notifications_read(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: mark all the user's notifications as read. Input: auth, db. Output: {"marked_count"}."""
     count = notification_service.mark_all_as_read(db, user.id_user)
     ip = request.client.host if request.client else None
     log_service.create_log(

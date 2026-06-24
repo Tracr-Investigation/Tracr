@@ -11,6 +11,7 @@ router = APIRouter(prefix="/investigations")
 
 
 def get_current_user(payload: dict = Depends(verify_token), db: Session = Depends(get_db)):
+    """Goal: resolve and validate the authenticated user from the JWT. Input: token payload, db. Output: User (401 if not found/inactive)."""
     user = user_service.get_user_by_id(db, payload["user_id"])
     if not user or not user.is_active:
         raise HTTPException(status_code=401, detail="User not found")
@@ -23,6 +24,7 @@ async def get_my_investigations(
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
+    """Goal: list the investigations the user can access. Input: auth, db. Output: {"investigations", "total"}."""
     investigations = investigation_service.get_investigations_for_user(db, user.id_user)
     total = investigation_service.count_investigations_for_user(db, user.id_user)
     ip = request.client.host if request.client else None
@@ -40,6 +42,7 @@ async def create_investigation(
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
+    """Goal: create an investigation owned by the user. Input: body (title/description/objectives), auth, db. Output: the created investigation."""
     ip = request.client.host if request.client else None
     investigation = investigation_service.create_investigation(
         db, title=body.title, owner_id=user.id_user, description=body.description,
@@ -68,6 +71,7 @@ async def get_statuses(
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
+    """Goal: list all investigation statuses. Input: auth, db. Output: {"statuses"}."""
     statuses = status_service.get_all_statuses(db)
     ip = request.client.host if request.client else None
     log_service.create_log(
@@ -83,6 +87,7 @@ async def get_my_invitations(
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
+    """Goal: list the user's pending collaboration invitations. Input: auth, db. Output: {"invitations"}."""
     invitations = collaborator_service.get_pending_invitations_for_user(db, user.id_user)
     ip = request.client.host if request.client else None
     log_service.create_log(
@@ -99,6 +104,7 @@ async def search_users_for_invitation(
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
+    """Goal: search active users (excluding self) for invitation. Input: q, auth, db. Output: {"users": [...]}."""
     from models.user import User as UserModel
     users = (
         db.query(UserModel)
@@ -130,6 +136,7 @@ async def accept_invitation(
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
+    """Goal: accept a collaboration invitation (notifies the owner). Input: id_collaborator, auth, db. Output: {"detail", ...} (404 if not found)."""
     result = collaborator_service.accept_invitation(db, id_collaborator, user.id_user)
     if not result:
         raise HTTPException(status_code=404, detail="Invitation not found or already accepted")
@@ -166,6 +173,7 @@ async def reject_invitation(
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
+    """Goal: reject a collaboration invitation. Input: id_collaborator, auth, db. Output: {"detail"} (404 if not found)."""
     collab = collaborator_service.get_collaborator_by_id(db, id_collaborator)
     if not collab or collab.id_user != user.id_user:
         raise HTTPException(status_code=404, detail="Invitation not found")
@@ -195,6 +203,7 @@ async def get_investigation_categories(
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
+    """Goal: list all available categories. Input: auth, db. Output: {"categories"}."""
     categories = category_service.get_all_categories(db)
     ip = request.client.host if request.client else None
     log_service.create_log(
@@ -211,6 +220,7 @@ async def get_recent_investigations(
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
+    """Goal: list the user's recently viewed investigations. Input: limit, auth, db. Output: {"investigations"}."""
     investigation_ids = log_service.get_recent_investigation_ids(db, user.id_user, limit)
     if not investigation_ids:
         return {"investigations": []}
@@ -235,6 +245,7 @@ async def get_investigation(
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
+    """Goal: return an investigation's detail (owner or collaborator). Input: investigation_id, auth, db. Output: detail (403/404 on errors)."""
     detail = investigation_service.get_investigation_detail(db, investigation_id, current_user_id=user.id_user)
     if not detail:
         raise HTTPException(status_code=404, detail="Investigation not found")
@@ -262,6 +273,7 @@ async def update_investigation(
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
+    """Goal: update an investigation (owner only). Input: investigation_id, body, auth, db. Output: the updated investigation (403/404/422 on errors)."""
     investigation = investigation_service.get_investigation_by_id(db, investigation_id)
     if not investigation:
         raise HTTPException(status_code=404, detail="Investigation not found")
@@ -308,13 +320,13 @@ _MAX_COVER_BYTES = 8 * 1024 * 1024  # 8 Mo
 
 
 def cover_mime_from_key(storage_key: str) -> str:
-    """Deduit le type MIME a partir du suffixe de la cle d'objet."""
+    """Goal: infer the MIME type from the object key suffix. Input: storage_key. Output: MIME string."""
     ext = storage_key.rsplit(".", 1)[-1].lower()
     return _COVER_EXT_MIME.get(ext, "application/octet-stream")
 
 
 def _require_investigation_access(db: Session, investigation_id: int, user_id: int):
-    """Retourne l'enquete si l'utilisateur y a acces (proprietaire ou collaborateur)."""
+    """Goal: return the investigation if the user has access (owner or collaborator). Input: db, investigation_id, user_id. Output: the investigation (403/404 on errors)."""
     investigation = investigation_service.get_investigation_by_id(db, investigation_id)
     if not investigation:
         raise HTTPException(status_code=404, detail="Investigation not found")
@@ -332,6 +344,7 @@ async def upload_investigation_cover(
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
+    """Goal: upload the investigation cover image (owner only). Input: investigation_id, file, auth, db. Output: {"has_cover": True} (400/403/404 on errors)."""
     investigation = investigation_service.get_investigation_by_id(db, investigation_id)
     if not investigation:
         raise HTTPException(status_code=404, detail="Investigation not found")
@@ -374,6 +387,7 @@ async def delete_investigation_cover(
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
+    """Goal: remove the investigation cover image (owner only). Input: investigation_id, auth, db. Output: {"has_cover": False} (403/404 on errors)."""
     investigation = investigation_service.get_investigation_by_id(db, investigation_id)
     if not investigation:
         raise HTTPException(status_code=404, detail="Investigation not found")
@@ -396,6 +410,7 @@ async def get_investigation_cover(
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
+    """Goal: serve the investigation cover image. Input: investigation_id, auth, db. Output: image Response (404 if none)."""
     investigation = _require_investigation_access(db, investigation_id, user.id_user)
     if not investigation.cover_storage_key:
         raise HTTPException(status_code=404, detail="No cover image")
@@ -414,6 +429,7 @@ async def transfer_investigation(
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
+    """Goal: transfer ownership to another user (owner only; notifies them). Input: investigation_id, body (new_owner_pseudo), auth, db. Output: {"detail", "new_owner"} (400/403/404 on errors)."""
     investigation = investigation_service.get_investigation_by_id(db, investigation_id)
     if not investigation:
         raise HTTPException(status_code=404, detail="Investigation not found")
@@ -476,6 +492,7 @@ async def delete_investigation(
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
+    """Goal: delete an investigation (owner only). Input: investigation_id, auth, db. Output: {"detail"} (403/404 on errors)."""
     investigation = investigation_service.get_investigation_by_id(db, investigation_id)
     if not investigation:
         raise HTTPException(status_code=404, detail="Investigation not found")
@@ -507,6 +524,7 @@ async def update_investigation_status(
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
+    """Goal: change an investigation's status (owner/manager/editeur). Input: investigation_id, body (id_status), auth, db. Output: {"detail", "id_status", "status_name"} (403/404/422 on errors)."""
     investigation = investigation_service.get_investigation_by_id(db, investigation_id)
     if not investigation:
         raise HTTPException(status_code=404, detail="Investigation not found")
@@ -554,6 +572,7 @@ async def invite_collaborator(
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
+    """Goal: invite a user as collaborator (owner/manager; notifies them). Input: investigation_id, body (pseudo/permission), auth, db. Output: invitation result (400/403/404/409 on errors)."""
     investigation = investigation_service.get_investigation_by_id(db, investigation_id)
     if not investigation:
         raise HTTPException(status_code=404, detail="Investigation not found")
@@ -627,6 +646,7 @@ async def get_collaborators(
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
+    """Goal: list an investigation's collaborators. Input: investigation_id, auth, db. Output: {"collaborators"} (403/404 on errors)."""
     investigation = investigation_service.get_investigation_by_id(db, investigation_id)
     if not investigation:
         raise HTTPException(status_code=404, detail="Investigation not found")
@@ -656,6 +676,7 @@ async def update_collaborator_permission(
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
+    """Goal: change a collaborator's permission (owner only). Input: investigation_id, id_collaborator, body, auth, db. Output: result (403/404 on errors)."""
     investigation = investigation_service.get_investigation_by_id(db, investigation_id)
     if not investigation:
         raise HTTPException(status_code=404, detail="Investigation not found")
@@ -691,6 +712,7 @@ async def remove_collaborator(
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
+    """Goal: remove a collaborator (owner, manager, or self). Input: investigation_id, id_collaborator, auth, db. Output: {"detail"} (403/404 on errors)."""
     investigation = investigation_service.get_investigation_by_id(db, investigation_id)
     if not investigation:
         raise HTTPException(status_code=404, detail="Investigation not found")
@@ -744,6 +766,7 @@ async def get_investigation_category_list(
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
+    """Goal: list an investigation's categories. Input: investigation_id, auth, db. Output: {"categories"} (403/404 on errors)."""
     investigation = investigation_service.get_investigation_by_id(db, investigation_id)
     if not investigation:
         raise HTTPException(status_code=404, detail="Investigation not found")
@@ -771,6 +794,7 @@ async def add_category_to_investigation(
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
+    """Goal: assign a category to an investigation (owner/manager/editeur). Input: investigation_id, body (id_category), auth, db. Output: result (403/404/422 on errors)."""
     investigation = investigation_service.get_investigation_by_id(db, investigation_id)
     if not investigation:
         raise HTTPException(status_code=404, detail="Investigation not found")
@@ -806,6 +830,7 @@ async def remove_category_from_investigation(
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
+    """Goal: unassign a category from an investigation (owner/manager/editeur). Input: investigation_id, category_id, auth, db. Output: {"detail"} (403/404 on errors)."""
     investigation = investigation_service.get_investigation_by_id(db, investigation_id)
     if not investigation:
         raise HTTPException(status_code=404, detail="Investigation not found")

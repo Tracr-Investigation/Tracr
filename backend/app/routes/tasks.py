@@ -20,6 +20,7 @@ me_router = APIRouter(prefix="/tasks")
 
 
 def get_current_user(payload: dict = Depends(verify_token), db: Session = Depends(get_db)):
+    """Goal: resolve and validate the authenticated user from the JWT. Input: token payload, db. Output: User (401 if not found/inactive)."""
     user = user_service.get_user_by_id(db, payload["user_id"])
     if not user or not user.is_active:
         raise HTTPException(status_code=401, detail="User not found")
@@ -27,7 +28,7 @@ def get_current_user(payload: dict = Depends(verify_token), db: Session = Depend
 
 
 def _check_investigation_access(db: Session, investigation_id: int, user_id: int):
-    """Vérifie que l'investigation existe et que l'utilisateur y a accès. Retourne (investigation, permission)."""
+    """Goal: ensure the investigation exists and the user has access. Input: db, investigation_id, user_id. Output: (investigation, permission) (403/404 on errors)."""
     investigation = investigation_service.get_investigation_by_id(db, investigation_id)
     if not investigation:
         raise HTTPException(status_code=404, detail="Investigation not found")
@@ -38,7 +39,7 @@ def _check_investigation_access(db: Session, investigation_id: int, user_id: int
 
 
 def _check_task_visibility(task, permission: str, user_id: int):
-    """Vérifie que la tâche est visible par l'utilisateur."""
+    """Goal: ensure a private task is visible to the user. Input: task, permission, user_id. Output: None (404 if hidden)."""
     if task.is_private and permission != "owner" and task.created_by != user_id:
         raise HTTPException(status_code=404, detail="Task not found")
 
@@ -50,6 +51,7 @@ async def get_tasks(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: list an investigation's tasks visible to the user. Input: investigation_id, auth, db. Output: {"tasks"}."""
     _check_investigation_access(db, investigation_id, user.id_user)
     tasks = task_service.get_tasks(db, investigation_id, user.id_user)
     ip = request.client.host if request.client else None
@@ -69,6 +71,7 @@ async def create_task(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: create a task (notifies the assignee if shared). Input: investigation_id, body, auth, db. Output: the created task (400/403 on errors)."""
     investigation, permission = _check_investigation_access(db, investigation_id, user.id_user)
 
     if not task_service.can_create_task(permission):
@@ -123,6 +126,7 @@ async def update_task(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: update a task (notifies on new assignment). Input: investigation_id, task_id, body, auth, db. Output: the updated task (400/403/404 on errors)."""
     investigation, permission = _check_investigation_access(db, investigation_id, user.id_user)
 
     task = task_service.get_task_by_id(db, task_id)
@@ -191,7 +195,7 @@ async def move_task(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Déplacement Kanban d'une tâche d'enquête (changement de colonne / position)."""
+    """Goal: Kanban move of an investigation task (column/position change). Input: investigation_id, task_id, body (status/position), auth, db. Output: the updated task (403/404 on errors)."""
     _, permission = _check_investigation_access(db, investigation_id, user.id_user)
 
     task = task_service.get_task_by_id(db, task_id)
@@ -224,6 +228,7 @@ async def delete_task(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: delete a task. Input: investigation_id, task_id, auth, db. Output: {"detail"} (403/404 on errors)."""
     _check_investigation_access(db, investigation_id, user.id_user)
 
     task = task_service.get_task_by_id(db, task_id)
@@ -258,6 +263,7 @@ async def get_task_responses(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: list a task's responses. Input: investigation_id, task_id, auth, db. Output: {"responses"} (403/404 on errors)."""
     _, permission = _check_investigation_access(db, investigation_id, user.id_user)
 
     task = task_service.get_task_by_id(db, task_id)
@@ -285,6 +291,7 @@ async def create_task_response(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: add a response to a task. Input: investigation_id, task_id, body (content), auth, db. Output: the created response (403/404 on errors)."""
     _, permission = _check_investigation_access(db, investigation_id, user.id_user)
 
     task = task_service.get_task_by_id(db, task_id)
@@ -313,6 +320,7 @@ async def delete_task_response(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: delete a task response (author or owner). Input: investigation_id, task_id, response_id, auth, db. Output: {"detail"} (403/404 on errors)."""
     _, permission = _check_investigation_access(db, investigation_id, user.id_user)
 
     task = task_service.get_task_by_id(db, task_id)
@@ -346,6 +354,7 @@ async def get_my_tasks(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: list the user's tasks (created or assigned). Input: auth, db. Output: {"tasks"}."""
     tasks = task_service.get_my_tasks(db, user.id_user)
     return {"tasks": tasks}
 
@@ -355,8 +364,7 @@ async def get_assigned_tasks(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Toutes les tâches assignées à l'utilisateur (toutes enquêtes, toutes colonnes)
-    pour le Kanban « assignées à moi »."""
+    """Goal: list all tasks assigned to the user (all investigations/columns) for the "assigned to me" Kanban. Input: auth, db. Output: {"tasks"}."""
     tasks = task_service.get_my_tasks(db, user.id_user, limit=None, include_completed=True)
     return {"tasks": tasks}
 
@@ -364,7 +372,7 @@ async def get_assigned_tasks(
 # --- Tâches personnelles (hors enquête, id_investigation NULL) -----------------
 
 def _get_owned_personal_task(db: Session, task_id: int, user_id: int):
-    """Récupère une tâche personnelle appartenant à l'utilisateur, sinon 404."""
+    """Goal: fetch a personal task owned by the user, else 404. Input: db, task_id, user_id. Output: the task (404 otherwise)."""
     task = task_service.get_task_by_id(db, task_id)
     if not task or task.id_investigation is not None or task.created_by != user_id:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -376,6 +384,7 @@ async def get_personal_tasks(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: list the user's personal tasks (no investigation). Input: auth, db. Output: {"tasks"}."""
     tasks = task_service.get_personal_tasks(db, user.id_user)
     return {"tasks": tasks}
 
@@ -387,6 +396,7 @@ async def create_personal_task(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: create a personal task (no investigation). Input: body, auth, db. Output: the created task."""
     task = task_service.create_task(
         db,
         id_investigation=None,
@@ -415,6 +425,7 @@ async def update_personal_task(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: update a personal task. Input: task_id, body, auth, db. Output: the updated task (404 if not owned)."""
     task = _get_owned_personal_task(db, task_id, user.id_user)
     updated = task_service.update_task(
         db, task,
@@ -442,6 +453,7 @@ async def move_personal_task(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: Kanban move of a personal task (column/position). Input: task_id, body (status/position), auth, db. Output: the updated task (404 if not owned)."""
     task = _get_owned_personal_task(db, task_id, user.id_user)
     return task_service.move_task(db, task, body.status, body.position)
 
@@ -453,6 +465,7 @@ async def delete_personal_task(
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Goal: delete a personal task. Input: task_id, auth, db. Output: {"detail"} (404 if not owned)."""
     task = _get_owned_personal_task(db, task_id, user.id_user)
     title = task.title
     task_service.delete_task(db, task)
