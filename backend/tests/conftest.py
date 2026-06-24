@@ -1,4 +1,10 @@
-﻿import os
+﻿"""
+conftest.py -- fixtures pytest partagees par toute la suite
+
+base de test dediee (test_tracr), client http FastAPI, et fixtures
+utilisateurs / investigations / taches reutilisables par les tests
+"""
+import os
 import uuid
 
 # env vars definies avant tout import de l app

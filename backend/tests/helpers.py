@@ -1,3 +1,9 @@
+"""
+helpers.py -- fonctions utilitaires partagees par les tests
+
+raccourcis pour construire des headers d auth et appeler les routes
+courantes (taches, reponses) sans repeter la plomberie http
+"""
 from fastapi.testclient import TestClient
 
 

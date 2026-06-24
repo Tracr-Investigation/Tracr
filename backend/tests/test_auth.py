@@ -1,4 +1,15 @@
-﻿import uuid
+﻿"""
+test_auth.py -- tests des routes d authentification
+
+endpoints couverts
+  POST /register
+  POST /login
+  POST /change-password
+  POST /delete-account
+  GET /me
+  PATCH /me/language
+"""
+import uuid
 
 
 PASSWORD = "Testpassword1!"

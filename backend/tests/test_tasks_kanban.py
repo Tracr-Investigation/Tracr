@@ -10,6 +10,7 @@ endpoints couverts
 
 
 def _create_inv_task(client, auth, inv_id, title="Tache", status="todo"):
+    """cree une tache d enquete et renvoie le dict json de la reponse"""
     return client.post(
         f"/investigations/{inv_id}/tasks",
         json={"title": title, "status": status, "priority": "normale"},
@@ -21,6 +22,7 @@ class TestNewStatuses:
     """les nouveaux statuts Kanban sont acceptes"""
 
     def test_create_task_bloque(self, client, auth, investigation):
+        """le statut bloque est accepte a la creation"""
         resp = client.post(
             f"/investigations/{investigation['id_investigation']}/tasks",
             json={"title": "Bloquee", "status": "bloque"},
@@ -30,6 +32,7 @@ class TestNewStatuses:
         assert resp.json()["status"] == "bloque"
 
     def test_create_task_en_revue_a_valider(self, client, auth, investigation):
+        """les statuts en_revue et a_valider sont acceptes"""
         inv_id = investigation["id_investigation"]
         for status in ("en_revue", "a_valider"):
             resp = client.post(
@@ -41,6 +44,7 @@ class TestNewStatuses:
             assert resp.json()["status"] == status
 
     def test_invalid_status_still_rejected(self, client, auth, investigation):
+        """un statut inconnu est toujours rejete (422)"""
         assert client.post(
             f"/investigations/{investigation['id_investigation']}/tasks",
             json={"title": "X", "status": "done"},
@@ -52,6 +56,7 @@ class TestInvestigationKanbanMove:
     """deplacement Kanban des taches d enquete"""
 
     def test_move_changes_status(self, client, auth, investigation, task):
+        """deplacer une tache change son statut et sa position"""
         inv_id = investigation["id_investigation"]
         resp = client.patch(
             f"/investigations/{inv_id}/tasks/{task['id_task']}/move",
@@ -64,6 +69,7 @@ class TestInvestigationKanbanMove:
         assert body["position"] == 0
 
     def test_move_reorders_positions(self, client, auth, investigation):
+        """deplacer une carte renumerote la colonne de facon contigue"""
         inv_id = investigation["id_investigation"]
         a = _create_inv_task(client, auth, inv_id, "A")
         b = _create_inv_task(client, auth, inv_id, "B")
@@ -83,6 +89,7 @@ class TestInvestigationKanbanMove:
         assert tasks[b["id_task"]] == 2
 
     def test_move_unauthorized(self, client, second_auth, investigation, task):
+        """un non-membre ne peut pas deplacer une tache (403/404)"""
         inv_id = investigation["id_investigation"]
         assert client.patch(
             f"/investigations/{inv_id}/tasks/{task['id_task']}/move",
@@ -95,6 +102,7 @@ class TestPersonalTasks:
     """taches personnelles (hors enquete)"""
 
     def test_create_and_list_personal(self, client, auth):
+        """on peut creer une tache perso et la retrouver dans la liste"""
         resp = client.post("/tasks/personal", json={"title": "Perso 1"}, headers=auth)
         assert resp.status_code == 200, resp.text
         created = resp.json()
@@ -103,6 +111,7 @@ class TestPersonalTasks:
         assert created["id_task"] in [t["id_task"] for t in listed]
 
     def test_personal_task_isolated_per_user(self, client, auth, second_auth):
+        """une tache perso est invisible et non modifiable par un autre utilisateur"""
         created = client.post("/tasks/personal", json={"title": "Secret"}, headers=auth).json()
         # un autre utilisateur ne voit pas la tache perso
         other = client.get("/tasks/personal", headers=second_auth).json()["tasks"]
@@ -116,6 +125,7 @@ class TestPersonalTasks:
         ).status_code == 404
 
     def test_update_and_delete_personal(self, client, auth):
+        """on peut modifier puis supprimer sa tache perso"""
         created = client.post("/tasks/personal", json={"title": "A modifier"}, headers=auth).json()
         upd = client.patch(
             f"/tasks/personal/{created['id_task']}",
@@ -128,6 +138,7 @@ class TestPersonalTasks:
         assert client.delete(f"/tasks/personal/{created['id_task']}", headers=auth).status_code == 200
 
     def test_move_personal_task(self, client, auth):
+        """on peut deplacer une tache perso sur le Kanban perso"""
         created = client.post("/tasks/personal", json={"title": "Move me"}, headers=auth).json()
         resp = client.patch(
             f"/tasks/personal/{created['id_task']}/move",
@@ -150,9 +161,11 @@ class TestAssignedTasks:
     """GET /tasks/assigned (vue agregee)"""
 
     def test_assigned_returns_tasks_key(self, client, auth):
+        """la vue agregee renvoie une cle tasks"""
         resp = client.get("/tasks/assigned", headers=auth)
         assert resp.status_code == 200
         assert "tasks" in resp.json()
 
     def test_assigned_unauthenticated(self, client):
+        """sans authentification la vue assigned renvoie 401"""
         assert client.get("/tasks/assigned").status_code == 401
