@@ -13,7 +13,7 @@ def create_log(
     detail: Optional[str] = None,
     ip_address: Optional[str] = None,
 ) -> Log:
-    """Create a new log entry"""
+    """Goal: create and persist a log entry. Input: db, category, action, id_user, id_investigation, detail, ip_address. Output: the created Log."""
     log = Log(
         id_user=id_user,
         id_investigation=id_investigation,
@@ -29,13 +29,14 @@ def create_log(
 
 
 def _apply_exclude_reads(query, exclude_reads: bool):
+    """Goal: optionally filter out read-only ("consultation") logs. Input: query, exclude_reads. Output: the (possibly filtered) query."""
     if exclude_reads:
         query = query.filter(Log.category != "consultation")
     return query
 
 
 def get_logs_paginated(db: Session, skip: int, limit: int, category: str = "", search: str = "", exclude_reads: bool = False):
-    """Get paginated logs with optional category and search filters"""
+    """Goal: list logs (paginated, with category/search filters and pseudo). Input: db, skip, limit, category, search, exclude_reads. Output: list of log dicts."""
     query = db.query(Log, User.pseudo).outerjoin(User, Log.id_user == User.id_user)
     if category:
         query = query.filter(Log.category == category)
@@ -65,7 +66,7 @@ def get_logs_paginated(db: Session, skip: int, limit: int, category: str = "", s
 
 
 def count_logs(db: Session, category: str = "", search: str = "", exclude_reads: bool = False) -> int:
-    """Count total logs with optional filters"""
+    """Goal: count logs matching the filters. Input: db, category, search, exclude_reads. Output: int."""
     query = db.query(Log).outerjoin(User, Log.id_user == User.id_user)
     if category:
         query = query.filter(Log.category == category)
@@ -81,7 +82,7 @@ def count_logs(db: Session, category: str = "", search: str = "", exclude_reads:
 
 
 def get_recent_investigation_ids(db: Session, user_id: int, limit: int = 8) -> list[int]:
-    """Get the IDs of recently viewed investigations for a user, ordered by most recent consultation"""
+    """Goal: return a user's recently viewed investigation ids (most recent first). Input: db, user_id, limit. Output: list of ints."""
     import re
     rows = (
         db.query(Log.detail, Log.created_at)
@@ -108,7 +109,7 @@ def get_recent_investigation_ids(db: Session, user_id: int, limit: int = 8) -> l
 
 
 def get_categories(db: Session) -> list[str]:
-    """Get all distinct log categories"""
+    """Goal: list distinct log categories. Input: db. Output: list of category strings."""
     rows = db.query(Log.category).distinct().order_by(Log.category).all()
     return [row[0] for row in rows]
 
@@ -120,7 +121,7 @@ def get_timeline_for_investigation(
     limit: int = 50,
     category: str = "",
 ) -> list[dict]:
-    """Get activity timeline for a specific investigation, excluding read-only consultations"""
+    """Goal: list an investigation's activity timeline (excludes read-only consultations). Input: db, investigation_id, skip, limit, category. Output: list of event dicts."""
     query = (
         db.query(Log, User.pseudo)
         .outerjoin(User, Log.id_user == User.id_user)
@@ -152,6 +153,7 @@ def get_timeline_for_investigation(
 
 
 def count_timeline_for_investigation(db: Session, investigation_id: int, category: str = "") -> int:
+    """Goal: count an investigation's timeline events (excludes consultations). Input: db, investigation_id, category. Output: int."""
     query = db.query(Log).filter(
         Log.id_investigation == investigation_id,
         Log.category != "consultation",
@@ -162,7 +164,7 @@ def count_timeline_for_investigation(db: Session, investigation_id: int, categor
 
 
 def get_timeline_categories(db: Session, investigation_id: int) -> list[str]:
-    """Catégories distinctes présentes dans la timeline d'une enquête."""
+    """Goal: list distinct categories present in an investigation's timeline. Input: db, investigation_id. Output: list of category strings."""
     rows = (
         db.query(Log.category)
         .filter(

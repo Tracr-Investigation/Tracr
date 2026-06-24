@@ -1,11 +1,6 @@
-"""ocr_service.py -- reconnaissance de texte (OCR) sur les images.
+"""ocr_service.py -- text recognition (OCR) on images.
 
-Fournisseur de texte complementaire pour les sources sans texte natif (captures
-de medias, photos). Local et auto-heberge (Tesseract via pytesseract) : aucune
-image ne sort du serveur, ce qui preserve la confidentialite des preuves.
-
-Le texte produit alimente la meme colonne `extracted_text` que l'extraction
-HTML/MHTML ; le moteur de matching (hit_service) n'a pas connaissance de l'OCR.
+Local, self-hosted (Tesseract via pytesseract): no image leaves the server, preserving evidence confidentiality. Output feeds the same `extracted_text` column as HTML/MHTML extraction; the matching engine (hit_service) is unaware of OCR.
 """
 import io
 import logging
@@ -21,14 +16,12 @@ _MAX_TEXT_CHARS = 2_000_000
 
 
 def is_ocr_candidate(mime_type: str) -> bool:
-    """Une source est candidate a l'OCR si c'est une image bitmap."""
+    """Goal: tell whether a source is an OCR candidate (bitmap image). Input: mime_type. Output: bool."""
     return (mime_type or "").lower().startswith("image/")
 
 
 def ocr_image(content: bytes) -> Optional[str]:
-    """Extrait le texte d'une image. Retourne None si l'OCR echoue ou ne trouve
-    rien d'exploitable. Les imports sont differes pour ne pas peser au demarrage
-    et tolerer une image sans Tesseract installe."""
+    """Goal: extract text from an image (deferred imports; tolerates missing Tesseract). Input: content (bytes). Output: text or None if OCR fails/finds nothing."""
     try:
         import pytesseract
         from PIL import Image

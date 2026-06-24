@@ -13,6 +13,7 @@ DEFAULT_STATUS_ID = 4
 
 
 def get_investigations_for_user(db: Session, user_id: int) -> list[dict]:
+    """Goal: list investigations a user owns or collaborates on (with status/categories). Input: db, user_id. Output: list of investigation dicts."""
     rows = (
         db.query(Investigation, InvestigationStatus)
         .join(InvestigationStatus, Investigation.id_status == InvestigationStatus.id_status)
@@ -67,6 +68,7 @@ def get_investigations_for_user(db: Session, user_id: int) -> list[dict]:
 
 
 def count_investigations_for_user(db: Session, user_id: int) -> int:
+    """Goal: count investigations a user owns or collaborates on. Input: db, user_id. Output: int."""
     return (
         db.query(Investigation.id_investigation)
         .outerjoin(
@@ -90,6 +92,7 @@ def create_investigation(
     db: Session, title: str, owner_id: int, description: Optional[str] = None,
     objectives: Optional[str] = None,
 ) -> Investigation:
+    """Goal: create an investigation with the default status. Input: db, title, owner_id, description, objectives. Output: the created Investigation."""
     investigation = Investigation(
         title=title,
         description=description,
@@ -106,6 +109,7 @@ def create_investigation(
 def update_investigation_status(
     db: Session, investigation: Investigation, new_status_id: int
 ) -> Investigation:
+    """Goal: change an investigation's status (touches updated_at). Input: db, investigation, new_status_id. Output: the updated Investigation."""
     from datetime import datetime
     from zoneinfo import ZoneInfo
 
@@ -121,6 +125,7 @@ def update_investigation(
     db: Session, investigation: Investigation, title: Optional[str] = None,
     description: Optional[str] = None, objectives: Optional[str] = None,
 ) -> Investigation:
+    """Goal: update an investigation's title/description/objectives. Input: db, investigation, title, description, objectives. Output: the updated Investigation."""
     from datetime import datetime
     from zoneinfo import ZoneInfo
 
@@ -138,7 +143,7 @@ def update_investigation(
 
 
 def set_cover(db: Session, investigation: Investigation, storage_key: str) -> Investigation:
-    """Associe une cle d'objet (image de couverture) a l'enquete."""
+    """Goal: attach a cover image object key to the investigation. Input: db, investigation, storage_key. Output: the updated Investigation."""
     investigation.cover_storage_key = storage_key
     db.add(investigation)
     db.commit()
@@ -147,7 +152,7 @@ def set_cover(db: Session, investigation: Investigation, storage_key: str) -> In
 
 
 def clear_cover(db: Session, investigation: Investigation) -> Investigation:
-    """Retire la reference de couverture (l'export retombe sur la couverture par defaut)."""
+    """Goal: remove the cover reference (export falls back to default). Input: db, investigation. Output: the updated Investigation."""
     investigation.cover_storage_key = None
     db.add(investigation)
     db.commit()
@@ -156,6 +161,7 @@ def clear_cover(db: Session, investigation: Investigation) -> Investigation:
 
 
 def transfer_ownership(db: Session, investigation: Investigation, new_owner_id: int) -> Investigation:
+    """Goal: transfer ownership to another user (touches updated_at). Input: db, investigation, new_owner_id. Output: the updated Investigation."""
     from datetime import datetime
     from zoneinfo import ZoneInfo
 
@@ -168,6 +174,7 @@ def transfer_ownership(db: Session, investigation: Investigation, new_owner_id: 
 
 
 def delete_investigation(db: Session, investigation_id: int) -> bool:
+    """Goal: delete an investigation and its collaborator/category links. Input: db, investigation_id. Output: bool (False if not found)."""
     investigation = db.query(Investigation).filter(Investigation.id_investigation == investigation_id).first()
     if not investigation:
         return False
@@ -183,6 +190,7 @@ def delete_investigation(db: Session, investigation_id: int) -> bool:
 
 
 def get_investigation_by_id(db: Session, investigation_id: int) -> Optional[Investigation]:
+    """Goal: fetch an investigation by id. Input: db, investigation_id. Output: Investigation or None."""
     return (
         db.query(Investigation)
         .filter(Investigation.id_investigation == investigation_id)
@@ -191,6 +199,7 @@ def get_investigation_by_id(db: Session, investigation_id: int) -> Optional[Inve
 
 
 def get_investigation_detail(db: Session, investigation_id: int, current_user_id: Optional[int] = None) -> Optional[dict]:
+    """Goal: build an investigation's full detail (status, categories, owner, collaborators, current user's permission). Input: db, investigation_id, current_user_id. Output: detail dict or None."""
     row = (
         db.query(Investigation, InvestigationStatus, User)
         .join(InvestigationStatus, Investigation.id_status == InvestigationStatus.id_status)

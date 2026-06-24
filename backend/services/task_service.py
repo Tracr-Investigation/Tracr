@@ -39,18 +39,22 @@ def is_member(db: Session, id_investigation: int, id_user: int) -> bool:
 
 
 def can_create_task(permission: Optional[str]) -> bool:
+    """Goal: tell if a permission level may create tasks. Input: permission. Output: bool."""
     return permission in ("owner", "manager", "editeur")
 
 
 def can_edit_task(permission: Optional[str], id_user: int, task: Task) -> bool:
+    """Goal: tell if a user may edit a task (owner or its creator). Input: permission, id_user, task. Output: bool."""
     return permission == "owner" or task.created_by == id_user
 
 
 def can_delete_task(permission: Optional[str], id_user: int, task: Task) -> bool:
+    """Goal: tell if a user may delete a task (owner or its creator). Input: permission, id_user, task. Output: bool."""
     return permission == "owner" or task.created_by == id_user
 
 
 def can_change_status(permission: Optional[str], id_user: int, task: Task) -> bool:
+    """Goal: tell if a user may change a task's status (owner, creator or assignee). Input: permission, id_user, task. Output: bool."""
     return permission == "owner" or task.created_by == id_user or task.assigned_to == id_user
 
 
@@ -134,6 +138,7 @@ def get_tasks(db: Session, id_investigation: int, id_user: int) -> list[dict]:
 
 
 def get_task_by_id(db: Session, id_task: int) -> Optional[Task]:
+    """Goal: fetch a task by id. Input: db, id_task. Output: Task or None."""
     return db.query(Task).filter(Task.id_task == id_task).first()
 
 
@@ -149,6 +154,7 @@ def create_task(
     assigned_to: Optional[int] = None,
     due_date: Optional[datetime] = None,
 ) -> dict:
+    """Goal: create a task (investigation or personal) appended to its column. Input: db, id_investigation, id_user, title, description, status, priority, is_private, assigned_to, due_date. Output: the created task dict."""
     # id_investigation None => tâche personnelle (scope = créateur)
     position = _next_position(db, id_investigation, id_user, status)
     task = Task(
@@ -222,6 +228,7 @@ def update_task(
     clear_assigned: bool = False,
     clear_due_date: bool = False,
 ) -> dict:
+    """Goal: update a task's fields (manages completed_at on status change). Input: db, task, title, description, status, priority, is_private, assigned_to, due_date, clear_assigned, clear_due_date. Output: the updated task dict."""
     # Capturer l'ancien statut AVANT modification
     old_status = task.status.value if hasattr(task.status, "value") else task.status
 
@@ -258,12 +265,14 @@ def update_task(
 
 
 def delete_task(db: Session, task: Task) -> bool:
+    """Goal: delete a task. Input: db, task. Output: True."""
     db.delete(task)
     db.commit()
     return True
 
 
 def get_responses(db: Session, id_task: int) -> list[dict]:
+    """Goal: list a task's responses (oldest first, with author). Input: db, id_task. Output: list of response dicts."""
     rows = (
         db.query(TaskResponse, User)
         .outerjoin(User, TaskResponse.id_user == User.id_user)
@@ -286,6 +295,7 @@ def get_responses(db: Session, id_task: int) -> list[dict]:
 
 
 def create_response(db: Session, id_task: int, id_user: int, content: str) -> dict:
+    """Goal: add a response/comment to a task. Input: db, id_task, id_user, content. Output: the created response dict."""
     response = TaskResponse(
         id_task=id_task,
         id_user=id_user,
@@ -356,10 +366,12 @@ def get_my_tasks(
 
 
 def get_response_by_id(db: Session, id_response: int) -> Optional[TaskResponse]:
+    """Goal: fetch a task response by id. Input: db, id_response. Output: TaskResponse or None."""
     return db.query(TaskResponse).filter(TaskResponse.id_response == id_response).first()
 
 
 def delete_response(db: Session, response: TaskResponse) -> bool:
+    """Goal: delete a task response. Input: db, response. Output: True."""
     db.delete(response)
     db.commit()
     return True

@@ -1,9 +1,6 @@
-"""text_extraction_service.py -- extraction du texte exploitable d'une source.
+"""text_extraction_service.py -- extract searchable text from a source.
 
-Transforme le binaire d'une capture en texte brut cherchable, confronte ensuite
-aux selecteurs (cf. hit_service). Stdlib uniquement : `html.parser` pour le HTML,
-`email` pour le MHTML (multipart/related). Les images/videos ne sont pas traitees
-ici (OCR hors-scope) -> elles ressortent avec le statut `pending_ocr`/`none`.
+Turns a capture's binary into plain text matched against selectors (cf. hit_service). Stdlib only: `html.parser` for HTML, `email` for MHTML (multipart/related). Images/videos aren't handled here (OCR out of scope) and come out as `pending_ocr`/`none`.
 """
 import email
 from email import policy
@@ -23,32 +20,38 @@ _SKIP_TAGS = {"script", "style", "head", "noscript", "template"}
 
 
 class _TextHTMLParser(HTMLParser):
-    """Collecte le texte visible d'un document HTML, hors script/style/head."""
+    """Collect the visible text of an HTML document, skipping script/style/head."""
 
     def __init__(self) -> None:
+        """Goal: initialize the parser state. Input: none. Output: None."""
         super().__init__(convert_charrefs=True)
         self._parts: list[str] = []
         self._skip_depth = 0
 
     def handle_starttag(self, tag, attrs):
+        """Goal: enter skip mode on script/style/head tags. Input: tag, attrs. Output: None."""
         if tag in _SKIP_TAGS:
             self._skip_depth += 1
 
     def handle_endtag(self, tag):
+        """Goal: leave skip mode on closing skip tags. Input: tag. Output: None."""
         if tag in _SKIP_TAGS and self._skip_depth > 0:
             self._skip_depth -= 1
 
     def handle_data(self, data):
+        """Goal: collect non-empty text outside skipped tags. Input: data. Output: None."""
         if self._skip_depth == 0:
             text = data.strip()
             if text:
                 self._parts.append(text)
 
     def get_text(self) -> str:
+        """Goal: return the collected visible text. Input: none. Output: text string."""
         return " ".join(self._parts)
 
 
 def _html_to_text(html: str) -> str:
+    """Goal: extract visible text from an HTML string (tolerant parser). Input: html. Output: text string."""
     parser = _TextHTMLParser()
     try:
         parser.feed(html)
@@ -59,6 +62,7 @@ def _html_to_text(html: str) -> str:
 
 
 def _decode(payload: bytes, charset: Optional[str]) -> str:
+    """Goal: decode bytes trying charset then utf-8/latin-1 fallbacks. Input: payload, charset. Output: decoded string."""
     for enc in (charset, "utf-8", "latin-1"):
         if not enc:
             continue
@@ -70,7 +74,7 @@ def _decode(payload: bytes, charset: Optional[str]) -> str:
 
 
 def _mhtml_to_text(content: bytes) -> str:
-    """Extrait le texte des parties HTML/texte d'une archive MHTML."""
+    """Goal: extract text from the HTML/text parts of an MHTML archive. Input: content (bytes). Output: text string."""
     msg = email.message_from_bytes(content, policy=policy.default)
     chunks: list[str] = []
     for part in msg.walk():
@@ -86,17 +90,7 @@ def _mhtml_to_text(content: bytes) -> str:
 
 
 def extract_text(content: bytes, mime_type: str, source_type: str) -> tuple[Optional[str], str]:
-    """Retourne (texte, statut) pour une source.
-
-    Args:
-        content (bytes): binaire de la capture.
-        mime_type (str): type MIME declare.
-        source_type (str): type de source Tracr (page_mhtml, media...).
-
-    Returns:
-        tuple[Optional[str], str]: le texte extrait (ou None) et le statut
-        (`extracted`, `pending_ocr`, `none`).
-    """
+    """Goal: extract (text, status) from a source binary. Input: content, mime_type, source_type. Output: (text or None, status) where status is extracted/pending_ocr/none."""
     mime = (mime_type or "").lower()
     text: Optional[str] = None
 

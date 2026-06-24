@@ -9,6 +9,7 @@ from models.user import User
 
 
 def _entity_to_dict(entity: Entity, pseudo: str | None = None) -> dict:
+    """Goal: serialize an Entity to a dict (with optional creator pseudo). Input: entity, pseudo. Output: dict."""
     return {
         "id_entity": entity.id_entity,
         "id_investigation": entity.id_investigation,
@@ -27,6 +28,7 @@ def _entity_to_dict(entity: Entity, pseudo: str | None = None) -> dict:
 
 
 def _relation_to_dict(relation: EntityRelation, pseudo: str | None = None) -> dict:
+    """Goal: serialize an EntityRelation to a dict (with optional creator pseudo). Input: relation, pseudo. Output: dict."""
     return {
         "id_relation": relation.id_relation,
         "id_investigation": relation.id_investigation,
@@ -40,6 +42,7 @@ def _relation_to_dict(relation: EntityRelation, pseudo: str | None = None) -> di
 
 
 def get_entities(db: Session, investigation_id: int) -> list[dict]:
+    """Goal: list an investigation's entities (with creator pseudo). Input: db, investigation_id. Output: list of entity dicts."""
     rows = (
         db.query(Entity, User.pseudo)
         .outerjoin(User, Entity.created_by == User.id_user)
@@ -51,6 +54,7 @@ def get_entities(db: Session, investigation_id: int) -> list[dict]:
 
 
 def get_entity_by_id(db: Session, entity_id: int) -> Optional[Entity]:
+    """Goal: fetch an entity by id. Input: db, entity_id. Output: Entity or None."""
     return db.query(Entity).filter(Entity.id_entity == entity_id).first()
 
 
@@ -66,6 +70,7 @@ def create_entity(
     pos_x: Optional[float] = None,
     pos_y: Optional[float] = None,
 ) -> Entity:
+    """Goal: create a graph entity. Input: db, id_investigation, type, label, created_by, value, notes, color, pos_x, pos_y. Output: the created Entity."""
     now = datetime.now(ZoneInfo("Europe/Paris"))
     entity = Entity(
         id_investigation=id_investigation,
@@ -98,6 +103,7 @@ def update_entity(
     clear_value: bool = False,
     clear_notes: bool = False,
 ) -> Entity:
+    """Goal: update an entity's fields (clear_* to null value/notes). Input: db, entity, label, value, notes, color, pos_x, pos_y, clear_value, clear_notes. Output: the updated Entity."""
     if label is not None:
         entity.label = label
     if clear_value:
@@ -122,11 +128,13 @@ def update_entity(
 
 
 def delete_entity(db: Session, entity: Entity) -> None:
+    """Goal: delete an entity. Input: db, entity. Output: None."""
     db.delete(entity)
     db.commit()
 
 
 def reset_positions(db: Session, investigation_id: int) -> int:
+    """Goal: clear all entities' positions for an investigation. Input: db, investigation_id. Output: count of reset entities."""
     entities = db.query(Entity).filter(Entity.id_investigation == investigation_id).all()
     for entity in entities:
         entity.pos_x = None
@@ -136,6 +144,7 @@ def reset_positions(db: Session, investigation_id: int) -> int:
 
 
 def get_relations(db: Session, investigation_id: int) -> list[dict]:
+    """Goal: list an investigation's relations (with creator pseudo). Input: db, investigation_id. Output: list of relation dicts."""
     rows = (
         db.query(EntityRelation, User.pseudo)
         .outerjoin(User, EntityRelation.created_by == User.id_user)
@@ -147,6 +156,7 @@ def get_relations(db: Session, investigation_id: int) -> list[dict]:
 
 
 def get_relation_by_id(db: Session, relation_id: int) -> Optional[EntityRelation]:
+    """Goal: fetch a relation by id. Input: db, relation_id. Output: EntityRelation or None."""
     return db.query(EntityRelation).filter(EntityRelation.id_relation == relation_id).first()
 
 
@@ -158,6 +168,7 @@ def create_relation(
     created_by: int,
     label: Optional[str] = None,
 ) -> EntityRelation:
+    """Goal: create a relation between two entities. Input: db, id_investigation, source_id, target_id, created_by, label. Output: the created EntityRelation."""
     relation = EntityRelation(
         id_investigation=id_investigation,
         source_id=source_id,
@@ -173,6 +184,7 @@ def create_relation(
 
 
 def update_relation(db: Session, relation: EntityRelation, label: Optional[str] = None) -> EntityRelation:
+    """Goal: update a relation's label. Input: db, relation, label. Output: the updated EntityRelation."""
     if label is not None:
         relation.label = label
     db.add(relation)
@@ -182,11 +194,13 @@ def update_relation(db: Session, relation: EntityRelation, label: Optional[str] 
 
 
 def delete_relation(db: Session, relation: EntityRelation) -> None:
+    """Goal: delete a relation. Input: db, relation. Output: None."""
     db.delete(relation)
     db.commit()
 
 
 def get_graph(db: Session, investigation_id: int) -> dict:
+    """Goal: build the investigation's graph (nodes + edges). Input: db, investigation_id. Output: {"nodes", "edges"}."""
     entities = get_entities(db, investigation_id)
     relations = get_relations(db, investigation_id)
     return {"nodes": entities, "edges": relations}

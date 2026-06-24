@@ -38,6 +38,7 @@ SELECTOR_TYPES: dict[str, str] = {
 
 
 def is_valid_type(selector_type: str) -> bool:
+    """Goal: check a selector type is supported. Input: selector_type. Output: bool."""
     return selector_type in SELECTOR_TYPES
 
 
@@ -74,10 +75,12 @@ def normalize(selector_type: str, value: str) -> str:
 
 # Permissions : memes regles que les sources / documents.
 def can_write(permission: Optional[str]) -> bool:
+    """Goal: tell if a permission level may add/edit selectors. Input: permission. Output: bool."""
     return permission in ("owner", "manager", "editeur")
 
 
 def can_delete(permission: Optional[str], selector: InvestigationSelector, user_id: int) -> bool:
+    """Goal: tell if a user may delete a selector (owner or its creator). Input: permission, selector, user_id. Output: bool."""
     return permission == "owner" or selector.created_by == user_id
 
 
@@ -91,6 +94,7 @@ def create_selector(
     label: Optional[str] = None,
     notes: Optional[str] = None,
 ) -> InvestigationSelector:
+    """Goal: create a selector (stores raw + normalized value). Input: db, id_investigation, created_by, selector_type, value, label, notes. Output: the created InvestigationSelector."""
     selector = InvestigationSelector(
         id_investigation=id_investigation,
         created_by=created_by,
@@ -107,6 +111,7 @@ def create_selector(
 
 
 def get_selector(db: Session, id_selector: int) -> Optional[InvestigationSelector]:
+    """Goal: fetch a selector by id. Input: db, id_selector. Output: InvestigationSelector or None."""
     return (
         db.query(InvestigationSelector)
         .filter(InvestigationSelector.id_selector == id_selector)
@@ -117,6 +122,7 @@ def get_selector(db: Session, id_selector: int) -> Optional[InvestigationSelecto
 def find_duplicate(
     db: Session, id_investigation: int, selector_type: str, normalized_value: str
 ) -> Optional[InvestigationSelector]:
+    """Goal: find an existing selector with the same type/normalized value. Input: db, id_investigation, selector_type, normalized_value. Output: InvestigationSelector or None."""
     return (
         db.query(InvestigationSelector)
         .filter(
@@ -129,6 +135,7 @@ def find_duplicate(
 
 
 def list_selectors(db: Session, id_investigation: int) -> list[dict]:
+    """Goal: list an investigation's selectors (newest first, with author). Input: db, id_investigation. Output: list of selector dicts."""
     rows = (
         db.query(InvestigationSelector, User.pseudo)
         .outerjoin(User, User.id_user == InvestigationSelector.created_by)
@@ -148,6 +155,7 @@ def update_selector(
     label: Optional[str] = None,
     notes: Optional[str] = None,
 ) -> InvestigationSelector:
+    """Goal: update a selector's fields (re-normalizes value if changed). Input: db, selector, value, selector_type, label, notes. Output: the updated InvestigationSelector."""
     if selector_type is not None:
         selector.selector_type = selector_type
     if value is not None:
@@ -165,11 +173,13 @@ def update_selector(
 
 
 def delete_selector(db: Session, selector: InvestigationSelector) -> None:
+    """Goal: delete a selector. Input: db, selector. Output: None."""
     db.delete(selector)
     db.commit()
 
 
 def selector_detail(db: Session, selector: InvestigationSelector) -> dict:
+    """Goal: serialize a selector with its creator's pseudo. Input: db, selector. Output: selector dict."""
     creator = (
         db.query(User.pseudo).filter(User.id_user == selector.created_by).first()
         if selector.created_by else None
@@ -178,6 +188,7 @@ def selector_detail(db: Session, selector: InvestigationSelector) -> dict:
 
 
 def _to_dict(selector: InvestigationSelector, author_pseudo: Optional[str]) -> dict:
+    """Goal: serialize a selector to an API dict. Input: selector, author_pseudo. Output: dict."""
     return {
         "id_selector": selector.id_selector,
         "id_investigation": selector.id_investigation,

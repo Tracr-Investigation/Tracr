@@ -12,10 +12,12 @@ from utils.wordlist import WORDLIST
 
 
 def hash_password(password: str) -> str:
+    """Goal: hash a password with bcrypt. Input: password. Output: hash str."""
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Goal: check a password against its bcrypt hash. Input: plain_password, hashed_password. Output: bool."""
     return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
 
 
@@ -72,11 +74,13 @@ def deactivate_user(db: Session, user: User) -> None:
 
 
 def hard_delete_user(db: Session, user: User) -> None:
+    """Goal: permanently delete a user. Input: db, user. Output: None."""
     db.delete(user)
     db.commit()
 
 
 def create_admin_user(db: Session, pseudo: str, password: str) -> User:
+    """Goal: create a user with the admin role (forced password change). Input: db, pseudo, password. Output: the created User."""
     user = User(
         pseudo=pseudo,
         password_hash=hash_password(password),
@@ -98,6 +102,7 @@ def create_admin_user(db: Session, pseudo: str, password: str) -> User:
 
 
 def update_password(db: Session, user: User, new_password: str) -> None:
+    """Goal: set a user's password and clear the change-required flag. Input: db, user, new_password. Output: None."""
     user.password_hash = hash_password(new_password)
     user.must_change_password = False
     db.add(user)
@@ -105,6 +110,7 @@ def update_password(db: Session, user: User, new_password: str) -> None:
 
 
 def admin_reset_password(db: Session, user: User, new_password: str) -> None:
+    """Goal: reset a user's password and force a change at next login. Input: db, user, new_password. Output: None."""
     user.password_hash = hash_password(new_password)
     user.must_change_password = True
     db.add(user)
@@ -112,12 +118,14 @@ def admin_reset_password(db: Session, user: User, new_password: str) -> None:
 
 
 def update_last_login(db: Session, user: User) -> None:
+    """Goal: stamp a user's last login at now (UTC). Input: db, user. Output: None."""
     user.last_login_at = datetime.now(ZoneInfo("UTC"))
     db.add(user)
     db.commit()
 
 
 def update_language(db: Session, user: User, language: str) -> None:
+    """Goal: set a user's UI language. Input: db, user, language. Output: None."""
     user.language = language
     db.add(user)
     db.commit()
@@ -153,6 +161,7 @@ def count_users(db: Session, search: str = "") -> int:
 
 
 def generate_recovery_code(db: Session, user: User) -> list[str]:
+    """Goal: generate and store a hashed 12-word recovery phrase. Input: db, user. Output: list of the plaintext words (shown once)."""
     words = [secrets.choice(WORDLIST) for _ in range(12)]
     phrase = " ".join(words)
     user.recovery_hash = hash_password(phrase)
@@ -165,6 +174,7 @@ def generate_recovery_code(db: Session, user: User) -> list[str]:
 def verify_and_use_recovery(
     db: Session, pseudo: str, recovery_phrase: str, new_password: str
 ) -> Optional[User]:
+    """Goal: reset a password via the recovery phrase (consumes it, resets MFA). Input: db, pseudo, recovery_phrase, new_password. Output: the User or None if invalid."""
     user = get_user_by_pseudo(db, pseudo)
     if not user or not user.is_active or not user.recovery_hash:
         return None

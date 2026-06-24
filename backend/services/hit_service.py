@@ -36,6 +36,7 @@ _SNIPPET_RADIUS = 60
 
 
 def _alnum(s: str) -> str:
+    """Goal: reduce a string to lowercase alphanumerics (drop separators). Input: s. Output: str."""
     return re.sub(r"[^0-9a-z]", "", s.lower())
 
 
@@ -46,6 +47,7 @@ def _build_haystacks(text: str) -> tuple[str, str]:
 
 
 def _snippet(original_lower: str, original: str, needle: str) -> Optional[str]:
+    """Goal: extract a context excerpt around the first match. Input: original_lower, original, needle. Output: snippet str or None."""
     idx = original_lower.find(needle)
     if idx < 0:
         return None
@@ -218,6 +220,7 @@ def get_stored_hits(db: Session, investigation_id: int) -> dict:
 
 
 def _source_hit_payload(selector: InvestigationSelector, occurrences: int, snippet: Optional[str], pseudo: Optional[str]) -> dict:
+    """Goal: build a hit dict for one selector match in a source. Input: selector, occurrences, snippet, pseudo. Output: dict."""
     return {
         "selector": selector_service._to_dict(selector, pseudo),
         "occurrences": occurrences,

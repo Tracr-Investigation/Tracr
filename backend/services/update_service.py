@@ -38,14 +38,17 @@ class UpdateInProgressError(Exception):
 
 
 def _update_dir() -> Path:
+    """Goal: directory holding the shared update state files. Input: none. Output: Path."""
     return Path(settings.UPDATE_STATE_FILE).parent
 
 
 def _request_file() -> Path:
+    """Goal: path of the update request file. Input: none. Output: Path."""
     return _update_dir() / "request.json"
 
 
 def _read_json(path: Path) -> Optional[dict]:
+    """Goal: safely read and parse a JSON file. Input: path. Output: dict or None."""
     try:
         if path.is_file():
             return json.loads(path.read_text(encoding="utf-8"))
@@ -63,11 +66,14 @@ def _atomic_write(path: Path, payload: dict) -> None:
 
 
 def _read_state() -> Optional[dict]:
+    """Goal: read the host agent's shared state file. Input: none. Output: dict or None."""
     return _read_json(Path(settings.UPDATE_STATE_FILE))
 
 
 def _current_sha() -> Optional[str]:
-    """SHA du commit déployé : fichier d'état partagé d'abord, puis env GIT_SHA."""
+    """Goal: resolve the deployed commit SHA. Input: none. Output: SHA str or None.
+
+    SHA du commit déployé : fichier d'état partagé d'abord, puis env GIT_SHA."""
     state = _read_state()
     if state:
         sha = state.get("current_sha")
@@ -78,6 +84,7 @@ def _current_sha() -> Optional[str]:
 
 
 def _github_headers() -> dict:
+    """Goal: build GitHub API headers (with token if set). Input: none. Output: dict."""
     headers = {
         "Accept": "application/vnd.github+json",
         "User-Agent": "Tracr-Updater",
@@ -109,6 +116,7 @@ def _derive_flags(files: list[dict]) -> dict:
 
 
 def _compact_commits(commits: list[dict]) -> list[dict]:
+    """Goal: reduce GitHub commit objects to compact dicts (sha/title/author/date/url). Input: commits. Output: list of dicts."""
     out = []
     for c in commits:
         commit = c.get("commit", {})
@@ -126,6 +134,7 @@ def _compact_commits(commits: list[dict]) -> list[dict]:
 
 
 def _fetch_status(current_sha: Optional[str]) -> dict:
+    """Goal: query GitHub to compare the deployed SHA against the branch. Input: current_sha. Output: status dict (ahead/behind, commits, flags, error)."""
     repo = settings.GITHUB_REPO
     branch = settings.GITHUB_BRANCH
     base = {
@@ -250,6 +259,7 @@ def get_apply_state() -> dict:
 
 
 def _backups_dir() -> Path:
+    """Goal: directory holding the SQL backup dumps. Input: none. Output: Path."""
     return _update_dir() / "backups"
 
 
@@ -282,6 +292,7 @@ def backup_path(name: str) -> Optional[Path]:
 
 
 def delete_backup(name: str) -> bool:
+    """Goal: delete a SQL backup by name (path-traversal safe). Input: name. Output: bool (False if invalid/absent)."""
     p = backup_path(name)
     if not p:
         return False

@@ -45,6 +45,7 @@ _EXT_BY_MIME = {
 
 
 def _now() -> datetime:
+    """Goal: current Europe/Paris datetime. Input: none. Output: datetime."""
     return datetime.now(ZoneInfo("Europe/Paris"))
 
 
@@ -57,6 +58,7 @@ def view_signature(source: InvestigationSource) -> str:
 
 
 def verify_view_signature(source: InvestigationSource, sig: str) -> bool:
+    """Goal: constant-time check of a source view signature. Input: source, sig. Output: bool."""
     return hmac.compare_digest(sig or "", view_signature(source))
 
 
@@ -72,14 +74,17 @@ def can_delete(permission: Optional[str], source: InvestigationSource, user_id: 
 
 
 def is_valid_type(source_type: str) -> bool:
+    """Goal: check a capture type is supported. Input: source_type. Output: bool."""
     return source_type in SOURCE_TYPES
 
 
 def is_valid_role(role: Optional[str]) -> bool:
+    """Goal: check a source role is valid (None or a known role). Input: role. Output: bool."""
     return role is None or role in ROLES
 
 
 def _storage_key(id_investigation: int, mime_type: str) -> str:
+    """Goal: build a unique MinIO object key for a source. Input: id_investigation, mime_type. Output: storage key str."""
     ext = _EXT_BY_MIME.get(mime_type, "")
     return f"sources/{id_investigation}/{uuid.uuid4().hex}{ext}"
 
@@ -271,10 +276,12 @@ def list_embedded_media(db: Session, parent: InvestigationSource) -> list[dict]:
 
 
 def get_source(db: Session, id_source: int) -> Optional[InvestigationSource]:
+    """Goal: fetch a source by id. Input: db, id_source. Output: InvestigationSource or None."""
     return db.query(InvestigationSource).filter(InvestigationSource.id_source == id_source).first()
 
 
 def source_detail(db: Session, source: InvestigationSource) -> dict:
+    """Goal: serialize a source with its creator's pseudo. Input: db, source. Output: source dict."""
     creator = (
         db.query(User.pseudo).filter(User.id_user == source.created_by).first()
         if source.created_by else None
@@ -305,6 +312,7 @@ def delete_source(db: Session, source: InvestigationSource) -> None:
 
 
 def _to_dict(source: InvestigationSource, author_pseudo: Optional[str]) -> dict:
+    """Goal: serialize a source to an API dict (incl. view signature). Input: source, author_pseudo. Output: dict."""
     return {
         "id_source": source.id_source,
         "id_investigation": source.id_investigation,

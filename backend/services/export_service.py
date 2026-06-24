@@ -51,6 +51,7 @@ def _marking_meta(protocol: Optional[str], level: Optional[str]) -> Optional[Tup
 
 
 def _escape(s: str) -> str:
+    """Goal: HTML-escape a string for safe insertion. Input: s. Output: escaped str."""
     return (s or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 

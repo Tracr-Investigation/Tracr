@@ -13,6 +13,7 @@ async def create_and_emit(
     reference_id: Optional[int] = None,
     reference_type: Optional[str] = None,
 ) -> dict:
+    """Goal: create a notification and push it in real-time over Socket.IO. Input: db, id_user, type, title, message, reference_id, reference_type. Output: the notification dict."""
     data = notification_service.create_notification(
         db,
         id_user=id_user,

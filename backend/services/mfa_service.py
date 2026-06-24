@@ -1,7 +1,6 @@
-"""MFA TOTP (RFC 6238) - 100 % hors-ligne, aucune dependance externe.
+"""MFA TOTP (RFC 6238) -- fully offline, no external dependency.
 
-Le secret est partage une seule fois (QR code) puis le code a 6 chiffres est
-calcule localement par l'app d'authentification a partir du secret + l'heure.
+The secret is shared once (QR code), then the 6-digit code is computed locally by the authenticator app from secret + time.
 """
 import base64
 import io
@@ -13,17 +12,17 @@ ISSUER = "Tracr"
 
 
 def generate_secret() -> str:
-    """Genere un secret TOTP base32 (a chiffrer avant stockage)."""
+    """Goal: generate a base32 TOTP secret (encrypt before storing). Input: none. Output: secret string."""
     return pyotp.random_base32()
 
 
 def provisioning_uri(secret: str, pseudo: str) -> str:
-    """URI otpauth:// a encoder dans le QR code (compatible Google Authenticator, etc.)."""
+    """Goal: build the otpauth:// URI to encode in the QR (Google Authenticator-compatible). Input: secret, pseudo. Output: URI string."""
     return pyotp.TOTP(secret).provisioning_uri(name=pseudo, issuer_name=ISSUER)
 
 
 def verify_code(secret: str, code: str) -> bool:
-    """Verifie un code TOTP. `valid_window=1` tolere +/- 30s de derive d'horloge."""
+    """Goal: verify a TOTP code (valid_window=1 tolerates +/-30s drift). Input: secret, code. Output: bool."""
     if not secret or not code:
         return False
     cleaned = code.strip().replace(" ", "")
@@ -33,7 +32,7 @@ def verify_code(secret: str, code: str) -> bool:
 
 
 def qr_data_uri(uri: str) -> str:
-    """Rend le QR code de l'URI otpauth en data URI PNG (affichable directement)."""
+    """Goal: render the otpauth URI's QR as a PNG data URI. Input: uri. Output: data-URI string."""
     img = qrcode.make(uri)
     buf = io.BytesIO()
     img.save(buf, format="PNG")

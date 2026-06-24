@@ -1,11 +1,6 @@
-"""storage_service.py -- abstraction du stockage objet (MinIO / S3).
+"""storage_service.py -- object storage abstraction (MinIO / S3).
 
-Stocke les fichiers de capture de sources (screenshots, MHTML, medias) dans
-un bucket MinIO. La base de donnees ne conserve qu'une reference (storage_key)
-et l'empreinte SHA-256, jamais le binaire.
-
-Le client est instancie paresseusement pour ne pas exiger MinIO a l'import
-(utile pour les tests qui monkeypatchent put_object / get_object / remove_object).
+Stores source capture files (screenshots, MHTML, media) in a MinIO bucket; the DB keeps only a reference (storage_key) and the SHA-256, never the binary. The client is lazily instantiated so MinIO isn't required at import (tests monkeypatch put_object / get_object / remove_object).
 """
 import io
 from typing import Optional
@@ -19,11 +14,7 @@ _bucket_ready: bool = False
 
 
 def get_client() -> Minio:
-    """Retourne le client MinIO, instancie a la premiere demande.
-
-    Returns:
-        Minio: client connecte au endpoint configure.
-    """
+    """Goal: return the MinIO client, instantiated on first use. Input: none. Output: connected Minio client."""
     global _client
     if _client is None:
         _client = Minio(
@@ -36,7 +27,7 @@ def get_client() -> Minio:
 
 
 def ensure_bucket() -> None:
-    """Cree le bucket cible s'il n'existe pas encore (idempotent)."""
+    """Goal: create the target bucket if missing (idempotent). Input: none. Output: None."""
     global _bucket_ready
     if _bucket_ready:
         return
@@ -47,13 +38,7 @@ def ensure_bucket() -> None:
 
 
 def put_object(object_name: str, data: bytes, content_type: str) -> None:
-    """Depose un objet dans le bucket.
-
-    Args:
-        object_name (str): cle de l'objet dans le bucket.
-        data (bytes): contenu binaire.
-        content_type (str): type MIME de l'objet.
-    """
+    """Goal: store an object in the bucket. Input: object_name, data (bytes), content_type. Output: None."""
     ensure_bucket()
     client = get_client()
     client.put_object(
@@ -66,14 +51,7 @@ def put_object(object_name: str, data: bytes, content_type: str) -> None:
 
 
 def get_object(object_name: str) -> bytes:
-    """Recupere le contenu binaire d'un objet.
-
-    Args:
-        object_name (str): cle de l'objet.
-
-    Returns:
-        bytes: contenu de l'objet.
-    """
+    """Goal: read an object's full binary content. Input: object_name. Output: bytes."""
     client = get_client()
     response = client.get_object(settings.MINIO_BUCKET, object_name)
     try:
@@ -84,17 +62,7 @@ def get_object(object_name: str) -> bytes:
 
 
 def get_object_range(object_name: str, offset: int, length: int) -> bytes:
-    """Recupere une plage d'octets d'un objet (requetes HTTP Range : lecture/seek
-    video et audio dans le viewer).
-
-    Args:
-        object_name (str): cle de l'objet.
-        offset (int): position de depart (octets).
-        length (int): nombre d'octets a lire.
-
-    Returns:
-        bytes: la tranche demandee.
-    """
+    """Goal: read a byte range of an object (HTTP Range for video/audio seek). Input: object_name, offset, length. Output: bytes."""
     client = get_client()
     response = client.get_object(
         settings.MINIO_BUCKET, object_name, offset=offset, length=length
@@ -107,10 +75,6 @@ def get_object_range(object_name: str, offset: int, length: int) -> bytes:
 
 
 def remove_object(object_name: str) -> None:
-    """Supprime un objet du bucket (silencieux si absent).
-
-    Args:
-        object_name (str): cle de l'objet.
-    """
+    """Goal: delete an object from the bucket. Input: object_name. Output: None."""
     client = get_client()
     client.remove_object(settings.MINIO_BUCKET, object_name)

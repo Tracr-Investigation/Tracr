@@ -11,6 +11,7 @@ from utils.html_sanitize import sanitize_editor_html
 
 
 def _now() -> datetime:
+    """Goal: current Europe/Paris datetime. Input: none. Output: datetime."""
     return datetime.now(ZoneInfo("Europe/Paris"))
 
 
@@ -27,6 +28,7 @@ def can_delete(permission: Optional[str], document: Document, user_id: int) -> b
 
 #  CRUD documents
 def list_documents(db: Session, id_investigation: int) -> list[dict]:
+    """Goal: list an investigation's documents (most recently updated first). Input: db, id_investigation. Output: list of document dicts (no content)."""
     docs = (
         db.query(Document, User.pseudo)
         .outerjoin(User, User.id_user == Document.created_by)
@@ -49,10 +51,12 @@ def list_documents(db: Session, id_investigation: int) -> list[dict]:
 
 
 def get_document(db: Session, id_document: int) -> Optional[Document]:
+    """Goal: fetch a document by id. Input: db, id_document. Output: Document or None."""
     return db.query(Document).filter(Document.id_document == id_document).first()
 
 
 def get_document_detail(db: Session, document: Document) -> dict:
+    """Goal: serialize a document with its HTML content and author. Input: db, document. Output: document dict."""
     creator = (
         db.query(User.pseudo).filter(User.id_user == document.created_by).first()
         if document.created_by else None
@@ -70,6 +74,7 @@ def get_document_detail(db: Session, document: Document) -> dict:
 
 
 def create_document(db: Session,id_investigation: int,title: str,content_html: str,created_by: int,) -> Document:
+    """Goal: create a document (sanitizes the HTML). Input: db, id_investigation, title, content_html, created_by. Output: the created Document."""
     document = Document(id_investigation=id_investigation, title=title,
                         content_html=sanitize_editor_html(content_html or ""), created_by=created_by,)
     db.add(document)
@@ -79,6 +84,7 @@ def create_document(db: Session,id_investigation: int,title: str,content_html: s
 
 
 def update_document(db: Session, document: Document, title: Optional[str], content_html: Optional[str],) -> Document:
+    """Goal: update a document's title/content (sanitizes HTML, bumps updated_at). Input: db, document, title, content_html. Output: the updated Document."""
     if title is not None:
         document.title = title
 
@@ -93,6 +99,7 @@ def update_document(db: Session, document: Document, title: Optional[str], conte
 
 
 def delete_document(db: Session, document: Document) -> None:
+    """Goal: delete a document. Input: db, document. Output: None."""
     db.delete(document)
     db.commit()
 
@@ -158,6 +165,7 @@ def create_backup(
     user_id: Optional[int],
     kind: str = "manual",
 ) -> DocumentBackup:
+    """Goal: snapshot a document's current state and apply retention. Input: db, document, user_id, kind. Output: the created DocumentBackup."""
     backup = DocumentBackup(
         id_document=document.id_document,
         id_user=user_id,
@@ -220,6 +228,7 @@ def auto_backup_sweep(db: Session) -> int:
 
 
 def list_backups(db: Session, document_id: int) -> list[dict]:
+    """Goal: list a document's backups (newest first, with author). Input: db, document_id. Output: list of backup dicts (no content)."""
     rows = (
         db.query(DocumentBackup, User.pseudo)
         .outerjoin(User, User.id_user == DocumentBackup.id_user)
@@ -243,10 +252,12 @@ def list_backups(db: Session, document_id: int) -> list[dict]:
 
 
 def get_backup(db: Session, backup_id: int) -> Optional[DocumentBackup]:
+    """Goal: fetch a backup by id. Input: db, backup_id. Output: DocumentBackup or None."""
     return db.query(DocumentBackup).filter(DocumentBackup.id_backup == backup_id).first()
 
 
 def restore_backup(db: Session, document: Document, backup: DocumentBackup) -> Document:
+    """Goal: overwrite a document with a backup's title/content. Input: db, document, backup. Output: the restored Document."""
     document.title = backup.title
     document.content_html = backup.content_html
     document.updated_at = _now()
@@ -257,6 +268,7 @@ def restore_backup(db: Session, document: Document, backup: DocumentBackup) -> D
 
 #  liste commentaire inline
 def list_comments(db: Session, id_document: int) -> list[dict]:
+    """Goal: list a document's inline comments (oldest first, with author). Input: db, id_document. Output: list of comment dicts."""
     rows = (db.query(DocumentComment, User.pseudo).outerjoin(User, User.id_user == DocumentComment.author_id).filter(DocumentComment.id_document == id_document).order_by(DocumentComment.created_at.asc()).all())
     return [
         {
@@ -275,10 +287,12 @@ def list_comments(db: Session, id_document: int) -> list[dict]:
 
 
 def get_comment(db: Session, id_comment: int) -> Optional[DocumentComment]:
+    """Goal: fetch a comment by id. Input: db, id_comment. Output: DocumentComment or None."""
     return db.query(DocumentComment).filter(DocumentComment.id_comment == id_comment).first()
 
 
 def create_comment(db: Session, id_document: int, comment_id: str, quote: str, content: str, author_id: int) -> DocumentComment:
+    """Goal: create an inline comment anchored on a quoted span. Input: db, id_document, comment_id, quote, content, author_id. Output: the created DocumentComment."""
     comment = DocumentComment(id_document=id_document, comment_id=comment_id, quote=quote or "", content=content, author_id=author_id)
     db.add(comment)
     db.commit()
@@ -287,6 +301,7 @@ def create_comment(db: Session, id_document: int, comment_id: str, quote: str, c
 
 
 def toggle_resolved(db: Session, comment: DocumentComment) -> DocumentComment:
+    """Goal: flip a comment's resolved state. Input: db, comment. Output: the updated DocumentComment."""
     comment.resolved = not comment.resolved
     db.commit()
     db.refresh(comment)
@@ -294,5 +309,6 @@ def toggle_resolved(db: Session, comment: DocumentComment) -> DocumentComment:
 
 
 def delete_comment(db: Session, comment: DocumentComment) -> None:
+    """Goal: delete a comment. Input: db, comment. Output: None."""
     db.delete(comment)
     db.commit()
