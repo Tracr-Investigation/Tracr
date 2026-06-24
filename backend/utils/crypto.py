@@ -1,3 +1,9 @@
+"""crypto.py -- symmetric encryption of sensitive secrets (AES-256-GCM).
+
+Key derived via HKDF-SHA256 from MFA_ENCRYPTION_KEY (or SECRET_KEY). Used to
+encrypt TOTP secrets at rest; supports an AAD to bind the ciphertext to its
+context (e.g. id_user).
+"""
 import base64
 import os
 
@@ -15,7 +21,7 @@ _KEY_CACHE: bytes | None = None
 
 
 def _base_key() -> bytes:
-    """Cle de base : MFA_ENCRYPTION_KEY si definie, sinon SECRET_KEY."""
+    """Base key: MFA_ENCRYPTION_KEY if set, otherwise SECRET_KEY."""
     raw = getattr(settings, "MFA_ENCRYPTION_KEY", None)
     if raw:
         try:
@@ -26,7 +32,7 @@ def _base_key() -> bytes:
 
 
 def _key() -> bytes:
-    """Cle AES-256 derivee (HKDF-SHA256), mise en cache."""
+    """Derived AES-256 key (HKDF-SHA256), cached."""
     global _KEY_CACHE
     if _KEY_CACHE is None:
         _KEY_CACHE = HKDF(
@@ -39,7 +45,7 @@ def _key() -> bytes:
 
 
 def encrypt(plaintext: str, aad: str | None = None) -> str:
-    """Chiffre une chaine ; retourne un token base64 (version|nonce|ciphertext+tag)."""
+    """Encrypt a string; returns a base64 token (version|nonce|ciphertext+tag)."""
     nonce = os.urandom(_NONCE_LEN)
     ct = AESGCM(_key()).encrypt(
         nonce,
@@ -50,8 +56,8 @@ def encrypt(plaintext: str, aad: str | None = None) -> str:
 
 
 def decrypt(token: str, aad: str | None = None) -> str | None:
-    """Dechiffre un token ; retourne None si invalide (cle changee, AAD different,
-    integrite compromise)."""
+    """Decrypt a token; returns None if invalid (key changed, AAD mismatch,
+    integrity compromised)."""
     try:
         blob = base64.urlsafe_b64decode(token.encode("utf-8"))
         if blob[:1] != _VERSION:

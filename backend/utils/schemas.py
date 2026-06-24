@@ -1,3 +1,8 @@
+"""schemas.py -- Pydantic models validating API request bodies.
+
+Defines input constraints (lengths, formats, Kanban patterns) and shared
+validators (password strength, non-blank name).
+"""
 from datetime import datetime
 from enum import Enum
 from typing import Optional
@@ -25,6 +30,7 @@ class RegisterRequest(BaseModel):
     @field_validator("password")
     @classmethod
     def password_strength(cls, v: str) -> str:
+        """Validate password strength (delegates to validate_password_strength)."""
         return validate_password_strength(v)
 
 
@@ -55,6 +61,7 @@ class ChangePasswordRequest(BaseModel):
     @field_validator("new_password")
     @classmethod
     def password_strength(cls, v: str) -> str:
+        """Validate password strength (delegates to validate_password_strength)."""
         return validate_password_strength(v)
 
 
@@ -117,7 +124,7 @@ class TaskUpdateRequest(BaseModel):
 
 
 class TaskMoveRequest(BaseModel):
-    """Déplacement d'une carte sur le Kanban : nouvelle colonne (statut) + position."""
+    """Move a card on the Kanban board: new column (status) + position."""
     status: str = Field(pattern=TASK_STATUS_PATTERN)
     position: int = Field(ge=0)
 
@@ -149,6 +156,7 @@ class ForceChangePasswordRequest(BaseModel):
     @field_validator("new_password")
     @classmethod
     def password_strength(cls, v: str) -> str:
+        """Validate password strength (delegates to validate_password_strength)."""
         return validate_password_strength(v)
 
 
@@ -158,6 +166,7 @@ class AdminResetPasswordRequest(BaseModel):
     @field_validator("new_password")
     @classmethod
     def password_strength(cls, v: str) -> str:
+        """Validate password strength (delegates to validate_password_strength)."""
         return validate_password_strength(v)
 
 
@@ -168,6 +177,7 @@ class AdminCreateUserRequest(BaseModel):
     @field_validator("password")
     @classmethod
     def password_strength(cls, v: str) -> str:
+        """Validate password strength (delegates to validate_password_strength)."""
         return validate_password_strength(v)
 
 
@@ -187,6 +197,7 @@ class RecoverPasswordRequest(BaseModel):
     @field_validator("new_password")
     @classmethod
     def password_strength(cls, v: str) -> str:
+        """Validate password strength (delegates to validate_password_strength)."""
         return validate_password_strength(v)
 
 
@@ -234,6 +245,7 @@ class TemplateUpdateRequest(BaseModel):
     @field_validator("name")
     @classmethod
     def name_not_blank(cls, v: str | None) -> str | None:
+        """Reject a name that is provided but empty or whitespace-only."""
         if v is not None and not v.strip():
             raise ValueError("Name cannot be blank")
         return v

@@ -1,3 +1,8 @@
+"""security.py -- issuing and verifying JWT tokens (HS256).
+
+Main session token (verify_token/create_token) plus a short single-use MFA
+challenge token (after password, before TOTP code).
+"""
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
@@ -8,6 +13,7 @@ from config import settings
 
 
 def verify_token(authorization: str = Header(None)) -> dict:
+    """Verify the Authorization Bearer header and return the JWT payload (401 if invalid)."""
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Token manquant")
 
@@ -25,6 +31,7 @@ def verify_token(authorization: str = Header(None)) -> dict:
 
 
 def create_token(user_id: int) -> str:
+    """Issue a session JWT for a user (expires after JWT_EXPIRATION_HOURS)."""
     now = datetime.now(ZoneInfo("Europe/Paris"))
     return jwt.encode(
         {
@@ -38,9 +45,9 @@ def create_token(user_id: int) -> str:
 
 
 def create_mfa_challenge_token(user_id: int) -> str:
-    """Jeton court (5 min) emis apres le mot de passe, en attente du code TOTP.
+    """Short-lived token (5 min) issued after the password, pending the TOTP code.
 
-    Ne donne acces a RIEN d'autre que l'etape de verification MFA (scope dedie)."""
+    Grants access to NOTHING other than the MFA verification step (dedicated scope)."""
     now = datetime.now(ZoneInfo("Europe/Paris"))
     return jwt.encode(
         {
@@ -55,7 +62,7 @@ def create_mfa_challenge_token(user_id: int) -> str:
 
 
 def verify_mfa_challenge_token(token: str) -> int | None:
-    """Retourne l'id utilisateur si le jeton de challenge MFA est valide, sinon None."""
+    """Return the user id if the MFA challenge token is valid, otherwise None."""
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
     except JWTError:

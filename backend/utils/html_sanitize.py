@@ -1,3 +1,8 @@
+"""html_sanitize.py -- sanitization of TipTap editor HTML (anti-XSS).
+
+Allowlist of tags/attributes/URL schemes passed to nh3: keeps legitimate
+formatting and strips scripts, handlers and dangerous URIs.
+"""
 import nh3
 
 # Tags produits par TipTap
@@ -31,11 +36,11 @@ _SAFE_URL_SCHEMES = frozenset({"http", "https", "mailto"})
 
 
 def sanitize_editor_html(html: str) -> str:
-    """Nettoie le HTML issu de l'éditeur TipTap.
+    """Clean HTML coming from the TipTap editor.
 
-    Supprime : <script>, <iframe>, handlers on*, URIs javascript:/data:.
-    Conserve : mise en forme, couleurs/highlights TipTap, task lists,
-               marks de commentaires, liens et images sur http(s).
+    Removes: <script>, <iframe>, on* handlers, javascript:/data: URIs.
+    Keeps: formatting, TipTap colors/highlights, task lists, comment marks,
+           links and images over http(s).
     """
     if not html:
         return html

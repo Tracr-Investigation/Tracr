@@ -1,7 +1,9 @@
+"""validators.py -- reusable validators for the Pydantic schemas."""
 import re
 
 
 def validate_password_strength(password: str) -> str:
+    """Require >=12 chars with lowercase, uppercase, digit and symbol; raises ValueError otherwise."""
     if len(password) < 12:
         raise ValueError("Password must be at least 12 characters")
     if not re.search(r"[a-z]", password):

@@ -1,3 +1,8 @@
+"""wordlist.py -- list of short words used for account recovery phrases.
+
+Random draw (secrets) of 12 words to generate a memorable account
+recovery code.
+"""
 WORDLIST = [
     "abandon", "able", "acid", "aged", "alarm", "album", "alert", "alive",
     "allow", "alone", "alter", "amber", "among", "angry", "ankle", "apply",
