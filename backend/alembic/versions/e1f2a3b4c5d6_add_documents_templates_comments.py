@@ -19,6 +19,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    """Goal: create the documents, templates and document_comments tables. Input: none. Output: None."""
     # ── documents ───────────────────────────────────────────────
     op.create_table(
         'documents',
@@ -73,6 +74,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Goal: drop the document_comments, templates and documents tables. Input: none. Output: None."""
     op.drop_index(op.f('ix_document_comments_author_id'), table_name='document_comments')
     op.drop_index(op.f('ix_document_comments_comment_id'), table_name='document_comments')
     op.drop_index(op.f('ix_document_comments_id_document'), table_name='document_comments')

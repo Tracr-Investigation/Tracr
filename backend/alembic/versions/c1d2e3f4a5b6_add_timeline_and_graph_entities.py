@@ -16,6 +16,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    """Goal: add logs.id_investigation and create the entities and entity_relations (graph) tables. Input: none. Output: None."""
     # Add id_investigation to logs table
     op.add_column('logs', sa.Column('id_investigation', sa.Integer(), nullable=True))
     op.create_foreign_key(
@@ -57,6 +58,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Goal: drop entity_relations, entities and the logs.id_investigation column. Input: none. Output: None."""
     op.drop_table('entity_relations')
     op.drop_table('entities')
     op.drop_index('ix_logs_id_investigation', table_name='logs')

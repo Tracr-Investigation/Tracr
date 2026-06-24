@@ -18,6 +18,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    """Goal: create the investigation_sources table (OSINT archival) + indexes. Input: none. Output: None."""
     op.create_table(
         'investigation_sources',
         sa.Column('id_source', sa.Integer(), nullable=False),
@@ -45,6 +46,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Goal: drop the investigation_sources table. Input: none. Output: None."""
     op.drop_index(op.f('ix_investigation_sources_capture_group'), table_name='investigation_sources')
     op.drop_index(op.f('ix_investigation_sources_content_hash'), table_name='investigation_sources')
     op.drop_index(op.f('ix_investigation_sources_created_by'), table_name='investigation_sources')

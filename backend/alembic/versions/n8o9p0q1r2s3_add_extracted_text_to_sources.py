@@ -18,6 +18,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    """Goal: add extracted_text and text_status to investigation_sources, mark existing sources 'unprocessed'. Input: none. Output: None."""
     op.add_column('investigation_sources', sa.Column('extracted_text', sa.Text(), nullable=True))
     op.add_column(
         'investigation_sources',
@@ -29,5 +30,6 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Goal: drop the extracted_text and text_status columns. Input: none. Output: None."""
     op.drop_column('investigation_sources', 'text_status')
     op.drop_column('investigation_sources', 'extracted_text')

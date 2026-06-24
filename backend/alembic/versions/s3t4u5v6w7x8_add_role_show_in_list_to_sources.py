@@ -18,6 +18,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    """Goal: add role and show_in_list to investigation_sources + index on role. Input: none. Output: None."""
     op.add_column('investigation_sources', sa.Column('role', sa.String(length=20), nullable=True))
     op.add_column(
         'investigation_sources',
@@ -29,6 +30,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Goal: drop the role/show_in_list columns and the index. Input: none. Output: None."""
     op.drop_index('ix_investigation_sources_role', table_name='investigation_sources')
     op.drop_column('investigation_sources', 'show_in_list')
     op.drop_column('investigation_sources', 'role')

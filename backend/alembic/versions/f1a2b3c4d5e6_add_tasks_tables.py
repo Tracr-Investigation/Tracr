@@ -19,7 +19,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    """Upgrade schema."""
+    """Goal: create the tasks and task_responses tables (+ status/priority enums). Input: none. Output: None."""
     op.create_table(
         'tasks',
         sa.Column('id_task', sa.Integer(), nullable=False),
@@ -72,7 +72,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    """Downgrade schema."""
+    """Goal: drop task_responses, tasks and the associated enum types. Input: none. Output: None."""
     op.drop_index(op.f('ix_task_responses_id_user'), table_name='task_responses')
     op.drop_index(op.f('ix_task_responses_id_task'), table_name='task_responses')
     op.drop_table('task_responses')

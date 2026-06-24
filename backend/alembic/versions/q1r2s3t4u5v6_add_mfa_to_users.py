@@ -18,6 +18,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    """Goal: add mfa_secret and mfa_enabled to users. Input: none. Output: None."""
     op.add_column('users', sa.Column('mfa_secret', sa.String(length=512), nullable=True))
     op.add_column(
         'users',
@@ -26,5 +27,6 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Goal: drop the mfa_secret and mfa_enabled columns from users. Input: none. Output: None."""
     op.drop_column('users', 'mfa_enabled')
     op.drop_column('users', 'mfa_secret')

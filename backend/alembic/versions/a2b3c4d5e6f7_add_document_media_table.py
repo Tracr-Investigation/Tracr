@@ -17,6 +17,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    """Goal: create the document_media table (media attached to documents) + indexes. Input: none. Output: None."""
     op.create_table(
         'document_media',
         sa.Column('id_media', sa.Integer(), nullable=False),
@@ -37,6 +38,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Goal: drop the document_media table. Input: none. Output: None."""
     op.drop_index('ix_document_media_id_investigation', table_name='document_media')
     op.drop_index('ix_document_media_id_document', table_name='document_media')
     op.drop_table('document_media')

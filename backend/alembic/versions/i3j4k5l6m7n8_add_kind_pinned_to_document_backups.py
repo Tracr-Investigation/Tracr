@@ -18,6 +18,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    """Goal: add kind and pinned to document_backups + index on kind. Input: none. Output: None."""
     # kind : 'manual' (créé par un utilisateur) ou 'auto' (sauvegarde planifiée)
     op.add_column(
         'document_backups',
@@ -32,6 +33,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Goal: drop the kind/pinned columns and the index. Input: none. Output: None."""
     op.drop_index(op.f('ix_document_backups_kind'), table_name='document_backups')
     op.drop_column('document_backups', 'pinned')
     op.drop_column('document_backups', 'kind')

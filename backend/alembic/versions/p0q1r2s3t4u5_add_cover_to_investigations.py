@@ -18,8 +18,10 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    """Goal: add cover_storage_key to investigations. Input: none. Output: None."""
     op.add_column('investigations', sa.Column('cover_storage_key', sa.String(length=512), nullable=True))
 
 
 def downgrade() -> None:
+    """Goal: drop the cover_storage_key column from investigations. Input: none. Output: None."""
     op.drop_column('investigations', 'cover_storage_key')

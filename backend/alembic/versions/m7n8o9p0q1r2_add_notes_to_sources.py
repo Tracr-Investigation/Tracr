@@ -18,8 +18,10 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    """Goal: add the notes column to investigation_sources. Input: none. Output: None."""
     op.add_column('investigation_sources', sa.Column('notes', sa.Text(), nullable=True))
 
 
 def downgrade() -> None:
+    """Goal: drop the notes column from investigation_sources. Input: none. Output: None."""
     op.drop_column('investigation_sources', 'notes')

@@ -19,6 +19,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    """Goal: add the language column to users (default 'en'). Input: none. Output: None."""
     op.add_column(
         'users',
         sa.Column('language', sa.String(5), nullable=False, server_default='en'),
@@ -26,4 +27,5 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Goal: drop the language column from users. Input: none. Output: None."""
     op.drop_column('users', 'language')

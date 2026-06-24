@@ -24,6 +24,7 @@ SUPER_ADMIN_ROLE = "super-admin"
 
 
 def upgrade() -> None:
+    """Goal: create the superadmin account and grant it the super-admin role (idempotent). Input: none. Output: None."""
     conn = op.get_bind()
     now = datetime.now(timezone.utc)
 
@@ -79,6 +80,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Goal: remove the superadmin account and its roles. Input: none. Output: None."""
     conn = op.get_bind()
 
     user = conn.execute(

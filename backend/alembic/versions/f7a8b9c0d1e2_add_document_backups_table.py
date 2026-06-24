@@ -18,6 +18,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    """Goal: create the document_backups table (saved document versions) + index. Input: none. Output: None."""
     # ── document_backups ────────────────────────────────────────
     op.create_table(
         'document_backups',
@@ -35,5 +36,6 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Goal: drop the document_backups table. Input: none. Output: None."""
     op.drop_index(op.f('ix_document_backups_id_document'), table_name='document_backups')
     op.drop_table('document_backups')

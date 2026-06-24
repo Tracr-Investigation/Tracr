@@ -18,6 +18,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    """Goal: reassign the superadmin account from the admin role to super-admin. Input: none. Output: None."""
     conn = op.get_bind()
     conn.execute(sa.text("""
         UPDATE user_roles
@@ -28,6 +29,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Goal: reassign the superadmin account back to the admin role. Input: none. Output: None."""
     conn = op.get_bind()
     conn.execute(sa.text("""
         UPDATE user_roles

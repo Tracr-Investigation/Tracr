@@ -21,6 +21,7 @@ NEW_VALUES = ("bloque", "en_revue", "a_valider")
 
 
 def upgrade() -> None:
+    """Goal: add the Kanban statuses (bloque, en_revue, a_valider) to the task_status_enum type. Input: none. Output: None."""
     # ALTER TYPE ... ADD VALUE ne peut pas s'exécuter dans un bloc transactionnel :
     # on bascule en autocommit le temps de l'ajout.
     with op.get_context().autocommit_block():
@@ -29,6 +30,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Goal: no-op (PostgreSQL cannot remove an enum value). Input: none. Output: None."""
     # PostgreSQL ne permet pas de retirer une valeur d'un type enum.
     # Le downgrade est volontairement un no-op : les nouveaux statuts restent
     # disponibles mais ne sont plus utilisés par l'application.

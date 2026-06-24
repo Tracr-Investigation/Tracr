@@ -18,6 +18,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    """Goal: make tasks.id_investigation nullable (personal tasks) and add the position column. Input: none. Output: None."""
     # id_investigation NULL = tâche personnelle (rattachée à son créateur)
     op.alter_column('tasks', 'id_investigation', existing_type=sa.Integer(), nullable=True)
     # position : ordre vertical de la tâche dans sa colonne Kanban
@@ -28,6 +29,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Goal: drop position and restore NOT NULL on id_investigation. Input: none. Output: None."""
     op.drop_column('tasks', 'position')
     # On rétablit la contrainte NOT NULL : les tâches personnelles doivent être
     # purgées au préalable, sinon l'opération échoue.

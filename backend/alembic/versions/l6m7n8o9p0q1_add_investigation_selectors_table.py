@@ -18,6 +18,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    """Goal: create the investigation_selectors table (search selectors) + indexes. Input: none. Output: None."""
     op.create_table(
         'investigation_selectors',
         sa.Column('id_selector', sa.Integer(), nullable=False),
@@ -40,6 +41,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Goal: drop the investigation_selectors table. Input: none. Output: None."""
     op.drop_index(op.f('ix_investigation_selectors_normalized_value'), table_name='investigation_selectors')
     op.drop_index(op.f('ix_investigation_selectors_created_by'), table_name='investigation_selectors')
     op.drop_index(op.f('ix_investigation_selectors_id_investigation'), table_name='investigation_selectors')

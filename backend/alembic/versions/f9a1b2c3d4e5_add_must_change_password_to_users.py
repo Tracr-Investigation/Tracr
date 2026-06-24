@@ -18,6 +18,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    """Goal: add must_change_password to users and force it for superadmin. Input: none. Output: None."""
     op.add_column(
         'users',
         sa.Column('must_change_password', sa.Boolean(), nullable=False, server_default='false'),
@@ -30,4 +31,5 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Goal: drop the must_change_password column from users. Input: none. Output: None."""
     op.drop_column('users', 'must_change_password')

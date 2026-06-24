@@ -18,6 +18,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    """Goal: create the template_categories table and the id_category_template FK on templates. Input: none. Output: None."""
     # ── template_categories ─────────────────────────────────────
     op.create_table(
         'template_categories',
@@ -43,6 +44,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Goal: drop the FK/column and the template_categories table. Input: none. Output: None."""
     op.drop_index(op.f('ix_templates_id_category_template'), table_name='templates')
     op.drop_constraint('fk_templates_category', 'templates', type_='foreignkey')
     op.drop_column('templates', 'id_category_template')

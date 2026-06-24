@@ -19,7 +19,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    """Upgrade schema."""
+    """Goal: create the users table + unique index on pseudo. Input: none. Output: None."""
     op.create_table('users',
                     sa.Column('id_user', sa.Integer(), nullable=False),
                     sa.Column('pseudo', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
@@ -34,6 +34,6 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    """Downgrade schema."""
+    """Goal: drop the index and the users table. Input: none. Output: None."""
     op.drop_index(op.f('ix_users_pseudo'), table_name='users')
     op.drop_table('users')

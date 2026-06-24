@@ -18,6 +18,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    """Goal: create the roles and user_roles (users<->roles link) tables + indexes. Input: none. Output: None."""
     op.create_table(
         'roles',
         sa.Column('id_role', sa.Integer(), primary_key=True, autoincrement=True),
@@ -40,6 +41,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Goal: drop the user_roles and roles tables and their indexes. Input: none. Output: None."""
     op.drop_index(op.f('ix_user_roles_id_role'), table_name='user_roles')
     op.drop_index(op.f('ix_user_roles_id_user'), table_name='user_roles')
     op.drop_table('user_roles')

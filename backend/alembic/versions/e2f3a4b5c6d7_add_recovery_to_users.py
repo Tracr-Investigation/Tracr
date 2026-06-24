@@ -18,10 +18,12 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    """Goal: add recovery_hash and recovery_created_at to users. Input: none. Output: None."""
     op.add_column('users', sa.Column('recovery_hash', sa.String(256), nullable=True))
     op.add_column('users', sa.Column('recovery_created_at', sa.DateTime(timezone=True), nullable=True))
 
 
 def downgrade() -> None:
+    """Goal: drop the recovery columns from users. Input: none. Output: None."""
     op.drop_column('users', 'recovery_created_at')
     op.drop_column('users', 'recovery_hash')

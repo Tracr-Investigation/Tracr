@@ -31,6 +31,7 @@ STATUSES = [
 
 
 def upgrade() -> None:
+    """Goal: seed the default investigation statuses (En cours, Suspendue, Cloturee, Nouveau). Input: none. Output: None."""
     statuses_table = sa.table(
         'investigation_statuses',
         sa.column('name', sa.String),
@@ -46,6 +47,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Goal: delete the default investigation statuses. Input: none. Output: None."""
     names = tuple(s["name"] for s in STATUSES)
     op.execute(
         sa.text("DELETE FROM investigation_statuses WHERE name IN :names")

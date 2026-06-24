@@ -14,8 +14,10 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    """Goal: merge point for the three migration branches (no-op). Input: none. Output: None."""
     pass
 
 
 def downgrade() -> None:
+    """Goal: no-op (nothing to revert). Input: none. Output: None."""
     pass

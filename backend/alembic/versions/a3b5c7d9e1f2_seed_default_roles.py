@@ -25,6 +25,7 @@ ROLES = [
 
 
 def upgrade() -> None:
+    """Goal: seed the default roles (super-admin, admin, user). Input: none. Output: None."""
     roles_table = sa.table(
         'roles',
         sa.column('name', sa.String),
@@ -40,6 +41,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Goal: delete the default roles. Input: none. Output: None."""
     op.execute(
         sa.text("DELETE FROM roles WHERE name IN ('super-admin', 'admin', 'user')")
     )
