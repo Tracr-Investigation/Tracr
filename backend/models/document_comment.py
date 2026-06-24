@@ -7,6 +7,8 @@ from zoneinfo import ZoneInfo
 
 
 class DocumentComment(SQLModel, table=True):
+    """TipTap inline comment anchored on a span of a document."""
+
     __tablename__ = "document_comments"
 
     id_comment: Optional[int] = Field(default=None, primary_key=True)

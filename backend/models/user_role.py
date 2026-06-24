@@ -6,6 +6,8 @@ from zoneinfo import ZoneInfo
 
 
 class UserRole(SQLModel, table=True):
+    """Link row assigning a role to a user (many-to-many)."""
+
     __tablename__ = "user_roles"
 
     id_user_role: Optional[int] = Field(default=None, primary_key=True)

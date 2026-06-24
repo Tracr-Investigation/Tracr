@@ -7,6 +7,8 @@ from zoneinfo import ZoneInfo
 
 
 class DocumentBackup(SQLModel, table=True):
+    """Saved version of a document (manual or scheduled auto-backup; pinnable)."""
+
     __tablename__ = "document_backups"
 
     id_backup: Optional[int] = Field(default=None, primary_key=True)
@@ -48,6 +50,8 @@ class DocumentBackup(SQLModel, table=True):
 
 
 class Document(SQLModel, table=True):
+    """Rich-text report document attached to an investigation."""
+
     __tablename__ = "documents"
 
     id_document: Optional[int] = Field(default=None, primary_key=True)

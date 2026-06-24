@@ -7,6 +7,8 @@ from zoneinfo import ZoneInfo
 
 
 class TaskResponse(SQLModel, table=True):
+    """Reply/comment posted on a task."""
+
     __tablename__ = "task_responses"
 
     id_response: Optional[int] = Field(default=None, primary_key=True)

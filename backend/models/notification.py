@@ -6,6 +6,8 @@ from zoneinfo import ZoneInfo
 
 
 class Notification(SQLModel, table=True):
+    """In-app notification delivered to a user (type, message, read flag)."""
+
     __tablename__ = "notifications"
 
     id_notification: Optional[int] = Field(default=None, primary_key=True)

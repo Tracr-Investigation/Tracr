@@ -6,6 +6,8 @@ from zoneinfo import ZoneInfo
 
 
 class Entity(SQLModel, table=True):
+    """Graph node of an investigation (person, org, IP, account...) with canvas position."""
+
     __tablename__ = "entities"
 
     id_entity: Optional[int] = Field(default=None, primary_key=True)

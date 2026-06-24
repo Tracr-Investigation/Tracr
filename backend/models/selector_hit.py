@@ -14,10 +14,7 @@ from zoneinfo import ZoneInfo
 
 
 class SelectorHit(SQLModel, table=True):
-    """Correspondance persistee entre un selecteur et une source : resultat
-    sauvegarde d'une analyse (cf. hit_service). Recalculee a chaque scan, elle
-    evite de re-parser le texte a chaque consultation et permet d'afficher un
-    compteur de hits sur une source."""
+    """Persisted match between a selector and a source (recomputed at each scan to avoid re-parsing text on every read; powers per-source hit counters)."""
 
     __tablename__ = "selector_hits"
     __table_args__ = (

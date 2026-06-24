@@ -6,6 +6,8 @@ from zoneinfo import ZoneInfo
 
 
 class Category(SQLModel, table=True):
+    """Investigation category (label with color/icon) for classifying investigations."""
+
     __tablename__ = "categories"
 
     id_category: Optional[int] = Field(default=None, primary_key=True)

@@ -7,6 +7,8 @@ from zoneinfo import ZoneInfo
 
 
 class Template(SQLModel, table=True):
+    """Reusable document template (optionally public, optionally categorized)."""
+
     __tablename__ = "templates"
 
     id_template: Optional[int] = Field(default=None, primary_key=True)

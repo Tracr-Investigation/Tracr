@@ -6,6 +6,8 @@ from zoneinfo import ZoneInfo
 
 
 class TemplateCategory(SQLModel, table=True):
+    """Template category (label with color/icon)."""
+
     __tablename__ = "template_categories"
 
     id_category_template: Optional[int] = Field(default=None, primary_key=True)

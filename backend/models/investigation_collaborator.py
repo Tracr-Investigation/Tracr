@@ -8,12 +8,16 @@ import enum
 
 
 class PermissionLevel(str, enum.Enum):
+    """Collaborator permission levels on an investigation."""
+
     manager = "manager"
     editeur = "editeur"
     lecteur = "lecteur"
 
 
 class InvestigationCollaborator(SQLModel, table=True):
+    """Collaborator membership/invitation on an investigation with permission level."""
+
     __tablename__ = "investigation_collaborators"
     __table_args__ = (
         UniqueConstraint("id_investigation", "id_user", name="uq_investigation_user"),

@@ -6,6 +6,8 @@ from zoneinfo import ZoneInfo
 
 
 class InvestigationStatus(SQLModel, table=True):
+    """Investigation status (label + color), e.g. "En cours", "Cloturee"."""
+
     __tablename__ = "investigation_statuses"
 
     id_status: Optional[int] = Field(default=None, primary_key=True)

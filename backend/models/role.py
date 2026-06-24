@@ -6,6 +6,8 @@ from zoneinfo import ZoneInfo
 
 
 class Role(SQLModel, table=True):
+    """User role (super-admin, admin, user)."""
+
     __tablename__ = "roles"
 
     id_role: Optional[int] = Field(default=None, primary_key=True)

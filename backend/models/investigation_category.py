@@ -4,6 +4,8 @@ from sqlmodel import Field, SQLModel
 
 
 class InvestigationCategory(SQLModel, table=True):
+    """Link row tying an investigation to a category (many-to-many)."""
+
     __tablename__ = "investigation_categories"
     __table_args__ = (
         UniqueConstraint("id_investigation", "id_category", name="uq_investigation_category"),

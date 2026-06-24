@@ -6,6 +6,8 @@ from zoneinfo import ZoneInfo
 
 
 class Investigation(SQLModel, table=True):
+    """Investigation case: title, objectives, status, owner and PDF cover."""
+
     __tablename__ = "investigations"
 
     id_investigation: Optional[int] = Field(default=None, primary_key=True)

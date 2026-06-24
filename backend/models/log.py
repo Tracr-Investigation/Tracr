@@ -6,6 +6,8 @@ from zoneinfo import ZoneInfo
 
 
 class Log(SQLModel, table=True):
+    """Audit-trail entry (who/what/when, optional investigation and IP)."""
+
     __tablename__ = "logs"
 
     id_log: Optional[int] = Field(default=None, primary_key=True)

@@ -7,8 +7,7 @@ from zoneinfo import ZoneInfo
 
 
 class InvestigationSource(SQLModel, table=True):
-    """Capture archivee d'une source externe (page, screenshot, media) rattachee
-    a une enquete. Le binaire est dans MinIO ; ici on stocke metadonnees + hash."""
+    """Archived capture of an external source (page, screenshot, media) for an investigation; binary lives in MinIO, metadata + hash stored here."""
 
     __tablename__ = "investigation_sources"
 

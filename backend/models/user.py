@@ -6,6 +6,8 @@ from zoneinfo import ZoneInfo
 
 
 class User(SQLModel, table=True):
+    """Application user account (credentials, language, MFA, recovery)."""
+
     __tablename__ = "users"
 
     id_user: Optional[int] = Field(default=None, primary_key=True)

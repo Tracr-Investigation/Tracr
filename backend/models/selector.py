@@ -15,10 +15,7 @@ from zoneinfo import ZoneInfo
 
 
 class InvestigationSelector(SQLModel, table=True):
-    """Selecteur OSINT rattache a une enquete : un identifiant recherche
-    (email, telephone, pseudo, domaine...) que l'on confronte au texte des
-    sources archivees pour detecter des "hits". `normalized_value` est la forme
-    canonique utilisee pour le matching (insensible a la casse, sans separateurs)."""
+    """OSINT selector of an investigation (email, phone, alias, domain...) matched against archived source text to detect "hits"; normalized_value is the canonical form used for matching (case-insensitive, no separators)."""
 
     __tablename__ = "investigation_selectors"
     __table_args__ = (

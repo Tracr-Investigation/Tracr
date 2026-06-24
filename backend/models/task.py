@@ -9,6 +9,8 @@ import enum
 
 
 class TaskStatus(str, enum.Enum):
+    """Kanban task statuses."""
+
     todo = "todo"
     en_cours = "en_cours"
     bloque = "bloque"
@@ -18,6 +20,8 @@ class TaskStatus(str, enum.Enum):
 
 
 class TaskPriority(str, enum.Enum):
+    """Task priority levels."""
+
     basse = "basse"
     normale = "normale"
     haute = "haute"
@@ -25,6 +29,8 @@ class TaskPriority(str, enum.Enum):
 
 
 class Task(SQLModel, table=True):
+    """Task on an investigation, or a personal task when id_investigation is NULL (Kanban status/priority/position)."""
+
     __tablename__ = "tasks"
 
     id_task: Optional[int] = Field(default=None, primary_key=True)

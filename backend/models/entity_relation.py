@@ -6,6 +6,8 @@ from zoneinfo import ZoneInfo
 
 
 class EntityRelation(SQLModel, table=True):
+    """Directed link between two entities of an investigation's graph."""
+
     __tablename__ = "entity_relations"
 
     id_relation: Optional[int] = Field(default=None, primary_key=True)
