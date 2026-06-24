@@ -1,6 +1,6 @@
-/* region.js - overlay de sélection d'une zone à capturer.
- * Injecté à la demande par le popup. À la fin, envoie le rectangle (px CSS,
- * relatif au viewport) au service worker qui réalise la capture + le recadrage.
+/* region.js - overlay for selecting an area to capture.
+ * Injected on demand by the popup. On completion, sends the rectangle (CSS px,
+ * relative to the viewport) to the service worker, which does the capture + crop.
  */
 (function () {
   if (window.__tracrRegionActive) return;
@@ -34,6 +34,7 @@
 
   let startX = 0, startY = 0, dragging = false;
 
+  /** Remove the overlay and detach listeners. */
   function cleanup() {
     overlay.remove();
     hint.remove();
@@ -41,11 +42,13 @@
     window.__tracrRegionActive = false;
   }
 
+  /** Abort the selection and tell the service worker to drop the pending capture. */
   function cancel() {
     cleanup();
     chrome.runtime.sendMessage({ type: 'TRACR_REGION_CANCEL' });
   }
 
+  /** Cancel on Escape. */
   function onKey(e) {
     if (e.key === 'Escape') { e.preventDefault(); cancel(); }
   }

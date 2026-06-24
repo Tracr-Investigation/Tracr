@@ -1,6 +1,6 @@
-/* background.js - service worker MV3.
- * Menu contextuel « Tracr : archiver ce média » sur images et vidéos.
- * Utilise la dernière enquête sélectionnée dans le popup.
+/* background.js - MV3 service worker.
+ * "Tracr: archive this media" context menu on images and videos.
+ * Uses the last investigation selected in the popup.
  */
 importScripts('api.js');
 const { store, uploadSource } = self.TracrAPI;
@@ -16,12 +16,14 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
+/** Show a colored badge on the toolbar icon for 4s (transient status feedback). */
 function flashBadge(text, color) {
   chrome.action.setBadgeBackgroundColor({ color });
   chrome.action.setBadgeText({ text });
   setTimeout(() => chrome.action.setBadgeText({ text: '' }), 4000);
 }
 
+/** Show a desktop notification (best-effort; swallows errors). */
 function notify(title, message) {
   try {
     chrome.notifications.create({
@@ -34,6 +36,7 @@ function notify(title, message) {
   } catch (_) { /* ignore */ }
 }
 
+/** Derive a file name from a URL path, falling back to 'media'. */
 function basename(url) {
   try {
     const path = new URL(url).pathname;
@@ -87,12 +90,13 @@ chrome.contextMenus.onClicked.addListener(async (info) => {
   }
 });
 
-// ── Capture par sélection de zone (déclenchée depuis region.js) ───────────────
+// ── Region-selection capture (triggered from region.js) ──────────────────────
 chrome.runtime.onMessage.addListener((msg, sender) => {
   if (msg && msg.type === 'TRACR_REGION') handleRegion(msg, sender);
   else if (msg && msg.type === 'TRACR_REGION_CANCEL') chrome.storage.local.remove('pendingCapture');
 });
 
+/** Capture the visible tab, crop it to the selected rectangle, and upload it as a screenshot. */
 async function handleRegion(msg, sender) {
   const cfg = await store.get();
   const { pendingCapture } = await chrome.storage.local.get('pendingCapture');

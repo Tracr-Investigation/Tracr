@@ -1,10 +1,12 @@
-/* api.js - couche partagée popup + service worker.
- * Expose self.TracrAPI. Chargé via <script src> (popup) et importScripts (background).
+/* api.js - shared layer for popup + service worker.
+ * Exposes self.TracrAPI. Loaded via <script src> (popup) and importScripts (background).
  */
 (function (root) {
   const DEFAULT_API_URL = 'http://localhost:8000';
 
+  // Thin wrapper over chrome.storage.local for config + auth state.
   const store = {
+    /** Read config + auth from chrome.storage.local, applying defaults. @returns {Promise<object>} */
     async get() {
       const d = await chrome.storage.local.get([
         'apiUrl', 'token', 'pseudo', 'lastInvestigationId', 'lastInvestigationTitle',
@@ -17,10 +19,13 @@
         lastInvestigationTitle: d.lastInvestigationTitle || null,
       };
     },
+    /** Persist the given keys to chrome.storage.local. */
     async set(obj) { await chrome.storage.local.set(obj); },
+    /** Drop the stored token + pseudo (logout). */
     async clearAuth() { await chrome.storage.local.remove(['token', 'pseudo']); },
   };
 
+  /** Extract the API error message (detail) from a response, or return the fallback. */
   async function parseError(response, fallback) {
     try {
       const data = await response.json();
@@ -29,6 +34,7 @@
     return fallback;
   }
 
+  /** Authenticate; returns {token, pseudo, ...} or {mfa_required, mfa_token} if MFA is on. */
   async function login(apiUrl, pseudo, password) {
     const res = await fetch(`${apiUrl}/login`, {
       method: 'POST',
@@ -40,8 +46,7 @@
     return res.json();
   }
 
-  // 2e etape quand le MFA est actif : echange le mfa_token + code TOTP contre le
-  // jeton d'acces complet. `code` accepte aussi un code de secours.
+  /** MFA 2nd step: exchange mfa_token + TOTP (or backup) code for the full access token. */
   async function loginMfa(apiUrl, mfaToken, code) {
     const res = await fetch(`${apiUrl}/login/mfa`, {
       method: 'POST',
@@ -52,6 +57,7 @@
     return res.json(); // { token, pseudo, ... }
   }
 
+  /** List the user's investigations; throws 'SESSION_EXPIRED' on 401. @returns {Promise<Array>} */
   async function listInvestigations(apiUrl, token) {
     const res = await fetch(`${apiUrl}/investigations`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -62,8 +68,9 @@
     return data.investigations || [];
   }
 
-  // opts: { investigationId, title, sourceUrl, sourceType, mime, blob,
-  //         capturedAt, captureGroup?, pageMetadata? }
+  /** Upload a captured source (multipart) to an investigation; throws 'SESSION_EXPIRED' on 401.
+   * @param {object} opts { investigationId, title, sourceUrl, sourceType, mime, blob,
+   *                         capturedAt, captureGroup?, role?, pageMetadata? } */
   async function uploadSource(apiUrl, token, opts) {
     const fd = new FormData();
     const ext = (opts.mime && opts.mime.split('/')[1]) || 'bin';

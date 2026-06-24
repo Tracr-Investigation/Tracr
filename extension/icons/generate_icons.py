@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Génère les icônes PNG de l'extension à partir du logo Tracr (graphe réseau).
+"""Generate the extension's PNG icons from the Tracr logo (network graph).
 
-Aucune dépendance externe : rasterisation maison + supersampling 4x pour
-l'anti-aliasing, puis encodage PNG via zlib (stdlib).
+No external dependency: in-house rasterization + 4x supersampling for
+anti-aliasing, then PNG encoding via zlib (stdlib).
 
-Usage : python generate_icons.py  ->  icon16.png, icon32.png, icon48.png, icon128.png
+Usage: python generate_icons.py  ->  icon16.png, icon32.png, icon48.png, icon128.png
 """
 import math
 import struct
@@ -33,10 +33,12 @@ EDGES = [
 
 
 def _blend(dst, color, alpha):
+    """Alpha-blend color over dst (both RGB tuples). Returns the resulting RGB tuple."""
     return tuple(int(round(c * alpha + d * (1 - alpha))) for c, d in zip(color, dst))
 
 
 def _dist_seg(px, py, x1, y1, x2, y2):
+    """Distance from point (px, py) to the segment (x1,y1)-(x2,y2)."""
     dx, dy = x2 - x1, y2 - y1
     if dx == 0 and dy == 0:
         return math.hypot(px - x1, py - y1)
@@ -45,6 +47,7 @@ def _dist_seg(px, py, x1, y1, x2, y2):
 
 
 def render(size):
+    """Render the logo at the given size and return raw RGBA bytes (rounded corners, AA)."""
     ss = 4
     n = size * ss
     scale = n / 100.0
@@ -116,6 +119,7 @@ def render(size):
 
 
 def write_png(path, size, rgba):
+    """Write raw RGBA bytes as an 8-bit PNG file (hand-rolled, no external deps)."""
     def chunk(tag, data):
         c = tag + data
         return struct.pack(">I", len(data)) + c + struct.pack(">I", zlib.crc32(c) & 0xffffffff)

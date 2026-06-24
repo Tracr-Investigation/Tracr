@@ -1,4 +1,4 @@
-/* popup.js - UI de l'extension : connexion, sélection d'enquête, captures. */
+/* popup.js - extension UI: login, investigation selection, captures. */
 const { store, login, loginMfa, listInvestigations, uploadSource } = self.TracrAPI;
 
 const $ = (id) => document.getElementById(id);
@@ -21,34 +21,39 @@ let cfg = null;
 // Contexte de l'étape MFA en cours (entre /login et /login/mfa).
 let pendingMfa = null; // { apiUrl, mfaToken }
 
+/** Return the currently active tab in the current window. */
 async function getActiveTab() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   return tab;
 }
 
+/** Extract the hostname from a URL, falling back to the raw string. */
 function hostOf(url) {
   try { return new URL(url).hostname; } catch { return url || ''; }
 }
 
+/** Convert a data: URL into a Blob. */
 function dataUrlToBlob(dataUrl) {
   return fetch(dataUrl).then((r) => r.blob());
 }
 
+/** Display a status message under the capture buttons (kind = ok|err|run). */
 function setStatus(msg, kind) {
   els.captureStatus.textContent = msg;
   els.captureStatus.className = `status ${kind}`;
   els.captureStatus.classList.remove('hidden');
 }
 
+/** Toggle between the 'login' and 'capture' views. */
 function show(view) {
   els.loginView.classList.toggle('hidden', view !== 'login');
   els.captureView.classList.toggle('hidden', view !== 'capture');
   els.logoutBtn.classList.toggle('hidden', view !== 'capture');
 }
 
-// ── Connexion ────────────────────────────────────────────────────────────────
+// ── Login ────────────────────────────────────────────────────────────────────
 
-// Affiche / masque l'étape MFA et bascule l'UI de saisie initiale.
+/** Show/hide the MFA step and toggle the initial credentials inputs accordingly. */
 function showMfaStep(on) {
   els.mfaStep.classList.toggle('hidden', !on);
   els.loginBtn.classList.toggle('hidden', on);
@@ -58,7 +63,7 @@ function showMfaStep(on) {
   if (on) { els.mfaCode.value = ''; els.mfaCode.focus(); }
 }
 
-// Persiste le jeton complet puis bascule en mode capture.
+/** Persist the full token then switch to capture mode. */
 async function finishLogin(apiUrl, data) {
   await store.set({ apiUrl, token: data.token, pseudo: data.pseudo });
   cfg = await store.get();
@@ -67,6 +72,7 @@ async function finishLogin(apiUrl, data) {
   await enterCaptureMode();
 }
 
+/** Submit credentials; either finish login or move to the MFA step. */
 async function handleLogin() {
   els.loginError.classList.add('hidden');
   const apiUrl = els.apiUrl.value.trim().replace(/\/$/, '') || self.TracrAPI.DEFAULT_API_URL;
@@ -94,6 +100,7 @@ async function handleLogin() {
   }
 }
 
+/** Submit the TOTP/backup code to complete an MFA-protected login. */
 async function handleMfaSubmit() {
   els.loginError.classList.add('hidden');
   const code = els.mfaCode.value.trim();
@@ -115,6 +122,7 @@ async function handleMfaSubmit() {
   }
 }
 
+/** Abort the MFA step and return to the credentials form. */
 function handleMfaCancel() {
   pendingMfa = null;
   els.loginError.classList.add('hidden');
@@ -123,6 +131,7 @@ function handleMfaCancel() {
   els.password.focus();
 }
 
+/** Clear stored auth and return to the login view. */
 async function handleLogout() {
   await store.clearAuth();
   cfg = await store.get();
@@ -131,8 +140,9 @@ async function handleLogout() {
   show('login');
 }
 
-// ── Mode capture ─────────────────────────────────────────────────────────────
+// ── Capture mode ─────────────────────────────────────────────────────────────
 
+/** Populate the capture view (pseudo, title, metadata) and load investigations. */
 async function enterCaptureMode() {
   els.whoPseudo.textContent = cfg.pseudo || '-';
   els.titleInput.value = activeTab?.title || 'Capture';
@@ -142,6 +152,7 @@ async function enterCaptureMode() {
   await loadInvestigations();
 }
 
+/** Fill the investigation <select>, restoring the last chosen one. */
 async function loadInvestigations() {
   els.investigationSelect.innerHTML = '<option>Chargement…</option>';
   try {
@@ -163,6 +174,7 @@ async function loadInvestigations() {
   }
 }
 
+/** Clear auth and bounce back to login with an "expired session" message. */
 async function handleSessionExpired() {
   await store.clearAuth();
   cfg = await store.get();
@@ -171,17 +183,20 @@ async function handleSessionExpired() {
   els.loginError.classList.remove('hidden');
 }
 
+/** Escape a string for safe insertion into HTML. */
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
+/** Return {id, title} of the selected investigation, or null if none. */
 function currentInvestigation() {
   const id = parseInt(els.investigationSelect.value, 10);
   const title = els.investigationSelect.selectedOptions[0]?.textContent || '';
   return Number.isNaN(id) ? null : { id, title };
 }
 
+/** Collect metadata about the active tab (title, viewport, user agent). */
 function pageMetadata() {
   return {
     page_title: activeTab?.title || null,
@@ -204,6 +219,7 @@ const MEDIA_FETCH_TIMEOUT = 20000; // ms par media
 // URL d'API reelle au moment de l'affichage (decouple l'URL d'API de capture).
 const MEDIA_PLACEHOLDER_PREFIX = 'tracr-media:'; // tracr-media:<id_source>:<view_sig>
 
+/** Derive a media file name from a URL path, falling back to 'media'. */
 function mediaBasename(url) {
   try {
     const path = new URL(url).pathname;
@@ -211,6 +227,7 @@ function mediaBasename(url) {
   } catch { return 'media'; }
 }
 
+/** Read a Blob as a data: URL. */
 function blobToDataUrl(blob) {
   return new Promise((resolve, reject) => {
     const r = new FileReader();
@@ -220,6 +237,7 @@ function blobToDataUrl(blob) {
   });
 }
 
+/** Fetch a media URL as a Blob, aborting after MEDIA_FETCH_TIMEOUT. */
 async function fetchMediaBlob(url) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), MEDIA_FETCH_TIMEOUT);
@@ -232,8 +250,7 @@ async function fetchMediaBlob(url) {
   }
 }
 
-// Choisit le meilleur candidat d'un srcset (plus grande largeur `w`, sinon le
-// dernier - souvent la plus haute resolution).
+/** Pick the best srcset candidate (largest `w` width, else the last/highest-res). */
 function pickFromSrcset(srcset) {
   let best = null, bestW = -1;
   for (const part of srcset.split(',')) {
@@ -248,6 +265,8 @@ function pickFromSrcset(srcset) {
 // Toutes les facons de referencer une image de fond en CSS : on capture l'URL.
 const CSS_URL_RE = /url\(\s*(['"]?)([^'")]+)\1\s*\)/g;
 
+/** Embed a page's media into its HTML: inline small images as data: URIs, upload the
+ * rest as companion sources (placeholders). @returns {Promise<{html, stats}>} */
 async function embedPageMedia(html, ctx) {
   const doc = new DOMParser().parseFromString(html, 'text/html');
   const stats = { inlined: 0, companion: 0, failed: 0 };
@@ -357,6 +376,7 @@ async function embedPageMedia(html, ctx) {
   return { html: '<!DOCTYPE html>\n' + doc.documentElement.outerHTML, stats };
 }
 
+/** Load a data: URL into an HTMLImageElement. */
 function loadImage(dataUrl) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -366,7 +386,7 @@ function loadImage(dataUrl) {
   });
 }
 
-// Capture la page ENTIÈRE par défilement + assemblage sur un canvas.
+/** Capture the FULL page by scrolling and stitching screenshots onto a canvas. */
 async function captureFullPage(captureGroup) {
   const [{ result: m }] = await chrome.scripting.executeScript({
     target: { tabId: activeTab.id },
@@ -424,15 +444,14 @@ async function captureFullPage(captureGroup) {
   return { blob, sourceType: 'page_screenshot', mime: 'image/png', captureGroup };
 }
 
-// Capture de la zone visible uniquement (rapide, pas de défilement).
+/** Capture only the visible area (fast, no scrolling). */
 async function doVisibleScreenshot(captureGroup) {
   const dataUrl = await chrome.tabs.captureVisibleTab(activeTab.windowId, { format: 'png' });
   const blob = await dataUrlToBlob(dataUrl);
   return { blob, sourceType: 'page_screenshot', mime: 'image/png', captureGroup };
 }
 
-// Sélection d'une zone : délègue au content script + service worker (le popup
-// doit se fermer pour laisser l'utilisateur interagir avec la page).
+/** Start region selection: stash the pending capture, inject region.js, close the popup. */
 async function startRegionSelection() {
   const inv = currentInvestigation();
   if (!inv) { setStatus('Sélectionnez une enquête', 'err'); return; }
@@ -451,9 +470,9 @@ async function startRegionSelection() {
   }
 }
 
-// Inline UNIQUEMENT ce que saveAsMHTML rate (adoptedStyleSheets + <style> remplis
-// par JS via insertRule). Les <style>/<link> classiques sont déjà capturés par le
-// MHTML : on ne les retouche pas → rapide, un seul passage, aucun fetch réseau.
+/** Inline ONLY what saveAsMHTML misses (adoptedStyleSheets + <style> filled by JS via
+ * insertRule). Plain <style>/<link> are already captured by MHTML, so they are left
+ * untouched: fast, single pass, no network fetch. */
 async function inlineMissingCss() {
   await chrome.scripting.executeScript({
     target: { tabId: activeTab.id },
@@ -487,6 +506,7 @@ async function inlineMissingCss() {
   });
 }
 
+/** Remove the <style> elements injected by inlineMissingCss. */
 async function cleanupInlinedCss() {
   await chrome.scripting.executeScript({
     target: { tabId: activeTab.id },
@@ -494,7 +514,7 @@ async function cleanupInlinedCss() {
   }).catch(() => {});
 }
 
-// Réécrit les url(...) relatives d'une feuille CSS en URL absolues.
+/** Rewrite relative url(...) references in a stylesheet to absolute URLs. */
 function absolutizeCss(cssText, baseUrl) {
   return cssText.replace(/url\(\s*(['"]?)([^'")]+)\1\s*\)/g, (m, q, u) => {
     if (/^(data:|https?:|\/\/|#)/i.test(u)) return m;
@@ -502,9 +522,9 @@ function absolutizeCss(cssText, baseUrl) {
   });
 }
 
-// Capture « page autonome » (SingleFile-style) : un seul fichier HTML avec tout le
-// CSS inliné, les URLs absolutisées → s'affiche directement dans une iframe, sans
-// moteur de rejeu. Le CSS cross-origin est récupéré côté extension (host perms).
+/** Self-contained ("SingleFile-style") capture: one HTML file with all CSS inlined and
+ * URLs absolutized, so it renders directly in an iframe without a replay engine.
+ * Cross-origin CSS is fetched from the extension side (host perms). */
 async function doSelfContainedHtml(captureGroup, ctx) {
   const [{ result }] = await chrome.scripting.executeScript({
     target: { tabId: activeTab.id },
@@ -585,6 +605,7 @@ async function doSelfContainedHtml(captureGroup, ctx) {
   return { blob, sourceType: 'web_archive', mime: 'text/html', captureGroup, mediaStats: stats };
 }
 
+/** Capture the page as MHTML (after inlining CSS that MHTML would miss). */
 async function doMhtml(captureGroup) {
   let inlined = false;
   try { await inlineMissingCss(); inlined = true; } catch (_) { /* pages protégées */ }
@@ -596,6 +617,7 @@ async function doMhtml(captureGroup) {
   }
 }
 
+/** Run one or more capture kinds and upload each as a source to the selected investigation. */
 async function runCapture(kinds) {
   const inv = currentInvestigation();
   if (!inv) { setStatus('Sélectionnez une enquête', 'err'); return; }
@@ -643,6 +665,7 @@ async function runCapture(kinds) {
   }
 }
 
+/** Enable/disable the capture buttons while a capture is running. */
 function setBusy(b) {
   els.captureFull.disabled = b;
   els.captureVisible.disabled = b;
@@ -654,6 +677,7 @@ function setBusy(b) {
 
 // ── Init ─────────────────────────────────────────────────────────────────────
 
+/** Wire up DOM event listeners and show the initial view based on stored auth. */
 async function init() {
   cfg = await store.get();
   activeTab = await getActiveTab();
