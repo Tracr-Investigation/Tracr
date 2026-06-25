@@ -47,7 +47,7 @@ export const Admin = () => {
       icon: Layers,
       content: <TemplateCategoriesTab />,
     },
-    // Mise à jour du code : réservée au super-admin.
+    // Code updates: super-admin only.
     ...(user?.role === 'super-admin'
       ? [{
           id: 'updates',

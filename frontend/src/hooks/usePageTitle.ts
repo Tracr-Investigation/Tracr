@@ -2,11 +2,8 @@ import { useEffect } from 'react';
 
 const BASE_TITLE = 'Tracr';
 
-/**
- * Met à jour le titre de l'onglet du navigateur au format « Tracr - <page> ».
- * Passer une valeur vide/null laisse le titre de base « Tracr » (utile tant que
- * la donnée dynamique d'une page n'est pas encore chargée).
- */
+// Set the browser tab title as "Tracr - <page>"; an empty/null value keeps the
+// base "Tracr" title (useful while a page's dynamic data is still loading).
 export function usePageTitle(title?: string | null) {
     useEffect(() => {
         document.title = title ? `${BASE_TITLE} - ${title}` : BASE_TITLE;

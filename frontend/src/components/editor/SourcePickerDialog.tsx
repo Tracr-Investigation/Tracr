@@ -31,7 +31,7 @@ function esc(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
 }
 
-// Construit le HTML inséré (sanitisé côté serveur : img http, a href/target, code…).
+// Build the inserted HTML (sanitized server-side: img http, a href/target, code…).
 function buildInsertHtml(s: SourceData): string {
   const viewUrl = `${API_URL}/sources/${s.id_source}/view?sig=${s.view_sig}`;
   const title = esc(s.title);

@@ -16,7 +16,7 @@ export const MaintenanceGate = ({ children }: { children: ReactNode }) => {
         const data = await res.json();
         if (!stopped) setActive(!!data.active);
       } catch {
-        // backend injoignable : on conserve l'état courant
+        // backend unreachable: keep the current state
       }
     };
     check();

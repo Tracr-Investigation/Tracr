@@ -6,9 +6,9 @@ import { api } from '../../services/api';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { ShieldCheck, Copy, Check, Loader2 } from 'lucide-react';
 
-// Dedup de l'appel /me/mfa/setup : le double-effet de React StrictMode monterait
-// deux requetes concurrentes (donc deux secrets). On partage la promesse en vol ;
-// elle est remise a null une fois resolue, donc une vraie revisite refait un appel.
+// Dedup the /me/mfa/setup call: React StrictMode's double effect would fire two
+// concurrent requests (two secrets). We share the in-flight promise; it is reset
+// to null once resolved, so a genuine revisit makes a fresh call.
 let setupPromise: ReturnType<typeof api.mfaSetup> | null = null;
 
 export const SetupMfa = () => {
@@ -25,19 +25,19 @@ export const SetupMfa = () => {
     const [loadingSetup, setLoadingSetup] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 
-    // Deja enrole : rien a faire ici.
+    // Already enrolled: nothing to do here.
     useEffect(() => {
         if (user?.mfa_enabled) navigate('/', { replace: true });
     }, [user?.mfa_enabled, navigate]);
 
     useEffect(() => {
-        // Deja active : ne pas appeler /setup (l'autre effet redirige vers '/').
+        // Already enabled: skip /setup (the other effect redirects to '/').
         if (user?.mfa_enabled) { setLoadingSetup(false); return; }
         let active = true;
         if (!setupPromise) {
             setupPromise = api.mfaSetup();
-            // Libere le partage une fois la requete terminee : une revisite ulterieure
-            // (ex. reconfiguration) refera bien un nouvel appel.
+            // Release the shared promise once done so a later revisit
+            // (e.g. reconfiguration) makes a fresh call.
             setupPromise.finally(() => { setupPromise = null; });
         }
         setupPromise

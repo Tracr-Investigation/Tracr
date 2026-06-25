@@ -31,7 +31,7 @@ import { SourcePickerDialog } from './SourcePickerDialog';
 const ICON_SIZE = 14;
 const SWATCH_SIZE_PX = 20;
 
-// palette surlignage
+// Highlight palette.
 const HIGHLIGHT_COLORS = [
   '#fef08a',
   '#bbf7d0',
@@ -41,7 +41,7 @@ const HIGHLIGHT_COLORS = [
   '#fed7aa',
 ];
 
-// palette couleur texte
+// Text color palette.
 const TEXT_COLORS = [
   '#ef4444',
   '#3b82f6',
@@ -79,7 +79,7 @@ const buildBtnClassName = (active: boolean): string => {
   return `${base} text-secondary hover:text-accent hover:bg-primary/10`;
 };
 
-// bouton générique toolbar
+// Generic toolbar button.
 const Btn = ({ active = false, disabled = false, onClick, title, children }: BtnProps) => {
   const className = buildBtnClassName(active);
   return (
@@ -103,7 +103,7 @@ const focusChain = (editor: Editor): ChainedCommands => {
   return editor.chain().focus();
 };
 
-// boutons titres H1 H2 H3
+// Heading buttons (H1/H2/H3).
 const HEADING_BUTTONS: ToggleButtonConfig[] = [
   {
     key: 'heading-1',
@@ -128,7 +128,7 @@ const HEADING_BUTTONS: ToggleButtonConfig[] = [
   },
 ];
 
-// boutons gras italique souligné
+// Bold/italic/underline buttons.
 const INLINE_FORMAT_BUTTONS: ToggleButtonConfig[] = [
   {
     key: 'bold',
@@ -153,7 +153,7 @@ const INLINE_FORMAT_BUTTONS: ToggleButtonConfig[] = [
   },
 ];
 
-// boutons alignement texte
+// Text alignment buttons.
 const ALIGNMENT_BUTTONS: ToggleButtonConfig[] = [
   {
     key: 'align-left',
@@ -178,7 +178,7 @@ const ALIGNMENT_BUTTONS: ToggleButtonConfig[] = [
   },
 ];
 
-// boutons listes puces numérotées tâches
+// Bullet/ordered/task list buttons.
 const LIST_BUTTONS: ToggleButtonConfig[] = [
   {
     key: 'bullet-list',
@@ -203,7 +203,7 @@ const LIST_BUTTONS: ToggleButtonConfig[] = [
   },
 ];
 
-// boutons citation et code
+// Blockquote and code buttons.
 const QUOTE_CODE_BUTTONS: ToggleButtonConfig[] = [
   {
     key: 'blockquote',
@@ -233,7 +233,7 @@ interface ToggleGroupProps {
   editor: Editor;
 }
 
-// rendu groupe de boutons toggle
+// Render a group of toggle buttons.
 const ToggleGroup = ({ buttons, editor }: ToggleGroupProps) => {
   return (
     <>
@@ -260,7 +260,7 @@ interface UndoRedoButtonsProps {
   editor: Editor;
 }
 
-// boutons annuler rétablir
+// Undo/redo buttons.
 const UndoRedoButtons = ({ editor }: UndoRedoButtonsProps) => {
   const handleUndo = () => {
     focusChain(editor).undo().run();
@@ -290,7 +290,7 @@ interface ColorSwatchProps {
   onClick: () => void;
 }
 
-// pastille couleur cliquable
+// Clickable color swatch.
 const ColorSwatch = ({ color, onClick }: ColorSwatchProps) => {
   return (
     <button
@@ -308,7 +308,7 @@ interface ClearSwatchProps {
   onClick: () => void;
 }
 
-// pastille reset couleur
+// Reset-color swatch.
 const ClearSwatch = ({ title, onClick }: ClearSwatchProps) => {
   return (
     <button
@@ -328,7 +328,7 @@ interface ColorMenuProps {
   onPick: () => void;
 }
 
-// menu couleurs surlignage et texte
+// Highlight and text color menu.
 const ColorMenu = ({ editor, onPick }: ColorMenuProps) => {
   const handleSetHighlight = (color: string) => {
     focusChain(editor).setHighlight({ color }).run();
@@ -377,7 +377,7 @@ interface ColorMenuButtonProps {
   editor: Editor;
 }
 
-// bouton ouvrant menu couleurs avec fermeture clic extérieur
+// Button opening the color menu, closing on outside click.
 const ColorMenuButton = ({ editor }: ColorMenuButtonProps) => {
   const [showMenu, setShowMenu] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -427,7 +427,7 @@ interface LinkButtonsProps {
   onOpenLinkDialog: () => void;
 }
 
-// boutons ajout et retrait lien
+// Add/remove link buttons.
 const LinkButtons = ({ editor, onOpenLinkDialog }: LinkButtonsProps) => {
   const handleUnsetLink = () => {
     focusChain(editor).unsetLink().run();
@@ -470,7 +470,7 @@ const buildCommentTitle = (hasSelection: boolean): string => {
   return 'Ouvrir les commentaires';
 };
 
-// bouton commentaire avec badge
+// Comment button with badge.
 const CommentButton = ({ hasSelection, commentCount, onClick }: CommentButtonProps) => {
   const className = buildCommentButtonClassName(hasSelection);
   const title = buildCommentTitle(hasSelection);
@@ -492,7 +492,7 @@ interface InsertTemplateButtonProps {
   onClick: () => void;
 }
 
-// bouton insertion template
+// Insert-template button.
 const InsertTemplateButton = ({ onClick }: InsertTemplateButtonProps) => {
   return (
     <Btn onClick={onClick} title="Insérer un template">
@@ -509,7 +509,7 @@ interface LinkDialogProps {
   onClose: () => void;
 }
 
-// modale saisie URL lien
+// Link URL input modal.
 const LinkDialog = ({ initialUrl, onApply, onClose }: LinkDialogProps) => {
   const [linkUrl, setLinkUrl] = useState(initialUrl);
 
@@ -573,7 +573,7 @@ const LinkDialog = ({ initialUrl, onApply, onClose }: LinkDialogProps) => {
   );
 };
 
-// application URL ou retrait lien
+// Apply URL or remove link.
 const applyLinkToEditor = (editor: Editor, url: string): void => {
   const trimmed = url.trim();
   const chain = focusChain(editor).extendMarkRange('link');
@@ -586,7 +586,7 @@ const applyLinkToEditor = (editor: Editor, url: string): void => {
   chain.setLink({ href: trimmed }).run();
 };
 
-// barre outils principale éditeur
+// Main editor toolbar.
 export const EditorToolbar = ({
   editor,
   hasSelection,

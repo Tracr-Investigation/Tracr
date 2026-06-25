@@ -9,7 +9,7 @@ interface CommentMarkAttrs {
   resolved: boolean;
 }
 
-// test mark commentaire pour un id donné
+// Whether a mark is a comment mark for the given id.
 const isCommentMarkForId = (mark: Mark, commentId: string): boolean => {
   if (mark.type.name !== COMMENT_MARK_NAME) {
     return false;
@@ -17,12 +17,12 @@ const isCommentMarkForId = (mark: Mark, commentId: string): boolean => {
   return mark.attrs.commentId === commentId;
 };
 
-// test type mark commentaire
+// Whether a mark is a comment mark.
 const isCommentMark = (mark: Mark): boolean => {
   return mark.type.name === COMMENT_MARK_NAME;
 };
 
-// extraction commentId depuis mark
+// Extract the commentId from a mark.
 const getCommentIdFromMark = (mark: Mark): string | null => {
   const id = mark.attrs.commentId;
   if (typeof id !== 'string') {
@@ -41,9 +41,9 @@ interface UseCommentMarksReturn {
   getLivingIds: () => Set<string>;
 }
 
-// hook gestion marks commentaires sur éditeur
+// Hook managing comment marks on the editor (add/update/remove/collect).
 export function useCommentMarks(editor: Editor | null): UseCommentMarksReturn {
-  // ajout mark sur sélection
+  // Add a mark on the current selection.
   const addMark = useCallback((commentId: string) => {
     if (!editor) {
       return;
@@ -52,7 +52,7 @@ export function useCommentMarks(editor: Editor | null): UseCommentMarksReturn {
     editor.chain().focus().setMark(COMMENT_MARK_NAME, attrs).run();
   }, [editor]);
 
-  // mise à jour attributs mark existante
+  // Update the attributes of an existing mark.
   const updateMark = useCallback((commentId: string, attrs: Record<string, unknown>) => {
     if (!editor) {
       return;
@@ -77,7 +77,7 @@ export function useCommentMarks(editor: Editor | null): UseCommentMarksReturn {
     editor.view.dispatch(transaction);
   }, [editor]);
 
-  // suppression mark dans tout le doc
+  // Remove the mark across the whole document.
   const removeMark = useCallback((commentId: string) => {
     if (!editor) {
       return;
@@ -110,7 +110,7 @@ export function useCommentMarks(editor: Editor | null): UseCommentMarksReturn {
     editor.view.dispatch(transaction);
   }, [editor]);
 
-  // collecte ids encore présents pour purge orphelins
+  // Collect ids still present in the doc (to purge orphans).
   const getLivingIds = useCallback((): Set<string> => {
     const ids = new Set<string>();
     if (!editor) {

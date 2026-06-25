@@ -47,7 +47,7 @@ export const STATUS_COLORS: Record<string, string> = {
 };
 
 export const PRIORITY_KEYS = ['basse', 'normale', 'haute', 'urgente'] as const;
-// Ordre des colonnes Kanban (aligné sur l'enum backend TaskStatus)
+// Kanban column order (aligned with the backend TaskStatus enum).
 export const STATUS_KEYS: TaskStatus[] = ['todo', 'en_cours', 'bloque', 'en_revue', 'a_valider', 'termine'];
 
 export const PriorityBadge = ({ priority }: { priority: string }) => {
@@ -80,10 +80,8 @@ export const TaskStatusBadge = ({ status }: { status: string }) => {
     );
 };
 
-/**
- * Formulaire de création/édition de tâche, partagé entre le board d'enquête et
- * le board personnel. En mode `personal`, l'assignation et la visibilité sont masquées.
- */
+// Task create/edit form, shared by the investigation board and the personal board
+// (in `personal` mode, assignment and visibility are hidden).
 export const TaskForm = ({
     members,
     task,
@@ -263,13 +261,8 @@ export const TaskForm = ({
     );
 };
 
-/**
- * Panneau coulissant (slide-in depuis la droite) pour la création / édition de
- * tâche, aligné sur le flux de création d'enquête (`CreatePanel`). Remplace les
- * anciennes popups centrées. Toujours monté pour permettre la transition fluide ;
- * le formulaire interne n'est monté que lorsque le panneau est ouvert afin de
- * repartir d'un état vierge à chaque ouverture.
- */
+// Slide-in panel (from the right) for creating/editing a task; the inner form is
+// mounted only while open so it starts fresh every time.
 export const TaskFormPanel = ({
     open,
     heading,

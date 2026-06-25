@@ -20,7 +20,7 @@ const DATE_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
   minute: '2-digit',
 };
 
-// formatage date affichée
+// Format the displayed comment date.
 const formatCommentDate = (rawDate: string | null): string => {
   if (!rawDate) {
     return '';
@@ -37,7 +37,7 @@ interface Props {
   onDelete: (c: DocumentComment) => void;
 }
 
-// carte affichage commentaire
+// Comment display card.
 export const CommentCard = ({ comment, canWrite, canDelete, onResolve, onDelete }: Props) => {
   const { resolved } = comment;
   return (

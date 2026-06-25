@@ -25,7 +25,7 @@ const StatusFormPanel = ({ open, status, onClose, onSave }: ModalProps & { open:
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // (Re)initialise les champs a chaque ouverture, selon le statut a editer.
+  // (Re)set the fields on each open, based on the status being edited.
   useEffect(() => {
     if (open) {
       setName(status?.name || '');

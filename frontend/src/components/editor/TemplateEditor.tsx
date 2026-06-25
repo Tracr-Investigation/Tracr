@@ -17,13 +17,13 @@ interface Props {
   minHeight?: string;
 }
 
-// test sélection non vide
+// Whether the selection is non-empty.
 const hasSelectionRange = (editor: Editor): boolean => {
   const { from, to } = editor.state.selection;
   return from !== to;
 };
 
-// vérif si sync externe nécessaire
+// Whether the external value differs from the editor content.
 const shouldSyncExternalValue = (editor: Editor, value: string): boolean => {
   if (editor.isDestroyed) {
     return false;
@@ -32,13 +32,13 @@ const shouldSyncExternalValue = (editor: Editor, value: string): boolean => {
   return value !== currentHtml;
 };
 
-// injection valeur externe dans éditeur
+// Push an external value into the editor.
 const syncExternalValue = (editor: Editor, value: string): void => {
   const nextValue = value || '';
   editor.commands.setContent(nextValue, false);
 };
 
-// éditeur template simple non collaboratif
+// Simple, non-collaborative template editor.
 export const TemplateEditor = ({
   value,
   onChange,
@@ -65,8 +65,6 @@ export const TemplateEditor = ({
     onUpdate: ({ editor: instance }) => handleEditorUpdate(instance),
     onSelectionUpdate: ({ editor: instance }) => handleSelectionUpdate(instance),
   });
-
-  // Sync venant d'un chargement d'un template vers l'éditeur,
 
   useEffect(() => {
     if (!editor) {

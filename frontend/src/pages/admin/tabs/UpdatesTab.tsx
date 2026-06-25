@@ -24,8 +24,8 @@ const ApplyBanner = ({ apply }: { apply: UpdateApplyState }) => {
   const { t } = useTranslation();
   if (apply.status === 'idle') return null;
 
-  // Un résultat terminal (done/failed) est conservé côté agent ; on ne l'affiche
-  // que s'il est récent (< 15 min) pour ne pas montrer un vieux message au chargement.
+  // A terminal result (done/failed) is kept by the agent; only show it if recent
+  // (< 15 min) so we don't display a stale message on load.
   if (apply.status === 'done' || apply.status === 'failed') {
     const ts = apply.finished_at ? new Date(apply.finished_at).getTime() : 0;
     if (!ts || Date.now() - ts > 15 * 60 * 1000) return null;
@@ -59,7 +59,7 @@ const ConfirmPanel = ({ open, data, onClose, onConfirm }: {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
 
-  // Réinitialise l'état du bouton à chaque ouverture.
+  // Reset the button state on each open.
   useEffect(() => { if (open) setLoading(false); }, [open]);
 
   const confirm = async () => {
@@ -129,7 +129,7 @@ export const UpdatesTab = () => {
   const fetchBackups = useCallback(async () => {
     try {
       setBackups((await api.getDbBackups()).backups);
-    } catch { /* liste indisponible : on ignore */ }
+    } catch { /* list unavailable: ignore */ }
   }, []);
 
   useEffect(() => { fetchStatus(); fetchBackups(); }, [fetchStatus, fetchBackups]);
@@ -156,7 +156,7 @@ export const UpdatesTab = () => {
     }
   };
 
-  // Tant qu'une application est en attente / en cours, on rafraîchit l'état régulièrement.
+  // While an apply is pending / running, refresh the state regularly.
   const applyStatus = data?.apply.status;
   useEffect(() => {
     const active = applyStatus === 'pending' || applyStatus === 'running';
@@ -169,7 +169,7 @@ export const UpdatesTab = () => {
       clearInterval(pollRef.current);
       pollRef.current = null;
     }
-    // Une mise à jour terminée a produit un nouveau dump : on rafraîchit la liste.
+    // A finished update produced a new dump: refresh the list.
     if (applyStatus === 'done') fetchBackups();
     return () => {
       if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
@@ -259,8 +259,8 @@ export const UpdatesTab = () => {
   }
 
   const applyInProgress = applyStatus === 'pending' || applyStatus === 'running';
-  // Un changement de dépendances ou d'infra impose une reconstruction d'image,
-  // que l'agent (restart seul) ne peut pas faire : il faut un rebuild manuel sur l'hôte.
+  // A dependency or infra change requires an image rebuild, which the agent
+  // (restart only) cannot do: a manual rebuild on the host is needed.
   const needsRebuild = !!data && (data.flags.rebuild || data.flags.deps);
   const canApply = !!data && data.known && !data.up_to_date && !applyInProgress && !needsRebuild;
 
@@ -379,7 +379,7 @@ export const UpdatesTab = () => {
         </>
       )}
 
-      {/* Sauvegardes SQL de la base (créées avant chaque mise à jour) */}
+      {/* SQL database backups (created before each update) */}
       <div className="mt-8 bg-card/30 border border-border-subtle rounded-xl overflow-hidden">
         <div className="px-6 py-4 border-b border-border flex items-center gap-2">
           <Database size={16} className="text-text-muted" />

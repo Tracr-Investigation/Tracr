@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-// Texte brut d'un nœud React (pour générer l'identifiant d'un titre).
+// Plain text of a React node (used to build a heading id).
 const toText = (node: ReactNode): string => {
   if (node == null || typeof node === 'boolean') return '';
   if (typeof node === 'string' || typeof node === 'number') return String(node);
@@ -17,7 +17,7 @@ const slugify = (s: string) =>
   s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
     .replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
-// Titre avec ancre `#` (lien direct vers la section).
+// Heading with a `#` anchor (direct link to the section).
 const Anchored = ({ tag: Tag, className, children }: {
   tag: 'h2' | 'h3'; className: string; children: ReactNode;
 }) => {
@@ -36,7 +36,7 @@ const Anchored = ({ tag: Tag, className, children }: {
   );
 };
 
-// Rendu d'un document markdown, coloré et avec le style du design system.
+// Render a markdown document styled with the design system.
 export const DocContent = ({ children }: { children: string }) => (
   <ReactMarkdown
     remarkPlugins={[remarkGfm]}

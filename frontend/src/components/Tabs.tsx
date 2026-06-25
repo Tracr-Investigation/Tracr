@@ -18,8 +18,8 @@ interface TabsProps {
 const getHashTab = (): string | null => {
   if (typeof window === 'undefined') return null;
   const hash = window.location.hash.replace(/^#/, '');
-  // Supporte les hash imbriqués `parent/sub` : seul le segment parent pilote
-  // l'onglet de premier niveau (le sous-onglet est géré par <SubTabs>).
+  // Support nested `parent/sub` hashes: only the parent segment drives the
+  // top-level tab (the sub-tab is handled by <SubTabs>).
   const top = hash.split('/')[0];
   return top || null;
 };
@@ -32,7 +32,7 @@ export const Tabs = ({ tabs, defaultTab, helpKey }: TabsProps) => {
     return hasTab(hash) ? hash : (defaultTab ?? tabs[0]?.id);
   });
 
-  // Permet l'ouverture directe d'un onglet via le hash d'URL (#graph, #map…).
+  // Allows opening a tab directly via the URL hash (#graph, #map…).
   useEffect(() => {
     const onHashChange = () => {
       const hash = getHashTab();

@@ -14,8 +14,8 @@ const positionPopup = (popup: HTMLDivElement, clientRect: ClientRect) => {
     popup.style.top = `${rect.bottom + 6}px`;
 };
 
-// Crée une extension Mention liée aux entités d'une enquête : taper « @ »
-// propose les entités du graphe, et insère une puce reliée à l'entité.
+// Build a Mention extension bound to an investigation's entities: typing "@"
+// suggests graph entities and inserts a chip linked to the chosen one.
 export function createEntityMention(investigationId: number) {
     let cache: EntityItem[] | null = null;
     const fetchEntities = async (): Promise<EntityItem[]> => {

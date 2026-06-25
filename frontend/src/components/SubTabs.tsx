@@ -9,7 +9,7 @@ export interface SubTabItem {
 }
 
 interface SubTabsProps {
-  /** Id de l'onglet parent : sert à namespacer le hash sous la forme `parent/sub`. */
+  /** Parent tab id: used to namespace the hash as `parent/sub`. */
   parentId: string;
   tabs: SubTabItem[];
   defaultTab?: string;
@@ -23,12 +23,8 @@ const getHashParts = (): { top: string | null; sub: string | null } => {
   return { top: top || null, sub: sub || null };
 };
 
-/**
- * Navigation secondaire (segmented control) à l'intérieur d'un onglet principal.
- * L'état actif est synchronisé avec le hash d'URL au format `parent/sub`
- * (ex. `#preuves/selectors`), ce qui préserve le deep-linking et permet à un
- * autre composant de basculer de sous-vue en écrivant simplement le hash.
- */
+// Secondary navigation (segmented control) inside a main tab; the active sub-tab
+// is synced with the URL hash as `parent/sub` to preserve deep-linking.
 export const SubTabs = ({ parentId, tabs, defaultTab }: SubTabsProps) => {
   const hasTab = (id: string | null): id is string => !!id && tabs.some((t) => t.id === id);
 

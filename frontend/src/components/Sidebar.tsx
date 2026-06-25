@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useHelpStore } from '../stores/helpStore';
 
-// ── Tooltip (mode replié) ───────────────────────────────────────────────────────
+// ── Tooltip (collapsed mode) ────────────────────────────────────────────────────
 
 const Tooltip = ({
     label,
@@ -121,12 +121,12 @@ export const Sidebar = () => {
     const location = useLocation();
     const { t } = useTranslation();
 
-    // Mode visuel : replié seulement si l'utilisateur n'est pas en survol (aperçu auto)
+    // Visual mode: collapsed only when not hovering (auto-peek).
     const effectiveCollapsed = collapsed && !peeking;
 
     const isAdmin = user?.role === 'admin' || user?.role === 'super-admin';
 
-    // Section active : exact pour l'accueil, sinon inclut les sous-routes
+    // Active section: exact match for home, otherwise include sub-routes.
     const isActive = (path: string) =>
         path === '/'
             ? location.pathname === '/'
@@ -134,7 +134,7 @@ export const Sidebar = () => {
 
     const nav = (path: string) => { navigate(path); setMobileOpen(false); };
 
-    // Survol = aperçu auto (avec petit délai pour laisser place aux tooltips)
+    // Hover = auto-peek (small delay to let tooltips show first).
     const handleMouseEnter = () => {
         if (!collapsed) return;
         peekTimer.current = setTimeout(() => setPeeking(true), 450);
@@ -144,7 +144,7 @@ export const Sidebar = () => {
         setPeeking(false);
     };
 
-    // Raccourci clavier : Ctrl/Cmd + B
+    // Keyboard shortcut: Ctrl/Cmd + B.
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
             if ((e.ctrlKey || e.metaKey) && (e.key === 'b' || e.key === 'B')) {
@@ -154,7 +154,7 @@ export const Sidebar = () => {
                     el.tagName === 'TEXTAREA' ||
                     el.isContentEditable
                 );
-                if (editable) return; // ne pas voler le raccourci « gras » de l'éditeur
+                if (editable) return; // don't steal the editor's "bold" shortcut
                 e.preventDefault();
                 toggle();
             }
@@ -163,7 +163,7 @@ export const Sidebar = () => {
         return () => window.removeEventListener('keydown', onKey);
     }, [toggle]);
 
-    // Tant que le MFA n'est pas activé, on signale l'item Réglages d'un « ! »
+    // Flag the Settings item with a "!" while MFA is not enabled.
     const mfaPending = user != null && user.mfa_enabled === false;
 
     const mainItems: { icon: React.ElementType; label: string; path?: string; href?: string; alert?: boolean }[] = [
@@ -209,7 +209,7 @@ export const Sidebar = () => {
                     ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                 `}
             >
-                {/* Header - le logo garde toujours sa taille */}
+                {/* Header - the logo always keeps its size */}
                 <div
                     className={`
                         flex items-center h-14 px-3 border-b border-border shrink-0
@@ -321,7 +321,7 @@ export const Sidebar = () => {
                         </button>
                     </Tooltip>
 
-                    {/* Toggle déplier / replier - en bas, séparé */}
+                    {/* Expand/collapse toggle - bottom, separated */}
                     <div className="mt-1 pt-2 border-t border-border/60">
                         <Tooltip label={collapsed ? t('sidebar.expandShortcut') : t('sidebar.collapseShortcut')} show={effectiveCollapsed}>
                             <button

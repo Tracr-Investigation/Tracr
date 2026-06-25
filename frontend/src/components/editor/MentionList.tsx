@@ -16,7 +16,7 @@ interface Props {
     command: (item: EntityItem) => void;
 }
 
-// Couleurs par type d'entité (alignées sur ENTITY_TYPES du GraphTab).
+// Color per entity type (aligned with ENTITY_TYPES in GraphTab).
 const TYPE_COLOR: Record<string, string> = {
     person: '#f59e0b', organization: '#3b82f6', ip: '#ef4444', domain: '#10b981',
     phone: '#8b5cf6', email: '#ec4899', account: '#06b6d4', location: '#84cc16',

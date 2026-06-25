@@ -5,7 +5,7 @@ const Code = ({ children }: { children: React.ReactNode }) => (
   <code className="font-mono text-[11px] px-1 py-0.5 rounded bg-input-bg border border-border-subtle">{children}</code>
 );
 
-/** Carte d'aide : télécharger l'extension navigateur Tracr + l'installer. */
+/** Help card: download the Tracr browser extension + install it. */
 export const ExtensionInstallCard = () => {
   const [open, setOpen] = useState(false);
 

@@ -93,8 +93,8 @@ const EntityNode = ({data}: {data: {entity: EntityData; onEdit: (e: EntityData) 
                 </div>
             </div>
 
-            {/* Barre d'actions : left-0/right-0 + pb-2 créent un pont hoverable
-                continu jusqu'au nœud, pour ne pas perdre le survol entre les deux. */}
+            {/* Action bar: left-0/right-0 + pb-2 create a continuous hoverable
+                bridge down to the node, so the hover isn't lost between the two. */}
             <div className="absolute -top-8 left-0 right-0 pb-2 hidden group-hover:flex justify-end gap-1 z-10">
                 <button
                     onClick={() => onEdit(entity)}
@@ -279,7 +279,7 @@ const EntityPanel = ({
                             />
                         </div>
 
-                        {/* Pivots OSINT - entité existante uniquement */}
+                        {/* OSINT pivots - existing entity only */}
                         {entity && (
                             <div>
                                 <label className="block text-xs font-semibold text-text-default/50 uppercase tracking-wider mb-2">

@@ -60,7 +60,7 @@ const CategoryFormPanel = ({open, category, onClose, onSave}: ModalProps & {open
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    // (Re)initialise les champs a chaque ouverture, selon la categorie a editer.
+    // (Re)set the fields on each open, based on the category being edited.
     useEffect(() => {
         if (open) {
             setName(category?.name || '');

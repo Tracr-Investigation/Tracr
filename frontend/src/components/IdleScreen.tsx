@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 
-const IDLE_DELAY = 10 * 60 * 1000; // 10 min d'inactivité avant l'écran de veille
+const IDLE_DELAY = 10 * 60 * 1000; // 10 min of inactivity before the idle screen
 const ACTIVITY_EVENTS = ['mousemove', 'mousedown', 'keydown', 'wheel', 'touchstart', 'scroll'] as const;
 
 export const IdleScreen = () => {
@@ -10,7 +10,7 @@ export const IdleScreen = () => {
     const { i18n } = useTranslation();
 
     const [idle, setIdle] = useState(false);
-    const [exiting, setExiting] = useState(false); // animation de sortie en cours
+    const [exiting, setExiting] = useState(false); // exit animation in progress
     const [now, setNow] = useState(() => new Date());
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const idleRef = useRef(false);
@@ -19,13 +19,13 @@ export const IdleScreen = () => {
 
     const locale = i18n.language?.startsWith('fr') ? 'fr-FR' : 'en-US';
 
-    // Programme (ou reprogramme) le passage en veille
+    // Schedule (or reschedule) the switch to idle.
     const armTimer = useCallback(() => {
         if (timerRef.current) clearTimeout(timerRef.current);
         timerRef.current = setTimeout(() => setIdle(true), IDLE_DELAY);
     }, []);
 
-    // Détection d'activité : lance l'animation de sortie + réarme le minuteur
+    // On activity: start the exit animation and re-arm the timer.
     useEffect(() => {
         if (!isAuthenticated) return;
 
@@ -43,7 +43,7 @@ export const IdleScreen = () => {
         };
     }, [isAuthenticated, armTimer]);
 
-    // Fin de l'animation de sortie → on démonte réellement l'écran
+    // End of the exit animation: actually unmount the screen.
     const handleAnimationEnd = () => {
         if (exiting) {
             setIdle(false);
@@ -51,7 +51,7 @@ export const IdleScreen = () => {
         }
     };
 
-    // Horloge : ne tourne que pendant la veille
+    // Clock: only ticks while idle.
     useEffect(() => {
         if (!idle) return;
         setNow(new Date());
@@ -84,12 +84,12 @@ export const IdleScreen = () => {
                 overflow: 'hidden',
             }}
         >
-            {/* Halo coloré */}
+            {/* Colored halo */}
             <div style={{
                 position: 'absolute', inset: 0, pointerEvents: 'none',
                 background: 'radial-gradient(ellipse 55% 45% at 50% 42%, color-mix(in srgb, var(--theme-primary) 14%, transparent), transparent)',
             }} />
-            {/* Grille de points */}
+            {/* Dot grid */}
             <div style={{
                 position: 'absolute', inset: 0, pointerEvents: 'none', opacity: 0.3,
                 backgroundImage: 'radial-gradient(circle, var(--theme-primary) 1px, transparent 1px)',
@@ -131,7 +131,7 @@ export const IdleScreen = () => {
                 {dateLabel}
             </div>
 
-            {/* Infos supplémentaires */}
+            {/* Extra info */}
             <div style={{
                 position: 'relative', zIndex: 1, marginTop: '40px',
                 display: 'flex', alignItems: 'center', gap: '14px',
@@ -158,7 +158,7 @@ export const IdleScreen = () => {
                 )}
             </div>
 
-            {/* Indice de reprise */}
+            {/* Resume hint */}
             <div style={{
                 position: 'absolute', bottom: '40px', zIndex: 1,
                 fontSize: '12px', color: 'var(--text-dim)', letterSpacing: '0.06em',

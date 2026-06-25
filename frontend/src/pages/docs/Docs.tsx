@@ -19,7 +19,7 @@ export const Docs = () => {
   const lang: DocLang = i18n.language?.startsWith('en') ? 'en' : 'fr';
   const isAdmin = user?.role === 'admin' || user?.role === 'super-admin';
 
-  // Masque les pages réservées aux admins pour les autres rôles.
+  // Hide admin-only pages for other roles.
   const tree = useMemo<DocNode[]>(() => {
     const keep = (n: DocNode) =>
       n.type === 'category' ? true : !n.adminOnly || isAdmin;
@@ -41,7 +41,7 @@ export const Docs = () => {
   return (
     <Layout>
       <div className="flex">
-        {/* Navigation de la documentation */}
+        {/* Docs navigation */}
         <nav className="hidden md:block w-64 shrink-0 border-r border-border-subtle min-h-[calc(100vh-0px)] px-4 py-6">
           <p className="text-xs font-semibold uppercase tracking-wide text-text-dim mb-3 px-2">
             {t('sidebar.help')}

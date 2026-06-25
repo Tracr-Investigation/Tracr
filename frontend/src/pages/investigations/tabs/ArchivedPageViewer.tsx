@@ -1,21 +1,17 @@
 import { useEffect, useState } from 'react';
 import { api, API_URL, type SourceData } from '../../../services/api';
 
-// Les medias compagnons (video/audio/grosses images) sont stockes comme placeholders
-// `tracr-media:<id>:<sig>` dans le HTML archive. On les reecrit ici en URL d'API
-// signee (lecture sans auth) pour que l'iframe les charge/joue depuis Tracr.
+// Companion media (video/audio/large images) are stored as `tracr-media:<id>:<sig>`
+// placeholders in the archived HTML. We rewrite them here into signed API URLs
+// (auth-free reading) so the iframe loads/plays them from Tracr.
 const rewriteMedia = (html: string) =>
   html.replace(
     /tracr-media:(\d+):([a-f0-9]+)/g,
     (_m, id, sig) => `${API_URL}/sources/${id}/view?sig=${sig}`,
   );
 
-/**
- * Affiche une « page autonome » (snapshot HTML SingleFile-style) capturée par
- * l'extension : tout le CSS est inliné, les URLs absolutisées, les médias inlinés
- * ou stockés en compagnons → on rend le HTML directement dans une iframe sandbox
- * (aucun script exécuté, aucun moteur de rejeu).
- */
+// Render a "self-contained" HTML snapshot (SingleFile-style) captured by the
+// extension directly in a sandboxed iframe (no script run, no replay engine).
 export const ArchivedPageViewer = ({ source }: { source: SourceData }) => {
   const [html, setHtml] = useState<string | null>(null);
   const [error, setError] = useState(false);
@@ -41,7 +37,7 @@ export const ArchivedPageViewer = ({ source }: { source: SourceData }) => {
     );
   }
 
-  // sandbox vide : rend le HTML/CSS mais bloque scripts, formulaires, navigation.
+  // empty sandbox: renders HTML/CSS but blocks scripts, forms, navigation.
   return (
     <iframe
       srcDoc={html}

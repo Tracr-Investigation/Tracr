@@ -1,6 +1,6 @@
-// Registre de la documentation intégrée au site.
-// Le contenu vit dans src/docs/{fr,en}/*.md ; la structure (ordre + catégories)
-// est définie ici, et les libellés des pages sont tirés du frontmatter `title`.
+// Registry of the docs embedded in the site.
+// Content lives in src/docs/{fr,en}/*.md; the structure (order + categories) is
+// defined here, and page labels are taken from the `title` frontmatter.
 
 const frFiles = import.meta.glob('./fr/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
 const enFiles = import.meta.glob('./en/*.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
@@ -20,13 +20,13 @@ export interface DocEntry {
 
 export interface DocCategory {
   type: 'category';
-  labelKey: string; // clé i18n
+  labelKey: string; // i18n key
   items: DocEntry[];
 }
 
 export type DocNode = DocEntry | DocCategory;
 
-// Structure reprise du sidebar Docusaurus d'origine.
+// Structure taken from the original Docusaurus sidebar.
 export const DOC_TREE: DocNode[] = [
   { type: 'doc', slug: 'tableau-de-bord' },
   { type: 'doc', slug: 'intro' },
@@ -57,7 +57,7 @@ export const DOC_TREE: DocNode[] = [
   { type: 'doc', slug: 'administration', adminOnly: true },
 ];
 
-// Liste à plat de toutes les entrées (dans l'ordre d'affichage).
+// Flat list of all entries (in display order).
 export const DOC_ENTRIES: DocEntry[] = DOC_TREE.flatMap((n) =>
   n.type === 'category' ? n.items : [n],
 );
@@ -70,7 +70,7 @@ function parse(raw: string): ParsedDoc {
   let title = '';
   let body = raw;
 
-  // Retire le frontmatter `--- ... ---` en tête et en extrait le titre.
+  // Strip the leading `--- ... ---` frontmatter and extract the title from it.
   const fm = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
   if (fm) {
     const titleLine = fm[1].split(/\r?\n/).find((l) => TITLE_RE.test(l));
@@ -78,8 +78,8 @@ function parse(raw: string): ParsedDoc {
     body = raw.slice(fm[0].length);
   }
 
-  // Les admonitions Docusaurus (:::note …) ne sont pas du markdown standard :
-  // on retire les lignes de balise pour ne pas afficher « ::: » brut.
+  // Docusaurus admonitions (:::note …) aren't standard markdown: strip the marker
+  // lines so we don't render raw "::: ".
   body = body.replace(/^:::.*$/gm, '').trim();
 
   return { title, body };

@@ -1,14 +1,9 @@
 import { type ReactNode } from 'react';
 import { X } from 'lucide-react';
 
-/**
- * Panneau lateral glissant depuis la droite, anime a l'ouverture et a la fermeture.
- * Doit rester monte en permanence (toggle via `open`) pour que la transition joue
- * dans les deux sens - meme principe que le panneau de creation d'enquete.
- *
- * Le contenu (`children`) recoit l'espace sous l'en-tete : y placer typiquement un
- * <form> en `flex-1 overflow-y-auto flex flex-col min-h-0` avec un pied `border-t`.
- */
+// Side panel sliding in from the right, animated on open/close. Stays mounted
+// (toggled via `open`) so the transition plays both ways; `children` fill the
+// area below the header.
 export const SidePanel = ({
     open,
     onClose,

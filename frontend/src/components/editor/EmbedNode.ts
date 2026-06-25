@@ -13,7 +13,7 @@ export interface EmbedDetection {
 export function detectEmbed(url: string): EmbedDetection {
   const clean = url.trim();
 
-  // YouTube - youtu.be/ID  ou  youtube.com/watch?v=ID
+  // YouTube - youtu.be/ID  or  youtube.com/watch?v=ID
   const yt = clean.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
   if (yt) {
     return {
@@ -32,7 +32,7 @@ export function detectEmbed(url: string): EmbedDetection {
     };
   }
 
-  // Twitter/X - twitter.com/user/status/ID  ou  x.com/user/status/ID
+  // Twitter/X - twitter.com/user/status/ID  or  x.com/user/status/ID
   const tw = clean.match(/(?:twitter\.com|x\.com)\/\w+\/status\/(\d+)/);
   if (tw) {
     return {
@@ -41,7 +41,7 @@ export function detectEmbed(url: string): EmbedDetection {
     };
   }
 
-  // Instagram - instagram.com/p/CODE  ou  instagram.com/reel/CODE
+  // Instagram - instagram.com/p/CODE  or  instagram.com/reel/CODE
   const ig = clean.match(/instagram\.com\/(?:p|reel)\/([A-Za-z0-9_-]+)/);
   if (ig) {
     return {

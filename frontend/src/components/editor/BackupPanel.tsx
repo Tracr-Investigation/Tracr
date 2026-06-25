@@ -177,7 +177,7 @@ export const BackupPanel = ({ documentId, currentHtml, onClose, onRestored }: Pr
           <p className="text-red-400 text-xs px-3 py-2">{error}</p>
         )}
 
-        {/* Vue diff */}
+        {/* Diff view */}
         {selected && (
           <div className="flex flex-col h-full">
             <div className="px-3 py-2 border-b border-primary/20 bg-primary/5">
@@ -208,7 +208,7 @@ export const BackupPanel = ({ documentId, currentHtml, onClose, onRestored }: Pr
           </div>
         )}
 
-        {/* Liste des backups */}
+        {/* Backups list */}
         {!selected && (
           <div>
             <p className="flex items-center gap-1.5 text-[11px] text-secondary px-3 py-2 border-b border-primary/10">
@@ -249,7 +249,7 @@ export const BackupPanel = ({ documentId, currentHtml, onClose, onRestored }: Pr
         )}
       </div>
 
-      {/* Footer - bouton créer */}
+      {/* Footer - create button */}
       {!selected && (
         <div className="px-3 py-3 border-t border-primary/20">
           <button

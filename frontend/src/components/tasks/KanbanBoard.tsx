@@ -29,7 +29,7 @@ import {
     PriorityBadge,
 } from './taskShared';
 
-// Colonnes affichées par défaut (les autres statuts sont masqués derrière « Tout afficher »)
+// Columns shown by default (other statuses are hidden behind "Show all").
 const MAIN_STATUSES: TaskStatus[] = ['todo', 'en_cours', 'termine'];
 
 const COL_PREFIX = 'col-';
@@ -54,7 +54,7 @@ function buildColumns(tasks: TaskData[]): Columns {
 const isOverdue = (dueDateStr: string | null) =>
     !!dueDateStr && new Date(dueDateStr) < new Date();
 
-// ── Carte ───────────────────────────────────────────────────────────────────
+// ── Card ──────────────────────────────────────────────────────────────────────
 
 const TaskCard = ({
     task,
@@ -220,7 +220,7 @@ export const KanbanBoard = ({
     const [activeTask, setActiveTask] = useState<TaskData | null>(null);
     const [showAll, setShowAll] = useState(false);
 
-    // Re-synchronise quand la liste source change (sauf pendant un drag en cours)
+    // Re-sync when the source list changes (except during an active drag).
     useEffect(() => {
         if (!activeTask) setColumns(buildColumns(tasks));
     }, [tasks, activeTask]);
@@ -286,8 +286,8 @@ export const KanbanBoard = ({
         });
     };
 
-    // Colonnes visibles : les 3 principales, + les statuts supplémentaires si
-    // « Tout afficher » est actif OU s'ils contiennent déjà des tâches (jamais cachées).
+    // Visible columns: the 3 main ones, plus extra statuses when "Show all" is
+    // active OR they already contain tasks (never hidden).
     const visibleStatuses = STATUS_KEYS.filter(
         (s) => MAIN_STATUSES.includes(s) || showAll || columns[s].length > 0,
     );

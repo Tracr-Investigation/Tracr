@@ -87,9 +87,9 @@ const TaskDetailModal = ({
     const [deleting, setDeleting] = useState(false);
     const [show, setShow] = useState(false);
 
-    // Anime l'entree au montage : on part de translate-x-full puis on bascule
-    // au frame suivant pour que la transition joue (meme principe que le panneau
-    // de creation). A la fermeture on rejoue l'animation avant de demonter.
+    // Animate the entrance on mount: start from translate-x-full then switch
+    // on the next frame so the transition plays (same principle as the creation
+    // panel). On close, replay the animation before unmounting.
     useEffect(() => {
         const id = requestAnimationFrame(() => setShow(true));
         return () => cancelAnimationFrame(id);
@@ -189,7 +189,7 @@ const TaskDetailModal = ({
                 onClick={handleClose}
             />
 
-            {/* Panel glissant depuis la droite */}
+            {/* Panel sliding in from the right */}
             <div
                 className={`fixed top-0 right-0 h-screen w-full max-w-[480px] z-50 flex flex-col
                     transition-transform duration-300 ease-in-out
@@ -451,7 +451,7 @@ export const TasksTab = ({
     };
 
     const handleMove = useCallback(async (taskId: number, status: TaskStatus, position: number) => {
-        // Mise à jour optimiste locale
+        // Optimistic local update
         setTasks((prev) => prev.map((t) => (t.id_task === taskId ? {...t, status, position} : t)));
         try {
             await api.moveTask(investigation.id_investigation, taskId, {status, position});

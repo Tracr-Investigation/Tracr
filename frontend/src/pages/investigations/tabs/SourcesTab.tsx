@@ -15,7 +15,7 @@ import { ExtensionInstallCard } from './ExtensionInstallCard';
 interface Props {
   investigationId: number;
   userPermission: string | null;
-  /** Source à ouvrir automatiquement (depuis un hit de l'onglet Sélecteurs). */
+  /** Source to open automatically (from a hit in the Selectors tab). */
   openSourceId?: number | null;
   onSourceOpened?: () => void;
 }
@@ -77,7 +77,7 @@ function triggerDownload(blob: Blob, filename: string) {
   URL.revokeObjectURL(url);
 }
 
-// ── Vignette (aperçu direct des images) ───────────────────────────────────────
+// ── Thumbnail (direct image preview) ──────────────────────────────────────────
 
 const SourceThumb = ({ source, onClick }: { source: SourceData; onClick: () => void }) => {
   const isImage = source.mime_type.startsWith('image/');
@@ -115,7 +115,7 @@ const SourceThumb = ({ source, onClick }: { source: SourceData; onClick: () => v
   );
 };
 
-// ── Hash badge (preuve d'intégrité) ───────────────────────────────────────────
+// ── Hash badge (integrity proof) ──────────────────────────────────────────────
 
 const HashBadge = ({ hash }: { hash: string }) => {
   const [copied, setCopied] = useState(false);
@@ -139,7 +139,7 @@ const HashBadge = ({ hash }: { hash: string }) => {
   );
 };
 
-// ── Texte extrait / OCR (aperçu repliable + copie) ────────────────────────────
+// ── Extracted text / OCR (collapsible preview + copy) ─────────────────────────
 
 const PREVIEW_LEN = 100;
 
@@ -259,10 +259,10 @@ const SourceCard = ({
   );
 };
 
-// ── Médias embarqués d'une archive HTML ───────────────────────────────────────
-// Les médias d'une page (role=page_media) sont masqués de la liste principale et
-// listés ici, sous leur page parente : lecture/téléchargement, et choix par fichier
-// de les faire apparaître dans la liste centrale tout en restant rattachés.
+// ── Media embedded in an HTML archive ─────────────────────────────────────────
+// Page media (role=page_media) are hidden from the main list and shown here under
+// their parent page: view/download, and per-file choice to surface them in the
+// central list while staying attached.
 const EmbeddedMediaSection = ({ source, canEdit, onDownload, onUpdated, onReload, onOpenMedia }: {
   source: SourceData;
   canEdit: boolean;
@@ -406,11 +406,11 @@ const SourcePreviewPanel = ({
     try {
       const res = await api.ocrSource(source.id_source);
       setSourceHits(res);
-      // Recharge la source pour afficher le texte fraîchement océrisé dans la fiche.
+      // Reload the source to show the freshly OCR'd text in the panel.
       try {
         const refreshed = await api.getSource(source.id_source);
         onUpdated(refreshed, { silent: true });
-      } catch { /* affichage non bloquant */ }
+      } catch { /* non-blocking display */ }
       toast('success', res.analyzed
         ? `OCR terminé - ${res.hits.length} sélecteur(s) détecté(s)`
         : 'OCR terminé - aucun texte reconnu sur l\'image');
@@ -423,7 +423,7 @@ const SourcePreviewPanel = ({
 
   useEffect(() => { setNotes(source?.notes ?? ''); }, [source]);
 
-  // Charge les hits déjà enregistrés à l'ouverture du panneau.
+  // Load already-stored hits when the panel opens.
   useEffect(() => {
     setSourceHits(null);
     if (!open || !source) return;
@@ -457,7 +457,7 @@ const SourcePreviewPanel = ({
     try {
       const updated = await api.updateSource(source.id_source, { notes: notes.trim() || null });
       onUpdated(updated);
-    } catch { /* toast géré en amont via onUpdated path si besoin */ }
+    } catch { /* errors surfaced upstream via the onUpdated path if needed */ }
     finally { setSavingNotes(false); }
   };
 
@@ -715,7 +715,7 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
   </div>
 );
 
-// ── Barre de filtres ──────────────────────────────────────────────────────────
+// ── Filter bar ────────────────────────────────────────────────────────────────
 
 const FilterBar = ({
   typeFilter, setTypeFilter, dateFrom, setDateFrom, dateTo, setDateTo, counts, search, setSearch,
@@ -786,7 +786,7 @@ const FilterBar = ({
   </div>
 );
 
-// ── Dialog d'ajout manuel d'un fichier ────────────────────────────────────────
+// ── Manual file-add dialog ────────────────────────────────────────────────────
 
 const UploadDialog = ({
   open, onClose, onUpload,
@@ -921,7 +921,7 @@ export const SourcesTab = ({ investigationId, userPermission, openSourceId, onSo
   const [loading, setLoading] = useState(true);
   const [previewSource, setPreviewSource] = useState<SourceData | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
-  // Page parente d'un media consulte via « En savoir plus » (fil d'Ariane).
+  // Parent page of a media viewed via "Learn more" (breadcrumb).
   const [breadcrumbParent, setBreadcrumbParent] = useState<SourceData | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
 
@@ -947,7 +947,7 @@ export const SourcesTab = ({ investigationId, userPermission, openSourceId, onSo
 
   useEffect(() => { fetchSources(); }, [fetchSources]);
 
-  // Ouverture automatique d'une source demandée depuis un hit (onglet Sélecteurs).
+  // Automatically open a source requested from a hit (Selectors tab).
   useEffect(() => {
     if (!openSourceId) return;
     let active = true;

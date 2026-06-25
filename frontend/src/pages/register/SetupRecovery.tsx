@@ -17,7 +17,7 @@ export const SetupRecovery = () => {
     const [copied, setCopied] = useState(false);
     const [confirmed, setConfirmed] = useState(false);
 
-    // Fallback: si la page est rechargée, les mots sont perdus → demander le mdp pour régénérer
+    // Fallback: if the page is reloaded the words are lost → ask the password to regenerate.
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [regenLoading, setRegenLoading] = useState(false);
@@ -84,7 +84,7 @@ export const SetupRecovery = () => {
                 }}>
 
                     {needsRegen ? (
-                        /* ── Page rafraîchie : les mots sont perdus ── */
+                        /* ── Page refreshed: the words are lost ── */
                         <form onSubmit={handleRegen} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                             <div style={{
                                 display: 'flex', gap: '10px', alignItems: 'flex-start',
@@ -225,7 +225,7 @@ export const SetupRecovery = () => {
                                 </span>
                             </label>
 
-                            {/* CTA - disabled tant que la checkbox n'est pas cochée */}
+                            {/* CTA - disabled until the checkbox is checked */}
                             <button
                                 type="button"
                                 disabled={!confirmed}

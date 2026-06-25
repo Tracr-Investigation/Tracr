@@ -354,9 +354,9 @@ function DocumentPreview() {
     );
 }
 
-// ─── Source capture preview (extension → enquête) ─────────────────────────────
+// ─── Source capture preview (extension → investigation) ───────────────────────
 
-/** Petit logo Tracr (motif graphe) réutilisé dans le bouton d'extension. */
+// Small Tracr logo (graph motif) reused in the extension button.
 function TracrMark({ size = 16 }: { size?: number }) {
     return (
         <svg width={size} height={size} viewBox="0 0 70 70" aria-hidden="true">
@@ -371,12 +371,9 @@ function TracrMark({ size = 16 }: { size?: number }) {
     );
 }
 
-/**
- * Illustre le flux d'archivage des sources OSINT : une image/donnée est
- * sélectionnée sur une page web par l'extension Tracr, transférée et scellée dans
- * les sources de l'enquête, puis insérée dans le rapport (documentation).
- * Boucle de 6 s synchronisée avec la rotation des onglets.
- */
+// Illustrates the OSINT source-archival flow: an image/datum is selected on a web
+// page by the Tracr extension, sealed into the investigation's sources, then
+// inserted into the report. 6s loop synced with the tab rotation.
 function SourceCapturePreview() {
     return (
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#111' }}>
@@ -401,7 +398,7 @@ function SourceCapturePreview() {
                     flex: '1.45', minWidth: 0, display: 'flex', flexDirection: 'column',
                     background: '#181818', border: '1px solid #2a2a2a', borderRadius: '10px', overflow: 'hidden',
                 }}>
-                    {/* Barre de fenêtre */}
+                    {/* Window bar */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 9px', borderBottom: '1px solid #262626', background: '#141414' }}>
                         {['#ef4444', '#f59e0b', '#22c55e'].map((c) => (
                             <span key={c} style={{ width: '7px', height: '7px', borderRadius: '50%', background: c, opacity: 0.7 }} />
@@ -412,19 +409,19 @@ function SourceCapturePreview() {
                                 malware-c2.net/threat-actor
                             </span>
                         </div>
-                        {/* Bouton extension Tracr + anneau de capture */}
+                        {/* Tracr extension button + capture ring */}
                         <div style={{ position: 'relative', width: '21px', height: '21px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'color-mix(in srgb, var(--theme-primary) 16%, transparent)', border: '1px solid color-mix(in srgb, var(--theme-primary) 38%, transparent)', borderRadius: '5px' }}>
                             <TracrMark size={13} />
                             <span className="srccap-ring" style={{ position: 'absolute', inset: '-3px', border: '1.5px solid var(--theme-primary)', borderRadius: '7px', pointerEvents: 'none' }} />
                         </div>
                     </div>
 
-                    {/* Contenu de la page */}
+                    {/* Page content */}
                     <div style={{ position: 'relative', flex: 1, padding: '11px 12px', overflow: 'hidden' }}>
                         <div style={{ width: '46%', height: '7px', borderRadius: '3px', background: '#383838', marginBottom: '7px' }} />
                         <div style={{ width: '72%', height: '5px', borderRadius: '3px', background: '#272727', marginBottom: '10px' }} />
 
-                        {/* Image/donnée à capturer + marquee de sélection */}
+                        {/* Image/datum to capture + selection marquee */}
                         <div style={{ position: 'relative', marginBottom: '9px' }}>
                             <div style={{ position: 'relative', width: '100%', height: '40px', borderRadius: '6px', overflow: 'hidden', background: 'linear-gradient(135deg, #2a2333, #1a1a22)', border: '1px solid #2e2e2e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 <svg width="100%" height="100%" viewBox="0 0 200 44" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, opacity: 0.5 }}>
@@ -435,7 +432,7 @@ function SourceCapturePreview() {
                                 <Globe size={15} style={{ color: 'var(--theme-secondary)', opacity: 0.55, position: 'relative' }} />
                                 <span className="srccap-flash" style={{ position: 'absolute', inset: 0, background: 'var(--theme-primary)' }} />
                             </div>
-                            {/* Cadre de sélection animé */}
+                            {/* Animated selection frame */}
                             <span className="srccap-marquee" style={{ position: 'absolute', inset: '-3px', border: '1.5px solid var(--theme-primary)', borderRadius: '7px', pointerEvents: 'none', boxShadow: '0 0 12px color-mix(in srgb, var(--theme-primary) 45%, transparent)' }}>
                                 {([
                                     { top: -2, left: -2 },
@@ -471,7 +468,7 @@ function SourceCapturePreview() {
                     </div>
                 </div>
 
-                {/* ── Enquête : source scellée → rapport ── */}
+                {/* ── Investigation: sealed source → report ── */}
                 <div style={{ flex: '1.3', minWidth: 0, position: 'relative', display: 'flex', flexDirection: 'column', background: '#181818', border: '1px solid #2a2a2a', borderRadius: '10px', overflow: 'hidden' }}>
                     <div style={{ padding: '8px 11px', borderBottom: '1px solid #262626', background: '#141414' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -482,7 +479,7 @@ function SourceCapturePreview() {
                     </div>
 
                     <div style={{ flex: 1, padding: '9px 10px', display: 'flex', flexDirection: 'column', gap: '5px', overflow: 'hidden' }}>
-                        {/* Étape 1 - ajoutée aux sources */}
+                        {/* Step 1 - added to sources */}
                         <div style={{ fontSize: '7.5px', color: '#6a6a6a', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Sources</div>
                         <div className="srccap-card" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 8px', background: 'color-mix(in srgb, var(--theme-primary) 9%, #161616)', border: '1px solid color-mix(in srgb, var(--theme-primary) 38%, transparent)', borderRadius: '8px' }}>
                             <div style={{ width: '20px', height: '20px', borderRadius: '5px', overflow: 'hidden', flexShrink: 0, background: 'linear-gradient(135deg, #2a2333, #1a1a22)', border: '1px solid #2e2e2e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -498,7 +495,7 @@ function SourceCapturePreview() {
                             </span>
                         </div>
 
-                        {/* Flèche - insertion dans le rapport */}
+                        {/* Arrow - insertion into the report */}
                         <div className="srccap-arrow" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', padding: '1px 0' }}>
                             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--theme-primary)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M 7 7 L 12 12 L 17 7" />
@@ -507,12 +504,12 @@ function SourceCapturePreview() {
                             <span style={{ fontSize: '7.5px', fontWeight: 600, color: 'var(--theme-primary)' }}>added to report</span>
                         </div>
 
-                        {/* Étape 2 - documentation / rapport */}
+                        {/* Step 2 - documentation / report */}
                         <div style={{ flex: 1, minHeight: 0, background: '#141414', border: '1px solid #262626', borderRadius: '8px', padding: '8px 9px', overflow: 'hidden' }}>
                             <div style={{ fontSize: '7px', color: '#555', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '5px' }}>Report · Operation Shadow Net</div>
                             <div style={{ width: '85%', height: '4px', borderRadius: '2px', background: '#2a2a2a', marginBottom: '4px' }} />
                             <div style={{ width: '66%', height: '4px', borderRadius: '2px', background: '#222', marginBottom: '6px' }} />
-                            {/* Figure intégrée dans le document */}
+                            {/* Figure embedded in the document */}
                             <figure className="srccap-figure" style={{ display: 'flex', alignItems: 'center', gap: '7px', margin: 0, padding: '5px', background: '#181818', border: '1px solid color-mix(in srgb, var(--theme-primary) 30%, transparent)', borderRadius: '6px' }}>
                                 <div style={{ width: '26px', height: '20px', borderRadius: '4px', overflow: 'hidden', flexShrink: 0, background: 'linear-gradient(135deg, #2a2333, #1a1a22)', border: '1px solid #2e2e2e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     <Globe size={10} style={{ color: 'var(--theme-secondary)' }} />
@@ -526,7 +523,7 @@ function SourceCapturePreview() {
                         </div>
                     </div>
 
-                    {/* Vignette fantôme : descend des sources vers le rapport */}
+                    {/* Ghost thumbnail: travels from sources down to the report */}
                     <div className="srccap-drop" style={{ position: 'absolute', left: '16px', top: '34%', width: '18px', height: '18px', borderRadius: '4px', overflow: 'hidden', background: 'linear-gradient(135deg, #2a2333, #1a1a22)', border: '1px solid var(--theme-primary)', boxShadow: '0 0 10px color-mix(in srgb, var(--theme-primary) 55%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Globe size={10} style={{ color: 'var(--theme-secondary)' }} />
                     </div>
@@ -689,7 +686,7 @@ export const FeatureShowcase = () => {
                 </div>
             </div>
 
-            {/* Légende explicative de la case active */}
+            {/* Caption explaining the active tile */}
             <div
                 key={`cap-${active}`}
                 style={{ display: 'flex', gap: '9px', alignItems: 'flex-start', marginBottom: '44px', minHeight: '40px', animation: 'pgFade 0.3s ease forwards' }}

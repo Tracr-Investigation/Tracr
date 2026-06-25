@@ -23,7 +23,7 @@ interface UseYjsDocumentOptions {
   onInitialSync: () => void;
 }
 
-// WebSocket avec token auth dans sous-protocole
+// WebSocket with auth token in the sub-protocol.
 const buildAuthWebSocketClass = (token: string): typeof WebSocket => {
   class AuthWebSocket extends WebSocket {
     constructor(url: string | URL) {

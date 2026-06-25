@@ -6,7 +6,7 @@ import {MapPin, Loader2, RotateCcw, AlertCircle} from 'lucide-react';
 import {api} from '../../../services/api';
 import {useTranslation} from 'react-i18next';
 
-// Fix des icônes de marqueur cassées par le bundling Vite (même correctif que LocationNodeView).
+// Fix marker icons broken by Vite bundling (same fix as LocationNodeView).
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
 L.Icon.Default.mergeOptions({
     iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -28,7 +28,7 @@ interface FailedPoint {
     value: string | null;
 }
 
-// Ajuste la vue de la carte pour englober tous les points.
+// Adjusts the map view to fit all the points.
 const FitBounds = ({points}: {points: GeoPoint[]}) => {
     const map = useMap();
     useEffect(() => {
@@ -146,7 +146,7 @@ export const MapTab = ({investigationId}: {investigationId: number}) => {
                     </MapContainer>
                 </div>
 
-                {/* Liste latérale */}
+                {/* Side list */}
                 <div className="lg:w-72 shrink-0 rounded-xl border border-border-subtle bg-card/30 overflow-y-auto">
                     <div className="px-4 py-3 border-b border-border-subtle">
                         <h3 className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">

@@ -204,7 +204,7 @@ interface ExportPanelProps {
   onConfirm: (marking: { tlp?: string; pap?: string }) => void;
 }
 
-// Selecteur de niveau pour un protocole (TLP ou PAP). `null` = aucun marquage.
+// Level selector for a protocol (TLP or PAP). `null` = no marking.
 const MarkingSelector = ({
   protocol,
   value,

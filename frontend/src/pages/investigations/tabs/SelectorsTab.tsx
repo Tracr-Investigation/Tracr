@@ -11,7 +11,7 @@ import { formatRelativeDate } from '../../../utils/date';
 interface Props {
   investigationId: number;
   userPermission: string | null;
-  /** Ouvre une source dans l'onglet Sources (panneau slide). */
+  /** Opens a source in the Sources tab (slide panel). */
   onOpenSource?: (sourceId: number) => void;
 }
 
@@ -115,7 +115,7 @@ const AddSelectorForm = ({
   );
 };
 
-// ── Ligne sélecteur ─────────────────────────────────────────────────────────
+// ── Selector row ──────────────────────────────────────────────────────────────
 
 const SelectorRow = ({
   selector, canDelete, onDelete, hitInfo,
@@ -164,7 +164,7 @@ const SelectorRow = ({
   </div>
 );
 
-// ── Résultats d'analyse (hits) ────────────────────────────────────────────────
+// ── Analysis results (hits) ───────────────────────────────────────────────────
 
 const HitCard = ({ hit, onOpenSource }: { hit: SelectorHit; onOpenSource?: (id: number) => void }) => {
   const [open, setOpen] = useState(false);
@@ -298,15 +298,15 @@ export const SelectorsTab = ({ investigationId, userPermission, onOpenSource }: 
     }
   }, [investigationId, toast]);
 
-  // Charge les hits déjà enregistrés (dernier scan) au montage, pour afficher
-  // les correspondances et la date de dernière analyse sans relancer le calcul.
+  // On mount, load already-stored hits (last scan) to show matches and the last
+  // analysis date without re-running the computation.
   useEffect(() => {
     api.getHits(investigationId)
       .then((result) => { if (result.computed_at || result.hits.some((h) => h.source_count > 0)) setHits(result); })
-      .catch(() => { /* non bloquant */ });
+      .catch(() => { /* non-blocking */ });
   }, [investigationId]);
 
-  // Synthèse par sélecteur (id -> compteurs) pour annoter la liste.
+  // Per-selector summary (id -> counters) to annotate the list.
   const hitMap = useMemo(() => {
     const m = new Map<number, { source_count: number; hit_count: number }>();
     hits?.hits.forEach((h) => m.set(h.selector.id_selector, { source_count: h.source_count, hit_count: h.hit_count }));
@@ -330,7 +330,7 @@ export const SelectorsTab = ({ investigationId, userPermission, onOpenSource }: 
   useEffect(() => {
     api.listSelectorTypes()
       .then((d) => setTypes(d.types))
-      .catch(() => { /* non bloquant : la liste de types reste vide */ });
+      .catch(() => { /* non-blocking: the type list stays empty */ });
   }, []);
 
   const handleCreate = useCallback(async (body: { selector_type: string; value: string; label?: string | null; notes?: string | null }) => {

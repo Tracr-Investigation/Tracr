@@ -9,7 +9,7 @@ interface Props {
   onSubmit: () => void;
 }
 
-// formulaire saisie nouveau commentaire
+// new comment entry form
 export const CommentForm = ({ draft, quote, submitting, onDraftChange, onCancel, onSubmit }: Props) => {
   const canSubmit = draft.trim().length > 0 && !submitting;
 

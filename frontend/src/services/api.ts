@@ -206,7 +206,7 @@ export const api = {
         return data;
     },
 
-    // Etape 2 du login quand le MFA est actif : verifie le code TOTP.
+    // Login step 2 when MFA is enabled: verify the TOTP code.
     loginMfa: async (mfaToken: string, code: string) => {
         const response = await fetch(`${API_URL}/login/mfa`, {
             method: 'POST',
@@ -1136,7 +1136,7 @@ export const api = {
         return data;
     },
 
-    // ── Kanban : déplacement d'une tâche d'enquête ──────────────────────────
+    // ── Kanban: move an investigation task ──────────────────────────────────
     moveTask: async (investigationId: number, taskId: number, body: { status: string; position: number }) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/tasks/${taskId}/move`, {
@@ -1149,7 +1149,7 @@ export const api = {
         return data;
     },
 
-    // ── Tâches personnelles (hors enquête) ──────────────────────────────────
+    // ── Personal tasks (outside any investigation) ──────────────────────────
     getPersonalTasks: async () => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/tasks/personal`, {
@@ -1427,7 +1427,7 @@ export const api = {
         return { blob, filename };
     },
 
-    // Image de couverture de l'enquete (page de garde des exports PDF).
+    // Investigation cover image (front page of PDF exports).
     uploadInvestigationCover: async (investigationId: number, file: File) => {
         const token = localStorage.getItem('token');
         const fd = new FormData();
@@ -1453,7 +1453,7 @@ export const api = {
         return data as { has_cover: boolean };
     },
 
-    // Recupere l'image de couverture sous forme d'object URL (ou null si absente).
+    // Fetch the cover image as an object URL (or null if absent).
     getInvestigationCoverUrl: async (investigationId: number): Promise<string | null> => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/cover`, {
@@ -1617,7 +1617,7 @@ export const api = {
         return data;
     },
 
-    // --- Sources (preuves OSINT) ---
+    // --- Sources (OSINT evidence) ---
 
     listSources: async (investigationId: number) => {
         const token = localStorage.getItem('token');
@@ -1675,7 +1675,7 @@ export const api = {
         return data as { media: SourceData[] };
     },
 
-    // Ajout manuel d'un fichier comme source (hors extension navigateur).
+    // Manually add a file as a source (outside the browser extension).
     uploadSource: async (
         investigationId: number,
         params: { file: File; title: string; source_url?: string; notes?: string },
@@ -1697,8 +1697,8 @@ export const api = {
         return data as SourceData;
     },
 
-    // Recupere le binaire de la capture (preview + telechargement). Auth requise,
-    // donc on passe par fetch + blob plutot qu'une URL <img src> directe.
+    // Fetch the capture binary (preview + download) via fetch + blob (auth required,
+    // so a direct <img src> URL won't work).
     downloadSource: async (id: number) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/sources/${id}/download`, {
@@ -1715,7 +1715,7 @@ export const api = {
         return { blob, filename };
     },
 
-    // --- Sélecteurs (identifiants OSINT recherchés dans les sources) ---
+    // --- Selectors (OSINT identifiers searched within sources) ---
 
     listSelectorTypes: async () => {
         const token = localStorage.getItem('token');
@@ -1778,7 +1778,7 @@ export const api = {
         return data;
     },
 
-    // Correspondances déjà enregistrées (dernier scan) + date de dernière analyse.
+    // Already-stored matches (last scan) + date of the last analysis.
     getHits: async (investigationId: number) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/hits`, {
@@ -1789,7 +1789,7 @@ export const api = {
         return data as HitsResult;
     },
 
-    // (Re)lance l'analyse de toute l'enquête et enregistre les correspondances.
+    // (Re)run the analysis over the whole investigation and store the matches.
     scanHits: async (investigationId: number) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/hits/scan`, {
@@ -1801,7 +1801,7 @@ export const api = {
         return data as HitsResult;
     },
 
-    // Hits déjà enregistrés pour une source (sans recalcul).
+    // Already-stored hits for a source (no recompute).
     getSourceHits: async (sourceId: number) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/sources/${sourceId}/hits`, {
@@ -1812,7 +1812,7 @@ export const api = {
         return data as SourceHitsResult;
     },
 
-    // (Re)lance l'analyse d'une source contre les sélecteurs et enregistre les hits.
+    // (Re)run the analysis of one source against the selectors and store the hits.
     analyzeSource: async (sourceId: number) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/sources/${sourceId}/analyze`, {
@@ -1824,7 +1824,7 @@ export const api = {
         return data as SourceHitsResult;
     },
 
-    // Lance l'OCR (Tesseract local) sur une source image puis ré-analyse.
+    // Run OCR (local Tesseract) on an image source, then re-analyze.
     ocrSource: async (sourceId: number) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/sources/${sourceId}/ocr`, {

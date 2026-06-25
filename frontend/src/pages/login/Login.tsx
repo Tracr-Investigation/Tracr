@@ -53,7 +53,7 @@ export const Login = () => {
         try { return localStorage.getItem(LAST_PSEUDO_KEY) ?? ''; } catch { return ''; }
     })();
 
-    // 'account' = bouton du compte mémorisé, 'password' = saisie du mot de passe, 'fresh' = nouveau compte (form complet)
+    // 'account' = remembered account button, 'password' = password entry, 'fresh' = new account (full form)
     type LoginView = 'account' | 'password' | 'fresh';
     const [loginView, setLoginView] = useState<LoginView>(rememberedPseudo ? 'account' : 'fresh');
 
@@ -63,7 +63,7 @@ export const Login = () => {
     const [loginError, setLoginError] = useState('');
     const [loginLoading, setLoginLoading] = useState(false);
 
-    // Etape 2 (MFA) : jeton de challenge renvoye par /login quand le TOTP est actif.
+    // Step 2 (MFA): challenge token returned by /login when TOTP is active.
     const [mfaToken, setMfaToken] = useState<string | null>(null);
     const [mfaCode, setMfaCode] = useState('');
     const [mfaError, setMfaError] = useState('');
@@ -71,19 +71,19 @@ export const Login = () => {
 
     const passwordRef = useRef<HTMLInputElement>(null);
 
-    // Quand on passe sur la saisie du mot de passe, on place directement le curseur dessus
+    // When switching to the password entry, move the cursor straight onto it
     useEffect(() => {
         if (loginView === 'password') passwordRef.current?.focus();
     }, [loginView]);
 
-    // Clic sur le compte mémorisé → on demande juste le mot de passe
+    // Click the remembered account → just ask for the password.
     const selectRememberedAccount = () => {
         setLoginError('');
         setPseudo(rememberedPseudo);
         setLoginView('password');
     };
 
-    // « Nouvel utilisateur » → formulaire complet vierge
+    // "New user" → full blank form.
     const useAnotherAccount = () => {
         setLoginError('');
         setPseudo('');
@@ -91,7 +91,7 @@ export const Login = () => {
         setLoginView('fresh');
     };
 
-    // Oublier le compte mémorisé et revenir au choix
+    // Forget the remembered account and go back to the choice.
     const forgetPseudo = () => {
         try { localStorage.removeItem(LAST_PSEUDO_KEY); } catch { /* ignore */ }
         useAnotherAccount();
@@ -112,7 +112,7 @@ export const Login = () => {
         setLoginLoading(true);
         try {
             const data = await api.login(pseudo, password);
-            // MFA actif : on bascule sur l'etape de saisie du code, sans connecter encore.
+            // MFA active: switch to the code entry step, without logging in yet.
             if (data.mfa_required) {
                 setMfaToken(data.mfa_token);
                 setMfaCode('');
@@ -254,7 +254,7 @@ export const Login = () => {
                             </div>
                         </div>
 
-                        {/* ── Étape MFA : saisie du code TOTP ── */}
+                        {/* ── MFA step: enter the TOTP code ── */}
                         {mfaToken ? (
                         <form onSubmit={handleMfaSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                             <div style={{ textAlign: 'center', fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
@@ -309,7 +309,7 @@ export const Login = () => {
                                 {t('mfa.back')}
                             </button>
                         </form>
-                        ) : /* ── Vue « compte mémorisé » : un bouton avec le pseudo + nouvel utilisateur ── */
+                        ) : /* ── "Remembered account" view: a button with the pseudo + new user ── */
                         loginView === 'account' ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                             <button type="button" onClick={selectRememberedAccount} style={{
@@ -361,7 +361,7 @@ export const Login = () => {
                             </button>
                         </div>
                         ) : (
-                        /* ── Vue formulaire : mot de passe (compte mémorisé) ou pseudo + mot de passe (nouveau) ── */
+                        /* ── Form view: password (remembered account) or pseudo + password (new) ── */
                         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
                             {loginView === 'password' ? (
                             <div style={{

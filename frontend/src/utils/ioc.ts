@@ -1,13 +1,13 @@
-// Extraction d'indicateurs de compromission (IOC) depuis du texte libre.
-// Best-effort par regex : l'utilisateur choisit ensuite ceux à promouvoir
-// en entité du graphe. Mappe chaque IOC vers un type d'entité Tracr.
+// Extracts indicators of compromise (IOC) from free text.
+// Best-effort via regex: the user then chooses which ones to promote
+// to a graph entity. Maps each IOC to a Tracr entity type.
 
 export type IocKind = 'ip' | 'domain' | 'email' | 'hash' | 'cve' | 'crypto';
 
 export interface Ioc {
     value: string;
     kind: IocKind;
-    entityType: string; // type d'entité Tracr (voir ENTITY_TYPES)
+    entityType: string; // Tracr entity type (see ENTITY_TYPES)
 }
 
 const EMAIL = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
@@ -21,7 +21,7 @@ const CVE = /\bCVE-\d{4}-\d{4,7}\b/gi;
 const ETH = /\b0x[a-fA-F0-9]{40}\b/g;
 const BTC = /\b(?:bc1[ac-hj-np-z02-9]{11,71}|[13][a-km-zA-HJ-NP-Z1-9]{25,34})\b/g;
 
-// Extensions de fichier courantes : évite que "rapport.pdf" soit pris pour un domaine.
+// Common file extensions: avoids treating "rapport.pdf" as a domain.
 const FILE_EXT = new Set([
     'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'doc', 'docx',
     'xls', 'xlsx', 'ppt', 'pptx', 'exe', 'dll', 'js', 'ts', 'tsx', 'jsx',
@@ -47,13 +47,13 @@ export function extractIocs(text: string): Ioc[] {
         if (!found.has(key)) found.set(key, {value, kind, entityType: KIND_TO_ENTITY[kind]});
     };
 
-    // Emails et URLs sur le texte original.
+    // Emails and URLs on the original text.
     for (const m of text.matchAll(EMAIL)) add('email', m[0]);
     for (const m of text.matchAll(URL_RE)) {
         try { add('domain', new URL(m[0]).hostname); } catch { /* url invalide */ }
     }
 
-    // Hashes / CVE / crypto sur le texte original.
+    // Hashes / CVE / crypto on the original text.
     for (const m of text.matchAll(SHA256)) add('hash', m[0]);
     for (const m of text.matchAll(SHA1)) add('hash', m[0]);
     for (const m of text.matchAll(MD5)) add('hash', m[0]);
@@ -61,7 +61,7 @@ export function extractIocs(text: string): Ioc[] {
     for (const m of text.matchAll(ETH)) add('crypto', m[0]);
     for (const m of text.matchAll(BTC)) add('crypto', m[0]);
 
-    // IPs puis domaines sur un texte nettoyé des emails/URLs (évite les doublons d'hôtes).
+    // IPs then domains on text cleaned of emails/URLs (avoids duplicate hosts).
     const work = text.replace(EMAIL, ' ').replace(URL_RE, ' ');
     for (const m of work.matchAll(IPV4)) add('ip', m[0]);
 

@@ -115,7 +115,7 @@ export const TimelineTab = ({investigationId}: {investigationId: number}) => {
 
     const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-    // Barre de filtre : un chip par catégorie (icône + couleur), plus le chip « Tout ».
+    // Filter bar: one chip per category (icon + color), plus the "All" chip.
     const filterBar = categories.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 mb-6">
             <button
@@ -200,7 +200,7 @@ export const TimelineTab = ({investigationId}: {investigationId: number}) => {
         );
     }
 
-    // Aucun événement du tout (et aucun filtre) : état vide pleine page.
+    // No events at all (and no filter): full-page empty state.
     if (events.length === 0 && !category) {
         return (
             <div className="pt-6 text-center py-16">

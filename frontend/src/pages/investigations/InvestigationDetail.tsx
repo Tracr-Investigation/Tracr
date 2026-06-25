@@ -552,7 +552,7 @@ const SettingsTab = ({
         || description !== (investigation.description || '')
         || objectives !== (investigation.objectives || '');
 
-    // Charge un apercu de la couverture existante (object URL revoque au demontage).
+    // Load a preview of the existing cover (object URL revoked on unmount).
     useEffect(() => {
         if (!investigation.has_cover) return;
         let active = true;
@@ -893,7 +893,7 @@ export const InvestigationDetail = () => {
     const [headerCollapsed, setHeaderCollapsed] = useState(
         () => localStorage.getItem('investigationHeaderCollapsed') === '1',
     );
-    // Source à ouvrir dans l'onglet Sources (déclenché depuis un hit de l'onglet Sélecteurs)
+    // Source to open in the Sources tab (triggered from a hit in the Selectors tab)
     const [openSourceId, setOpenSourceId] = useState<number | null>(null);
     const toggleHeader = () => {
         setHeaderCollapsed((c) => {
@@ -909,8 +909,8 @@ export const InvestigationDetail = () => {
     const {user: currentUser} = useAuth();
     usePageTitle(investigation?.title);
 
-    // Compat : réécrit les anciens hash plats (#sources, #graph…) vers la
-    // nouvelle hiérarchie d'onglets groupés (#preuves/sources, #analyse/graph…).
+    // Compat: rewrite old flat hashes (#sources, #graph…) to the new grouped-tab
+    // hierarchy (#preuves/sources, #analyse/graph…).
     useEffect(() => {
         const LEGACY_HASHES: Record<string, string> = {
             sources: 'preuves/sources',
@@ -1133,8 +1133,8 @@ export const InvestigationDetail = () => {
                                     ),
                                 },
                                 {
-                                    // Groupe « Preuves » : bibliothèque de sources + sélecteurs/hits,
-                                    // qui sont fonctionnellement couplés (un hit ouvre sa source).
+                                    // "Evidence" group: sources library + selectors/hits,
+                                    // which are functionally coupled (a hit opens its source).
                                     id: 'preuves',
                                     label: t('investigationDetail.tabs.evidence'),
                                     icon: Archive,
@@ -1172,7 +1172,7 @@ export const InvestigationDetail = () => {
                                     ),
                                 },
                                 {
-                                    // Groupe « Analyse » : trois lentilles sur la même donnée d'enquête.
+                                    // "Analysis" group: three lenses over the same investigation data.
                                     id: 'analyse',
                                     label: t('investigationDetail.tabs.analysis'),
                                     icon: Network,
@@ -1224,7 +1224,7 @@ export const InvestigationDetail = () => {
                                     ),
                                 },
                                 {
-                                    // Groupe « Gestion » : collaborateurs (tous) + paramètres (owner).
+                                    // "Management" group: collaborators (all) + settings (owner).
                                     id: 'gestion',
                                     label: t('investigationDetail.tabs.management'),
                                     icon: Settings,

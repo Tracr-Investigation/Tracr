@@ -13,8 +13,7 @@ import type { Extensions } from '@tiptap/core';
 import { LocationNode } from './LocationNode';
 import { EmbedNode } from './EmbedNode';
 
-// Extensions TipTap communes à tous les éditeurs du projet.
-// DocumentEditor y ajoute CommentMark + Collaboration/CollaborationCursor.
+// Base TipTap extensions shared by all editors (DocumentEditor adds CommentMark + Collaboration).
 export const createBaseExtensions = (placeholder: string, hasCollaboration = false): Extensions => {
   const starterKitOptions = hasCollaboration ? { history: false as const } : {};
 

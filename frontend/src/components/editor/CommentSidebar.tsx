@@ -49,7 +49,7 @@ export const CommentSidebar = forwardRef<CommentSidebarHandle, Props>((props, re
 
   const { addMark, updateMark, removeMark, getLivingIds } = useCommentMarks(editor);
 
-  // Chargement initial des commentaires
+  // Initial load of comments.
   useEffect(() => {
     api.listDocumentComments(documentId)
       .then((d) => setComments(d.comments))
@@ -60,7 +60,7 @@ export const CommentSidebar = forwardRef<CommentSidebarHandle, Props>((props, re
     onCountChange(comments.length);
   }, [comments.length, onCountChange]);
 
-  // Détection sélection texte
+  // Track whether text is currently selected.
   useEffect(() => {
     if (!editor) {
       return;
@@ -76,7 +76,7 @@ export const CommentSidebar = forwardRef<CommentSidebarHandle, Props>((props, re
     };
   }, [editor, onHasSelectionChange]);
 
-  // Suppression des commentaires orphelins
+  // Remove comments whose marks no longer exist in the doc.
   useEffect(() => {
     if (!editor) {
       return;
@@ -99,7 +99,7 @@ export const CommentSidebar = forwardRef<CommentSidebarHandle, Props>((props, re
     };
   }, [editor, comments, getLivingIds, documentId]);
 
-  // Ouverture du formulaire de commentaire sur la sélection courante
+  // Open the comment form on the current selection.
   const openCommentForm = useCallback(() => {
     if (!editor || !canWrite) {
       return;
