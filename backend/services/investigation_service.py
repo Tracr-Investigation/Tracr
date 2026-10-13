@@ -124,8 +124,9 @@ def update_investigation_status(
 def update_investigation(
     db: Session, investigation: Investigation, title: Optional[str] = None,
     description: Optional[str] = None, objectives: Optional[str] = None,
+    analysis_dates: Optional[dict] = None,
 ) -> Investigation:
-    """Goal: update an investigation's title/description/objectives. Input: db, investigation, title, description, objectives. Output: the updated Investigation."""
+    """Goal: update an investigation's title/description/objectives/analysis period. Input: db, investigation, title, description, objectives, analysis_dates (only the provided keys are set, None clears). Output: the updated Investigation."""
     from datetime import datetime
     from zoneinfo import ZoneInfo
 
@@ -135,6 +136,8 @@ def update_investigation(
         investigation.description = description
     if objectives is not None:
         investigation.objectives = objectives
+    for field, value in (analysis_dates or {}).items():
+        setattr(investigation, field, value)
     investigation.updated_at = datetime.now(ZoneInfo("Europe/Paris"))
     db.add(investigation)
     db.commit()
@@ -237,6 +240,8 @@ def get_investigation_detail(db: Session, investigation_id: int, current_user_id
         "title": inv.title,
         "description": inv.description,
         "objectives": inv.objectives,
+        "analysis_start_date": inv.analysis_start_date.isoformat() if inv.analysis_start_date else None,
+        "analysis_end_date": inv.analysis_end_date.isoformat() if inv.analysis_end_date else None,
         "status": {
             "id_status": status.id_status,
             "name": status.name,

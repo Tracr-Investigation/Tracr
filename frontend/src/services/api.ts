@@ -679,9 +679,16 @@ export const api = {
         return data;
     },
 
-    updateInvestigation: async (id: number, title: string | null, description: string | null, objectives: string | null = null) => {
+    updateInvestigation: async (
+        id: number,
+        title: string | null,
+        description: string | null,
+        objectives: string | null = null,
+        // Only the provided keys are sent; null clears the date.
+        analysisDates: {analysis_start_date?: string | null; analysis_end_date?: string | null} = {},
+    ) => {
         const token = localStorage.getItem('token');
-        const body: Record<string, string | null> = {};
+        const body: Record<string, string | null> = {...analysisDates};
         if (title !== null) body.title = title;
         if (description !== null) body.description = description;
         if (objectives !== null) body.objectives = objectives;

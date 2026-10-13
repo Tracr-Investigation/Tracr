@@ -377,7 +377,12 @@
       "transferred": "Ownership transferred to {{pseudo}}",
       "deleted": "Investigation deleted",
       "objectivesLabel": "Objectives",
-      "objectivesPlaceholder": "Investigation objectives (shown at the top of the PDF export)"
+      "objectivesPlaceholder": "Investigation objectives (shown at the top of the PDF export)",
+      "analysisPeriodLabel": "Analysis period",
+      "analysisFrom": "from",
+      "analysisTo": "to",
+      "analysisPeriodHint": "Shown in the header of every page of the PDF export, with the document title.",
+      "analysisPeriodInvalid": "The start date must be before the end date."
     },
     "objectivesTitle": "Objectives",
     "noObjectives": "No objectives set"

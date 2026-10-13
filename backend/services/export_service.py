@@ -4,10 +4,13 @@ Le PDF comporte (dans l'ordre) :
   1. une page de couverture pleine page (image de l'enquete ou couverture par defaut) ;
   2. un sommaire genere a partir des titres h1/h2/h3, avec numeros de page ;
   3. le contenu du document, avec un marquage TLP/PAP repete en pied de chaque page.
+
+Chaque page (hors couverture) porte en en-tete le titre du document et la periode
+d'analyse de l'enquete.
 """
 import re
 import base64
-from datetime import datetime
+from datetime import date, datetime
 from typing import Optional, Tuple
 from zoneinfo import ZoneInfo
 
@@ -53,6 +56,29 @@ def _marking_meta(protocol: Optional[str], level: Optional[str]) -> Optional[Tup
 def _escape(s: str) -> str:
     """Goal: HTML-escape a string for safe insertion. Input: s. Output: escaped str."""
     return (s or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def _css_string(s: str) -> str:
+    """Goal: escape a string for a CSS `content: "..."` value (quotes, backslashes, `<` so a title cannot close the <style>). Input: s. Output: escaped str."""
+    return (
+        (s or "")
+        .replace("\\", "\\\\")
+        .replace('"', '\\"')
+        .replace("<", "\\3C ")
+        .replace("\n", " ")
+    )
+
+
+def _analysis_period(start: Optional[date], end: Optional[date]) -> str:
+    """Goal: format the analysis period label. Input: start/end dates (optional). Output: label, or "" when both are missing."""
+    fmt = "%d/%m/%Y"
+    if start and end:
+        return f"Analyse du {start.strftime(fmt)} au {end.strftime(fmt)}"
+    if start:
+        return f"Analyse depuis le {start.strftime(fmt)}"
+    if end:
+        return f"Analyse jusqu'au {end.strftime(fmt)}"
+    return ""
 
 
 # Extension -> type MIME pour reconstruire un data URI de couverture.
@@ -180,6 +206,7 @@ def _wrap_html(
     objectives_html: str,
     cover_uri: str,
     markings: list,
+    period: str = "",
 ) -> str:
     """Enveloppe le contenu dans un HTML print-ready (couverture + sommaire + contenu).
 
@@ -210,6 +237,13 @@ def _wrap_html(
     else:
         footer_box = ""
 
+    # En-tete de chaque page : titre du document a gauche, periode d'analyse a droite.
+    header_style = "font-size: 8pt; color: #666; vertical-align: bottom; padding-bottom: 4mm;"
+    header_boxes = f'@top-left {{ content: "{_css_string(title)}"; {header_style} }}'
+    if period:
+        header_boxes += f' @top-right {{ content: "{_css_string(period)}"; {header_style} white-space: nowrap; }}'
+    cover_period = f'<div class="cover-meta">{_escape(period)}</div>' if period else ""
+
     cover_badge = "".join(
         f'<div class="cover-mark" style="color: {m[1]};">{m[0]}</div>' for m in markings
     )
@@ -228,6 +262,7 @@ def _wrap_html(
                 font-size: 9pt;
                 color: #666;
             }}
+            {header_boxes}
             {footer_box}
         }}
         @page cover {{
@@ -238,6 +273,8 @@ def _wrap_html(
             @bottom-right {{ content: none; }}
             @bottom-center {{ content: none; }}
             @bottom-left {{ content: none; }}
+            @top-left {{ content: none; }}
+            @top-right {{ content: none; }}
         }}
         body {{
             font-family: 'DejaVu Sans', sans-serif;
@@ -275,14 +312,21 @@ def _wrap_html(
         }}
         pre code {{ background: transparent; padding: 0; }}
         img {{ max-width: 100%; }}
-        table {{ border-collapse: collapse; width: 100%; }}
-        th, td {{ border: 1px solid #ddd; padding: 6px 10px; }}
+        /* Tableaux compacts ; les largeurs en px de l'editeur sont ignorees (pleine largeur). */
+        table {{
+            border-collapse: collapse; width: 100% !important; min-width: 0 !important;
+            margin: 0.6em 0; font-size: 9pt; line-height: 1.35;
+        }}
+        col {{ width: auto !important; }}
+        th, td {{ border: 1px solid #d6d3d1; padding: 3px 6px; vertical-align: top; text-align: left; }}
+        th {{ background: #fef3c7; color: #78350f; font-weight: 700; border-bottom: 2px solid #f59e0b; }}
+        tr:nth-child(even) td {{ background: #fafaf9; }}
+        th p, td p {{ margin: 0; }}
         ul, ol {{ padding-left: 1.5em; }}
         ul[data-type="taskList"] {{ list-style: none; padding-left: 0; }}
         ul[data-type="taskList"] li {{ display: flex; gap: 0.5em; }}
         span[data-comment-id] {{ background: rgba(255, 220, 0, 0.15); }}
         span[data-comment-id][data-resolved="true"] {{ background: transparent; }}
-        h1.doc-title {{ border-bottom: 2px solid #ddd; padding-bottom: 0.3em; }}
 
         /* Page de couverture pleine page (theme clair) */
         .cover {{
@@ -342,13 +386,13 @@ def _wrap_html(
             <div class="cover-kicker">Tracr · Investigation</div>
             <div class="cover-org">{_escape(investigation_title)}</div>
             <div class="cover-title">{_escape(title)}</div>
+            {cover_period}
             <div class="cover-meta">Exporte le {date_str}</div>
             {cover_badge}
         </div>
     </div>
     {toc_html}
     {objectives_html}
-    <h1 class="doc-title">{_escape(title)}</h1>
     {content_html}
 </body>
 </html>
@@ -434,6 +478,8 @@ def render_pdf(
     pap: Optional[str] = None,
     investigation_title: str = "",
     investigation_objectives: Optional[str] = None,
+    analysis_start: Optional[date] = None,
+    analysis_end: Optional[date] = None,
 ) -> Tuple[bytes, str]:
     """Retourne (bytes PDF, filename).
 
@@ -459,6 +505,7 @@ def render_pdf(
         objectives_html,
         cover_uri,
         markings,
+        _analysis_period(analysis_start, analysis_end),
     )
     if db is not None:
         html_str = _inline_source_views(html_str, db)

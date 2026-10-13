@@ -377,7 +377,12 @@
       "transferred": "Propriété transférée à {{pseudo}}",
       "deleted": "Enquête supprimée",
       "objectivesLabel": "Objectifs",
-      "objectivesPlaceholder": "Objectifs de l'enquête (repris en tête de l'export PDF)"
+      "objectivesPlaceholder": "Objectifs de l'enquête (repris en tête de l'export PDF)",
+      "analysisPeriodLabel": "Période d'analyse",
+      "analysisFrom": "du",
+      "analysisTo": "au",
+      "analysisPeriodHint": "Affichée en en-tête de chaque page de l'export PDF, avec le titre du document.",
+      "analysisPeriodInvalid": "La date de début doit précéder la date de fin."
     },
     "objectivesTitle": "Objectifs",
     "noObjectives": "Aucun objectif défini"

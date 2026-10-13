@@ -281,12 +281,22 @@ async def update_investigation(
     if investigation.owner_id != user.id_user:
         raise HTTPException(status_code=403, detail="Only the owner can update this investigation")
 
-    if body.title is None and body.description is None and body.objectives is None:
-        raise HTTPException(status_code=422, detail="At least one field (title, description or objectives) is required")
+    analysis_dates = {
+        field: getattr(body, field)
+        for field in ("analysis_start_date", "analysis_end_date")
+        if field in body.model_fields_set
+    }
+    if body.title is None and body.description is None and body.objectives is None and not analysis_dates:
+        raise HTTPException(status_code=422, detail="At least one field (title, description, objectives or analysis dates) is required")
+
+    start = analysis_dates.get("analysis_start_date", investigation.analysis_start_date)
+    end = analysis_dates.get("analysis_end_date", investigation.analysis_end_date)
+    if start and end and start > end:
+        raise HTTPException(status_code=422, detail="Analysis start date must be before end date")
 
     updated = investigation_service.update_investigation(
         db, investigation, title=body.title, description=body.description,
-        objectives=body.objectives,
+        objectives=body.objectives, analysis_dates=analysis_dates,
     )
 
     ip = request.client.host if request.client else None
@@ -305,6 +315,8 @@ async def update_investigation(
         "title": updated.title,
         "description": updated.description,
         "objectives": updated.objectives,
+        "analysis_start_date": updated.analysis_start_date.isoformat() if updated.analysis_start_date else None,
+        "analysis_end_date": updated.analysis_end_date.isoformat() if updated.analysis_end_date else None,
     }
 
 

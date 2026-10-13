@@ -216,6 +216,8 @@ async def export_document(
             tlp=tlp, pap=pap,
             investigation_title=investigation_title,
             investigation_objectives=investigation_objectives,
+            analysis_start=inv.analysis_start_date if inv else None,
+            analysis_end=inv.analysis_end_date if inv else None,
         )
         media_type = "application/pdf"
     except Exception:

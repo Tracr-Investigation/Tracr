@@ -3,7 +3,7 @@
 Defines input constraints (lengths, formats, Kanban patterns) and shared
 validators (password strength, non-blank name).
 """
-from datetime import datetime
+from datetime import date, datetime
 from enum import Enum
 from typing import Optional
 
@@ -90,6 +90,9 @@ class InvestigationUpdateRequest(BaseModel):
     title: str | None = Field(default=None, min_length=1, max_length=255)
     description: str | None = Field(default=None, max_length=2000)
     objectives: str | None = Field(default=None, max_length=5000)
+    # null explicite = effacer la date ; champ absent = inchange
+    analysis_start_date: date | None = None
+    analysis_end_date: date | None = None
 
 
 class InvestigationTransferRequest(BaseModel):

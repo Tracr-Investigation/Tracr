@@ -90,6 +90,8 @@ interface InvestigationDetailData {
     title: string;
     description: string | null;
     objectives: string | null;
+    analysis_start_date?: string | null;
+    analysis_end_date?: string | null;
     status: StatusData;
     categories?: CategoryData[];
     owner: OwnerData;
@@ -531,6 +533,8 @@ const SettingsTab = ({
     const [title, setTitle] = useState(investigation.title);
     const [description, setDescription] = useState(investigation.description || '');
     const [objectives, setObjectives] = useState(investigation.objectives || '');
+    const [analysisStart, setAnalysisStart] = useState(investigation.analysis_start_date || '');
+    const [analysisEnd, setAnalysisEnd] = useState(investigation.analysis_end_date || '');
     const [saving, setSaving] = useState(false);
     const [transferQuery, setTransferQuery] = useState('');
     const [transferResults, setTransferResults] = useState<UserSearchResult[]>([]);
@@ -550,7 +554,11 @@ const SettingsTab = ({
 
     const hasChanges = title !== investigation.title
         || description !== (investigation.description || '')
-        || objectives !== (investigation.objectives || '');
+        || objectives !== (investigation.objectives || '')
+        || analysisStart !== (investigation.analysis_start_date || '')
+        || analysisEnd !== (investigation.analysis_end_date || '');
+    // ISO dates (YYYY-MM-DD) compare correctly as strings.
+    const invalidPeriod = Boolean(analysisStart && analysisEnd && analysisStart > analysisEnd);
 
     // Load a preview of the existing cover (object URL revoked on unmount).
     useEffect(() => {
@@ -613,7 +621,10 @@ const SettingsTab = ({
             const newTitle = title !== investigation.title ? title : null;
             const newDesc = description !== (investigation.description || '') ? description : null;
             const newObjectives = objectives !== (investigation.objectives || '') ? objectives : null;
-            await api.updateInvestigation(investigation.id_investigation, newTitle, newDesc, newObjectives);
+            const analysisDates: {analysis_start_date?: string | null; analysis_end_date?: string | null} = {};
+            if (analysisStart !== (investigation.analysis_start_date || '')) analysisDates.analysis_start_date = analysisStart || null;
+            if (analysisEnd !== (investigation.analysis_end_date || '')) analysisDates.analysis_end_date = analysisEnd || null;
+            await api.updateInvestigation(investigation.id_investigation, newTitle, newDesc, newObjectives, analysisDates);
             toast('success', t('investigationDetail.settings.updated'));
             if (newTitle) onSlugUpdate(newTitle);
             onRefresh();
@@ -748,11 +759,40 @@ const SettingsTab = ({
                 />
             </div>
 
+            <div className="flex items-start gap-4 py-3">
+                <label className="text-sm text-text-muted w-24 shrink-0 pt-1.5">{t('investigationDetail.settings.analysisPeriodLabel')}</label>
+                <div className="flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm text-text-muted">{t('investigationDetail.settings.analysisFrom')}</span>
+                        <input
+                            type="date"
+                            value={analysisStart}
+                            max={analysisEnd || undefined}
+                            onChange={(e) => setAnalysisStart(e.target.value)}
+                            className={inputClass.replace('w-full ', '')}
+                        />
+                        <span className="text-sm text-text-muted">{t('investigationDetail.settings.analysisTo')}</span>
+                        <input
+                            type="date"
+                            value={analysisEnd}
+                            min={analysisStart || undefined}
+                            onChange={(e) => setAnalysisEnd(e.target.value)}
+                            className={inputClass.replace('w-full ', '')}
+                        />
+                    </div>
+                    <p className={`text-xs mt-1.5 ${invalidPeriod ? 'text-red-400' : 'text-text-dim'}`}>
+                        {invalidPeriod
+                            ? t('investigationDetail.settings.analysisPeriodInvalid')
+                            : t('investigationDetail.settings.analysisPeriodHint')}
+                    </p>
+                </div>
+            </div>
+
             {hasChanges && (
                 <div className="flex justify-end py-3">
                     <button
                         onClick={handleSave}
-                        disabled={saving || !title.trim()}
+                        disabled={saving || !title.trim() || invalidPeriod}
                         className="px-4 py-1.5 rounded-xl text-text-default text-sm font-semibold transition-all disabled:opacity-40"
                         style={{background: 'var(--theme-primary)'}}
                     >

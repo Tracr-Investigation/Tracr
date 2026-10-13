@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Optional
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Column, Date, DateTime, ForeignKey, Integer, String
 from sqlmodel import Field, SQLModel
 from zoneinfo import ZoneInfo
 
@@ -16,6 +16,9 @@ class Investigation(SQLModel, table=True):
     # Objectifs de l'enquete (texte libre). Repris en tete des exports PDF, juste
     # apres le sommaire.
     objectives: Optional[str] = Field(default=None)
+    # Periode couverte par l'analyse, affichee en en-tete de chaque page des exports PDF.
+    analysis_start_date: Optional[date] = Field(default=None, sa_column=Column(Date, nullable=True))
+    analysis_end_date: Optional[date] = Field(default=None, sa_column=Column(Date, nullable=True))
     id_status: int = Field(
         sa_column=Column(Integer, ForeignKey("investigation_statuses.id_status", ondelete="RESTRICT"), nullable=False, index=True),
     )
