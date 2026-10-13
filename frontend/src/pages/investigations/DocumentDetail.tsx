@@ -41,7 +41,7 @@ const OWNER_PERMISSION = 'owner';
 const DEFAULT_PSEUDO = '?';
 
 const TOAST_TITLE_SAVED = 'Titre enregistré';
-const TOAST_PDF_DONE = 'Export PDF terminé';
+const TOAST_PDF_DONE = 'Export terminé';
 const TOAST_PDF_ERROR_FALLBACK = "Erreur d'export";
 const TOAST_GENERIC_ERROR_FALLBACK = 'Erreur';
 
@@ -58,6 +58,15 @@ const MARK_COLORS: Record<string, string> = {
   GREEN: '#33FF00',
   CLEAR: '#FFFFFF',
 };
+
+type SourcesScope = 'none' | 'cited' | 'all';
+type ExportOptions = { tlp?: string; pap?: string; redacted?: boolean; sources?: 'cited' | 'all' };
+
+const SOURCES_OPTIONS: { value: SourcesScope; label: string; hint: string }[] = [
+  { value: 'none', label: 'Rapport seul', hint: 'Fichier PDF.' },
+  { value: 'cited', label: 'Rapport + sources citées', hint: 'ZIP : PDF + fichiers des sources citées dans le rapport.' },
+  { value: 'all', label: "Rapport + toutes les sources", hint: "ZIP : PDF + toutes les sources archivées de l'enquête." },
+];
 
 const triggerBlobDownload = (blob: Blob, filename: string): void => {
   const url = URL.createObjectURL(blob);
@@ -207,7 +216,7 @@ const ExportPdfButton = ({ exporting, onClick }: ExportPdfButtonProps) => {
 interface ExportPanelProps {
   exporting: boolean;
   onClose: () => void;
-  onConfirm: (marking: { tlp?: string; pap?: string; redacted?: boolean }) => void;
+  onConfirm: (options: ExportOptions) => void;
 }
 
 // Level selector for a protocol (TLP or PAP). `null` = no marking.
@@ -258,6 +267,7 @@ const ExportPanel = ({ exporting, onClose, onConfirm }: ExportPanelProps) => {
   const [tlp, setTlp] = useState<string | null>('AMBER');
   const [pap, setPap] = useState<string | null>(null);
   const [redacted, setRedacted] = useState(false);
+  const [sourcesScope, setSourcesScope] = useState<SourcesScope>('none');
 
   const badges = [
     tlp ? { label: `TLP:${tlp}`, color: MARK_COLORS[tlp] } : null,
@@ -317,17 +327,54 @@ const ExportPanel = ({ exporting, onClose, onConfirm }: ExportPanelProps) => {
             </span>
           </span>
         </label>
+
+        <div>
+          <label className="block text-xs text-secondary mb-1.5">Sources jointes</label>
+          <div className="space-y-1.5">
+            {SOURCES_OPTIONS.map((option) => (
+              <label
+                key={option.value}
+                className={`flex items-start gap-2 px-2.5 py-2 rounded-lg border cursor-pointer transition-colors ${
+                  sourcesScope === option.value ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/40'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="sources-scope"
+                  checked={sourcesScope === option.value}
+                  onChange={() => setSourcesScope(option.value)}
+                  className="mt-0.5 accent-[var(--theme-primary)]"
+                />
+                <span className="text-sm text-accent">
+                  {option.label}
+                  <span className="block text-xs text-secondary">{option.hint}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+          {sourcesScope !== 'none' && (
+            <p className="text-xs text-secondary mt-2">
+              Le ZIP contient aussi l'index des sources (CSV) et leurs empreintes SHA-256 pour vérifier l'intégrité.
+              {redacted && ' Les fichiers sources ne sont pas caviardés.'}
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Footer */}
       <div className="px-3 py-3 border-t border-primary/20">
         <button
-          onClick={() => onConfirm({ tlp: tlp ?? undefined, pap: pap ?? undefined, redacted })}
+          onClick={() => onConfirm({
+            tlp: tlp ?? undefined,
+            pap: pap ?? undefined,
+            redacted,
+            sources: sourcesScope === 'none' ? undefined : sourcesScope,
+          })}
           disabled={exporting}
           className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors text-sm font-semibold disabled:opacity-40"
         >
           {exporting ? <Loader2 size={13} className="animate-spin" /> : <FileDown size={13} />}
-          Générer le PDF
+          {sourcesScope === 'none' ? 'Générer le PDF' : 'Générer le dossier (ZIP)'}
         </button>
       </div>
     </div>
@@ -442,7 +489,7 @@ export const DocumentDetail = () => {
     setDocument((prev) => prev ? { ...prev, ...meta } : prev);
   }, []);
 
-  const handleExportPdf = async (marking: { tlp?: string; pap?: string; redacted?: boolean }) => {
+  const handleExportPdf = async (marking: ExportOptions) => {
     if (!documentId) {
       return;
     }

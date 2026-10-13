@@ -12,6 +12,7 @@ import re
 from datetime import date
 from html.parser import HTMLParser
 from typing import List, Optional, Tuple
+from zoneinfo import ZoneInfo
 
 
 _REDACTION_CHAR = "█"
@@ -183,13 +184,20 @@ def summary_section(summary: Optional[str]) -> str:
 _SOURCE_VIEW_ID_RE = re.compile(r"/sources/(\d+)/view")
 _HREF_RE = re.compile(r'href="([^"]+)"')
 
-_SOURCE_TYPE_LABELS = {
+SOURCE_TYPE_LABELS = {
     "page_screenshot": "Capture d'écran",
     "page_mhtml": "Page archivée",
     "media": "Média",
     "web_archive": "Archive web",
     "manual_file": "Fichier",
 }
+
+
+def format_captured_at(value, fmt: str = "%d/%m/%Y %H:%M") -> str:
+    """Goal: format a capture timestamp in Paris time. Input: aware datetime (or None), strftime format. Output: formatted str ("" if None)."""
+    if not value:
+        return ""
+    return value.astimezone(ZoneInfo("Europe/Paris")).strftime(fmt)
 
 
 def cited_sources(db, id_investigation: int, html: str) -> list:
@@ -228,12 +236,12 @@ def sources_annex(sources: list) -> str:
         return ""
     rows = []
     for index, source in enumerate(sources, start=1):
-        captured = source.captured_at.strftime("%d/%m/%Y %H:%M") if source.captured_at else "-"
+        captured = format_captured_at(source.captured_at) or "-"
         rows.append(
             "<tr>"
             f"<td>{index}</td>"
             f'<td><strong>{_escape(source.title)}</strong><br><span class="annex-url">{_escape(source.source_url)}</span></td>'
-            f"<td>{_SOURCE_TYPE_LABELS.get(source.source_type, _escape(source.source_type))}</td>"
+            f"<td>{SOURCE_TYPE_LABELS.get(source.source_type, _escape(source.source_type))}</td>"
             f"<td>{captured}</td>"
             f'<td class="annex-hash">{_escape(source.content_hash)}</td>'
             "</tr>"

@@ -1,7 +1,9 @@
+import os
 from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import Response
+from fastapi.responses import FileResponse, Response
+from starlette.background import BackgroundTask
 from sqlmodel import Session
 
 from services import (
@@ -12,6 +14,7 @@ from services import (
     template_service,
     task_service,
     export_service,
+    export_bundle,
 )
 from utils.security import verify_token
 from utils.schemas import (
@@ -202,12 +205,15 @@ async def export_document(
     tlp: str | None = None,
     pap: str | None = None,
     redacted: bool = False,
+    sources: str | None = None,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Goal: export a document as PDF (with optional TLP/PAP marking, optionally redacted). Input: document_id, format, tlp, pap, redacted, auth, db. Output: PDF file Response (400/500 on errors)."""
+    """Goal: export a document as PDF (with optional TLP/PAP marking, optionally redacted), or as a ZIP bundling the PDF with its archived sources. Input: document_id, format, tlp, pap, redacted, sources ("cited" | "all" -> ZIP), auth, db. Output: PDF or ZIP file response (400/500 on errors)."""
     if format != "pdf":
         raise HTTPException(status_code=400, detail="format must be pdf")
+    if sources is not None and sources not in export_bundle.SCOPES:
+        raise HTTPException(status_code=400, detail="sources must be 'cited' or 'all'")
 
     document, _ = _load_document_with_access(db, document_id, user.id_user)
 
@@ -231,12 +237,33 @@ async def export_document(
     except Exception:
         raise HTTPException(status_code=500, detail="Export failed")
 
+    zip_path = None
+    if sources:
+        try:
+            cited = export_bundle.cited_sources(db, document, redacted)
+            bundled = export_bundle.select_sources(db, document, sources, cited)
+            zip_path = export_bundle.build_bundle(
+                bundled, data, filename, document.title, sources, redacted,
+            )
+        except Exception:
+            raise HTTPException(status_code=500, detail="Export failed")
+
     ip = request.client.host if request.client else None
     log_service.create_log(
         db, category="document", action=f"export_{format}",
-        id_user=user.id_user, detail=f"Document #{document_id}",
+        id_user=user.id_user,
+        detail=f"Document #{document_id}" + (f" + sources ({sources}, {len(bundled)})" if zip_path else ""),
         ip_address=ip,
     )
+
+    if zip_path:
+        zip_name = filename[:-len(".pdf")] + "_dossier.zip"
+        return FileResponse(
+            zip_path,
+            media_type="application/zip",
+            filename=zip_name,
+            background=BackgroundTask(os.remove, zip_path),
+        )
 
     encoded = quote(filename)
     headers = {"Content-Disposition": f"attachment; filename*=UTF-8''{encoded}"}

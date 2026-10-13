@@ -1426,13 +1426,15 @@ export const api = {
     exportDocument: async (
         id: number,
         format: 'pdf',
-        marking?: { tlp?: string; pap?: string; redacted?: boolean },
+        // sources: bundle the report with its archived sources in a ZIP.
+        marking?: { tlp?: string; pap?: string; redacted?: boolean; sources?: 'cited' | 'all' },
     ) => {
         const token = localStorage.getItem('token');
         const params = new URLSearchParams({format});
         if (marking?.tlp) params.set('tlp', marking.tlp);
         if (marking?.pap) params.set('pap', marking.pap);
         if (marking?.redacted) params.set('redacted', 'true');
+        if (marking?.sources) params.set('sources', marking.sources);
         const response = await fetch(`${API_URL}/documents/${id}/export?${params.toString()}`, {
             headers: {'Authorization': `Bearer ${token}`},
         });
