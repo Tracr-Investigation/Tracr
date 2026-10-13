@@ -9,6 +9,10 @@ import Highlight from '@tiptap/extension-highlight';
 import TextStyle from '@tiptap/extension-text-style';
 import Color from '@tiptap/extension-color';
 import Placeholder from '@tiptap/extension-placeholder';
+import Table from '@tiptap/extension-table';
+import TableRow from '@tiptap/extension-table-row';
+import TableHeader from '@tiptap/extension-table-header';
+import TableCell from '@tiptap/extension-table-cell';
 import type { Extensions } from '@tiptap/core';
 import { LocationNode } from './LocationNode';
 import { EmbedNode } from './EmbedNode';
@@ -29,6 +33,10 @@ export const createBaseExtensions = (placeholder: string, hasCollaboration = fal
     TextStyle,
     Color,
     Placeholder.configure({ placeholder }),
+    Table.configure({ resizable: true }),
+    TableRow,
+    TableHeader,
+    TableCell,
     LocationNode,
     EmbedNode,
   ];

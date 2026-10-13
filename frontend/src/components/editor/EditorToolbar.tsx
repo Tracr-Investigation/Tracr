@@ -24,6 +24,15 @@ import {
   Palette,
   MapPin,
   Archive,
+  Table as TableIcon,
+  BetweenHorizontalStart,
+  BetweenHorizontalEnd,
+  BetweenVerticalStart,
+  BetweenVerticalEnd,
+  TableCellsMerge,
+  TableCellsSplit,
+  PanelTop,
+  Trash2,
 } from 'lucide-react';
 import { LocationModal } from './LocationModal';
 import { SourcePickerDialog } from './SourcePickerDialog';
@@ -253,6 +262,109 @@ const ToggleGroup = ({ buttons, editor }: ToggleGroupProps) => {
         );
       })}
     </>
+  );
+};
+
+interface TableActionConfig {
+  key: string;
+  title: string;
+  icon: ReactNode;
+  run: (chain: ChainedCommands) => ChainedCommands;
+  isActive?: (editor: Editor) => boolean;
+}
+
+// Contextual table actions (shown when the cursor is inside a table).
+const TABLE_ACTIONS: TableActionConfig[] = [
+  {
+    key: 'add-row-before',
+    title: 'Insérer une ligne au-dessus',
+    icon: <BetweenHorizontalStart size={ICON_SIZE} />,
+    run: (chain) => chain.addRowBefore(),
+  },
+  {
+    key: 'add-row-after',
+    title: 'Insérer une ligne en dessous',
+    icon: <BetweenHorizontalEnd size={ICON_SIZE} />,
+    run: (chain) => chain.addRowAfter(),
+  },
+  {
+    key: 'add-column-before',
+    title: 'Insérer une colonne à gauche',
+    icon: <BetweenVerticalStart size={ICON_SIZE} />,
+    run: (chain) => chain.addColumnBefore(),
+  },
+  {
+    key: 'add-column-after',
+    title: 'Insérer une colonne à droite',
+    icon: <BetweenVerticalEnd size={ICON_SIZE} />,
+    run: (chain) => chain.addColumnAfter(),
+  },
+  {
+    key: 'toggle-header-row',
+    title: "Ligne d'en-tête",
+    icon: <PanelTop size={ICON_SIZE} />,
+    run: (chain) => chain.toggleHeaderRow(),
+  },
+  {
+    key: 'merge-cells',
+    title: 'Fusionner les cellules',
+    icon: <TableCellsMerge size={ICON_SIZE} />,
+    run: (chain) => chain.mergeCells(),
+  },
+  {
+    key: 'split-cell',
+    title: 'Scinder la cellule',
+    icon: <TableCellsSplit size={ICON_SIZE} />,
+    run: (chain) => chain.splitCell(),
+  },
+];
+
+// Destructive table actions, labelled for clarity.
+const TABLE_DELETE_ACTIONS: { key: string; label: string; run: (chain: ChainedCommands) => ChainedCommands }[] = [
+  { key: 'delete-row', label: 'Ligne', run: (chain) => chain.deleteRow() },
+  { key: 'delete-column', label: 'Colonne', run: (chain) => chain.deleteColumn() },
+  { key: 'delete-table', label: 'Tableau', run: (chain) => chain.deleteTable() },
+];
+
+interface TableBarProps {
+  editor: Editor;
+}
+
+// Secondary toolbar row for table editing.
+const TableBar = ({ editor }: TableBarProps) => {
+  return (
+    <div className="flex items-center flex-wrap gap-0.5 px-2 py-1 border-b border-primary/20 bg-card">
+      <span className="text-[10px] uppercase font-semibold text-secondary mr-1">Tableau</span>
+      {TABLE_ACTIONS.map((config) => {
+        const handleClick = () => {
+          config.run(focusChain(editor)).run();
+        };
+        const canRun = config.run(editor.can().chain().focus()).run();
+        return (
+          <Btn key={config.key} onClick={handleClick} disabled={!canRun} title={config.title}>
+            {config.icon}
+          </Btn>
+        );
+      })}
+      <Divider />
+      <Trash2 size={12} className="text-secondary mx-1" />
+      {TABLE_DELETE_ACTIONS.map((config) => {
+        const handleClick = () => {
+          config.run(focusChain(editor)).run();
+        };
+        return (
+          <button
+            key={config.key}
+            type="button"
+            onClick={handleClick}
+            title={`Supprimer : ${config.label.toLowerCase()}`}
+            className="px-1.5 py-0.5 rounded text-[11px] text-secondary hover:text-red-400 hover:bg-red-500/10 transition-colors"
+          >
+            {config.label}
+          </button>
+        );
+      })}
+    </div>
   );
 };
 
@@ -615,6 +727,11 @@ export const EditorToolbar = ({
     setShowLinkDialog(false);
   };
 
+  const handleInsertTable = () => {
+    focusChain(editor).insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+  };
+
+  const isInTable = editor.isActive('table');
   const showInsertTemplate = Boolean(onInsertTemplateClick);
   const showComment = Boolean(onCommentClick);
 
@@ -640,6 +757,11 @@ export const EditorToolbar = ({
         <Divider />
 
         <ToggleGroup buttons={QUOTE_CODE_BUTTONS} editor={editor} />
+        <Divider />
+
+        <Btn active={isInTable} disabled={isInTable} onClick={handleInsertTable} title="Insérer un tableau">
+          <TableIcon size={ICON_SIZE} />
+        </Btn>
         <Divider />
 
         <LinkButtons editor={editor} onOpenLinkDialog={handleOpenLinkDialog} />
@@ -679,6 +801,8 @@ export const EditorToolbar = ({
           </>
         )}
       </div>
+
+      {isInTable && <TableBar editor={editor} />}
 
       {showLinkDialog && (
         <LinkDialog

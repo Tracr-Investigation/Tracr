@@ -12,7 +12,7 @@ _ALLOWED_TAGS = frozenset({
     "strong", "b", "em", "i", "u", "s", "del", "mark", "span",
     "a", "img",
     "ul", "ol", "li",
-    "table", "thead", "tbody", "tfoot", "tr", "th", "td",
+    "table", "colgroup", "col", "thead", "tbody", "tfoot", "tr", "th", "td",
 })
 
 # Attributs autorisés par tag.
@@ -22,8 +22,8 @@ _ALLOWED_ATTRS: dict[str, set[str]] = {
     "*": {"class", "style"},
     "a": {"href", "target"},  
     "img": {"src", "alt", "title"},
-    "th": {"colspan", "rowspan"},
-    "td": {"colspan", "rowspan"},
+    "th": {"colspan", "rowspan", "colwidth"},
+    "td": {"colspan", "rowspan", "colwidth"},
     "ul": {"data-type"},
     "li": {"data-checked"},
     "span": {"data-comment-id", "data-resolved"},
