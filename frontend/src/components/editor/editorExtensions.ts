@@ -17,6 +17,7 @@ import type { Extensions } from '@tiptap/core';
 import { LocationNode } from './LocationNode';
 import { EmbedNode } from './EmbedNode';
 import { FootnoteNode } from './FootnoteNode';
+import { reportExtensions } from './reportExtensions';
 
 // Base TipTap extensions shared by all editors (DocumentEditor adds CommentMark + Collaboration).
 export const createBaseExtensions = (placeholder: string, hasCollaboration = false): Extensions => {
@@ -41,5 +42,6 @@ export const createBaseExtensions = (placeholder: string, hasCollaboration = fal
     LocationNode,
     EmbedNode,
     FootnoteNode,
+    ...reportExtensions,
   ];
 };

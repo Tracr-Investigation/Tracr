@@ -37,8 +37,9 @@ import {
 } from 'lucide-react';
 import { LocationModal } from './LocationModal';
 import { SourcePickerDialog } from './SourcePickerDialog';
+import { ReportTools } from './ReportTools';
+import { Btn, Divider, ICON_SIZE } from './ToolbarButton';
 
-const ICON_SIZE = 14;
 const SWATCH_SIZE_PX = 20;
 
 // Highlight palette.
@@ -71,35 +72,6 @@ interface Props {
   onCommentClick?: () => void;
   onInsertTemplateClick?: () => void;
 }
-
-interface BtnProps {
-  active?: boolean;
-  disabled?: boolean;
-  onClick: () => void;
-  title: string;
-  children: ReactNode;
-}
-
-const buildBtnClassName = (active: boolean): string => {
-  const base = 'p-1.5 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed';
-  if (active) {
-    return `${base} bg-primary/20 text-primary`;
-  }
-
-  return `${base} text-secondary hover:text-accent hover:bg-primary/10`;
-};
-
-// Generic toolbar button.
-const Btn = ({ active = false, disabled = false, onClick, title, children }: BtnProps) => {
-  const className = buildBtnClassName(active);
-  return (
-    <button type="button" onClick={onClick} disabled={disabled} title={title} className={className}>
-      {children}
-    </button>
-  );
-};
-
-const Divider = () => <div className="w-px h-5 bg-primary/20 mx-0.5" />;
 
 interface ToggleButtonConfig {
   key: string;
@@ -880,6 +852,9 @@ export const EditorToolbar = ({
         >
           <Superscript size={ICON_SIZE} />
         </Btn>
+        <Divider />
+
+        <ReportTools editor={editor} />
         <Divider />
 
         <Btn

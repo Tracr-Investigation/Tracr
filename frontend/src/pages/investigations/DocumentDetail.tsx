@@ -1,12 +1,13 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import debounce from 'lodash.debounce';
-import { ArrowLeft, Save, Loader2, Check, FileDown, History, ScanSearch, X, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Check, FileDown, History, ScanSearch, X, ShieldAlert, ClipboardList } from 'lucide-react';
 
 import { Layout } from '../../components/Layout';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { DocumentEditor, type RemoteUser, type DocumentEditorHandle } from '../../components/editor/DocumentEditor';
 import { BackupPanel } from '../../components/editor/BackupPanel';
+import { ReportPanel, type ReportMeta } from '../../components/editor/ReportPanel';
 import { IocPanel } from '../../components/osint/IocPanel';
 import { api } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -23,6 +24,11 @@ interface DocumentData {
   created_by_pseudo: string | null;
   created_at: string | null;
   updated_at: string | null;
+  summary: string | null;
+  version: string | null;
+  reviewer: string | null;
+  validated_at: string | null;
+  distribution: string | null;
 }
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'error';
@@ -201,7 +207,7 @@ const ExportPdfButton = ({ exporting, onClick }: ExportPdfButtonProps) => {
 interface ExportPanelProps {
   exporting: boolean;
   onClose: () => void;
-  onConfirm: (marking: { tlp?: string; pap?: string }) => void;
+  onConfirm: (marking: { tlp?: string; pap?: string; redacted?: boolean }) => void;
 }
 
 // Level selector for a protocol (TLP or PAP). `null` = no marking.
@@ -251,6 +257,7 @@ const MarkingSelector = ({
 const ExportPanel = ({ exporting, onClose, onConfirm }: ExportPanelProps) => {
   const [tlp, setTlp] = useState<string | null>('AMBER');
   const [pap, setPap] = useState<string | null>(null);
+  const [redacted, setRedacted] = useState(false);
 
   const badges = [
     tlp ? { label: `TLP:${tlp}`, color: MARK_COLORS[tlp] } : null,
@@ -295,12 +302,27 @@ const ExportPanel = ({ exporting, onClose, onConfirm }: ExportPanelProps) => {
             )}
           </div>
         </div>
+
+        <label className="flex items-start gap-2 text-sm text-accent cursor-pointer">
+          <input
+            type="checkbox"
+            checked={redacted}
+            onChange={(event) => setRedacted(event.target.checked)}
+            className="mt-0.5 accent-[var(--theme-primary)]"
+          />
+          <span>
+            Version caviardée
+            <span className="block text-xs text-secondary">
+              Les passages caviardés sont noircis et leur texte est retiré du PDF.
+            </span>
+          </span>
+        </label>
       </div>
 
       {/* Footer */}
       <div className="px-3 py-3 border-t border-primary/20">
         <button
-          onClick={() => onConfirm({ tlp: tlp ?? undefined, pap: pap ?? undefined })}
+          onClick={() => onConfirm({ tlp: tlp ?? undefined, pap: pap ?? undefined, redacted })}
           disabled={exporting}
           className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors text-sm font-semibold disabled:opacity-40"
         >
@@ -341,6 +363,7 @@ export const DocumentDetail = () => {
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [showBackupPanel, setShowBackupPanel] = useState(false);
   const [showIocPanel, setShowIocPanel] = useState(false);
+  const [showReportPanel, setShowReportPanel] = useState(false);
   const [currentHtml, setCurrentHtml] = useState('');
   const editorRef = useRef<DocumentEditorHandle>(null);
 
@@ -415,7 +438,11 @@ export const DocumentDetail = () => {
     editorRef.current?.setContent(newHtml);
   }, []);
 
-  const handleExportPdf = async (marking: { tlp?: string; pap?: string }) => {
+  const handleReportMetaSaved = useCallback((meta: ReportMeta) => {
+    setDocument((prev) => prev ? { ...prev, ...meta } : prev);
+  }, []);
+
+  const handleExportPdf = async (marking: { tlp?: string; pap?: string; redacted?: boolean }) => {
     if (!documentId) {
       return;
     }
@@ -530,6 +557,15 @@ export const DocumentDetail = () => {
           <ExportPdfButton exporting={exporting} onClick={() => setShowExportDialog(true)} />
 
           <button
+            onClick={() => setShowReportPanel((v) => !v)}
+            title="Synthèse, gestion du document et statistiques"
+            className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${showReportPanel ? 'text-primary bg-primary/20' : 'text-secondary hover:text-accent hover:bg-primary/10'}`}
+          >
+            <ClipboardList size={13} />
+            Rapport
+          </button>
+
+          <button
             onClick={() => setShowIocPanel((v) => !v)}
             title="Détecter les indicateurs (IOC)"
             className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${showIocPanel ? 'text-primary bg-primary/20' : 'text-secondary hover:text-accent hover:bg-primary/10'}`}
@@ -566,6 +602,24 @@ export const DocumentDetail = () => {
               onEntityMentionClick={() => navigate(`${backLink}#analyse/graph`)}
             />
           </div>
+
+          {showReportPanel && (
+            <ReportPanel
+              documentId={safeDocument.id_document}
+              meta={{
+                summary: safeDocument.summary,
+                version: safeDocument.version,
+                reviewer: safeDocument.reviewer,
+                validated_at: safeDocument.validated_at,
+                distribution: safeDocument.distribution,
+              }}
+              authorPseudo={safeDocument.created_by_pseudo}
+              html={currentHtml || safeDocument.content_html}
+              canEdit={canEdit}
+              onSaved={handleReportMetaSaved}
+              onClose={() => setShowReportPanel(false)}
+            />
+          )}
 
           {showIocPanel && (
             <IocPanel

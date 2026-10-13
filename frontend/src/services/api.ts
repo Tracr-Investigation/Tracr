@@ -1388,7 +1388,19 @@ export const api = {
         return data;
     },
 
-    updateDocument: async (id: number, body: { title?: string; content_html?: string }) => {
+    updateDocument: async (
+        id: number,
+        body: {
+            title?: string;
+            content_html?: string;
+            // Report metadata: omitted = unchanged, null = cleared.
+            summary?: string | null;
+            version?: string | null;
+            reviewer?: string | null;
+            validated_at?: string | null;
+            distribution?: string | null;
+        },
+    ) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/documents/${id}`, {
             method: 'PATCH',
@@ -1414,12 +1426,13 @@ export const api = {
     exportDocument: async (
         id: number,
         format: 'pdf',
-        marking?: { tlp?: string; pap?: string },
+        marking?: { tlp?: string; pap?: string; redacted?: boolean },
     ) => {
         const token = localStorage.getItem('token');
         const params = new URLSearchParams({format});
         if (marking?.tlp) params.set('tlp', marking.tlp);
         if (marking?.pap) params.set('pap', marking.pap);
+        if (marking?.redacted) params.set('redacted', 'true');
         const response = await fetch(`${API_URL}/documents/${id}/export?${params.toString()}`, {
             headers: {'Authorization': `Bearer ${token}`},
         });

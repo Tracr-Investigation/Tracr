@@ -148,10 +148,15 @@ async def update_document(
     if not document_service.can_write(permission):
         raise HTTPException(status_code=403, detail="Insufficient permissions to edit this document")
 
-    if body.title is None and body.content_html is None:
+    report_meta = {
+        field: getattr(body, field)
+        for field in document_service.REPORT_META_FIELDS
+        if field in body.model_fields_set
+    }
+    if body.title is None and body.content_html is None and not report_meta:
         raise HTTPException(status_code=422, detail="At least one field is required")
 
-    updated = document_service.update_document(db, document, body.title, body.content_html)
+    updated = document_service.update_document(db, document, body.title, body.content_html, report_meta)
     ip = request.client.host if request.client else None
     log_service.create_log(
         db, category="document", action="update",
@@ -196,10 +201,11 @@ async def export_document(
     request: Request,
     tlp: str | None = None,
     pap: str | None = None,
+    redacted: bool = False,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Goal: export a document as PDF (with optional TLP/PAP marking). Input: document_id, format, tlp, pap, auth, db. Output: PDF file Response (400/500 on errors)."""
+    """Goal: export a document as PDF (with optional TLP/PAP marking, optionally redacted). Input: document_id, format, tlp, pap, redacted, auth, db. Output: PDF file Response (400/500 on errors)."""
     if format != "pdf":
         raise HTTPException(status_code=400, detail="format must be pdf")
 
@@ -218,6 +224,8 @@ async def export_document(
             investigation_objectives=investigation_objectives,
             analysis_start=inv.analysis_start_date if inv else None,
             analysis_end=inv.analysis_end_date if inv else None,
+            author=document_service.get_document_detail(db, document)["created_by_pseudo"],
+            redacted=redacted,
         )
         media_type = "application/pdf"
     except Exception:

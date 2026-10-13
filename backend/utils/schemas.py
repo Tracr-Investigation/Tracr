@@ -225,6 +225,12 @@ class DocumentCreateRequest(BaseModel):
 class DocumentUpdateRequest(BaseModel):
     title: str | None = Field(default=None, min_length=1, max_length=255)
     content_html: str | None = Field(default=None)
+    # Metadonnees du rapport : champ absent = inchange, null = efface
+    summary: str | None = Field(default=None, max_length=10000)
+    version: str | None = Field(default=None, max_length=50)
+    reviewer: str | None = Field(default=None, max_length=100)
+    validated_at: date | None = None
+    distribution: str | None = Field(default=None, max_length=2000)
 
 class DocumentCommentCreateRequest(BaseModel):
     comment_id: str = Field(min_length=1, max_length=64)

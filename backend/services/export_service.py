@@ -4,6 +4,8 @@ Le PDF comporte (dans l'ordre) :
   1. une page de couverture pleine page (image de l'enquete ou couverture par defaut) ;
   2. un sommaire genere a partir des titres h1/h2/h3, avec numeros de page ;
   3. le contenu du document, avec un marquage TLP/PAP repete en pied de chaque page.
+Pages optionnelles (cf. report_blocks) : gestion du document, table des figures,
+synthese, annexes (sources citees, grille de cotation). Version caviardee possible.
 
 Les notes de l'editeur (<sup data-footnote>) sont imprimees en bas de page.
 Chaque page (hors couverture) porte en en-tete le titre du document et la periode
@@ -18,6 +20,7 @@ from zoneinfo import ZoneInfo
 import requests as http_requests
 
 from models.document import Document
+from services import report_blocks
 from utils.html_sanitize import sanitize_editor_html
 
 
@@ -216,10 +219,12 @@ def _wrap_html(
     investigation_title: str,
     content_html: str,
     toc_html: str,
-    objectives_html: str,
+    after_toc_html: str,
     cover_uri: str,
     markings: list,
     period: str = "",
+    control_html: str = "",
+    redacted: bool = False,
 ) -> str:
     """Enveloppe le contenu dans un HTML print-ready (couverture + sommaire + contenu).
 
@@ -256,6 +261,8 @@ def _wrap_html(
     if period:
         header_boxes += f' @top-right {{ content: "{_css_string(period)}"; {header_style} white-space: nowrap; }}'
     cover_period = f'<div class="cover-meta">{_escape(period)}</div>' if period else ""
+    if redacted:
+        cover_period += '<div class="cover-meta"><strong>Version caviardée</strong></div>'
 
     cover_badge = "".join(
         f'<div class="cover-mark" style="color: {m[1]};">{m[0]}</div>' for m in markings
@@ -300,6 +307,47 @@ def _wrap_html(
         h2 {{ font-size: 16pt; margin-top: 1em; }}
         h3 {{ font-size: 13pt; margin-top: 0.8em; }}
         h4 {{ font-size: 11pt; margin-top: 0.6em; }}
+
+        /* Blocs de rapport */
+        div[data-type="page-break"] {{ page-break-after: always; height: 0; margin: 0; border: 0; }}
+        p.caption {{
+            font-size: 9pt; color: #555; font-style: italic; text-align: center;
+            margin: 0.3em 0 1em; page-break-before: avoid;
+        }}
+        p.caption .caption-label {{ font-weight: bold; font-style: normal; color: #b45309; }}
+        div[data-type="callout"] {{
+            border-left: 4px solid #2563eb; background: #eff6ff;
+            padding: 0.5em 0.9em; margin: 0.8em 0; border-radius: 3px; page-break-inside: avoid;
+        }}
+        div[data-type="callout"]::before {{
+            display: block; font-weight: bold; font-size: 9pt; text-transform: uppercase;
+            letter-spacing: 0.5px; margin-bottom: 0.2em; color: #1d4ed8; content: "À retenir";
+        }}
+        div[data-type="callout"][data-variant="warning"] {{ border-left-color: #dc2626; background: #fef2f2; }}
+        div[data-type="callout"][data-variant="warning"]::before {{ content: "Point d'attention"; color: #b91c1c; }}
+        div[data-type="callout"][data-variant="hypothesis"] {{ border-left-color: #7c3aed; background: #f5f3ff; }}
+        div[data-type="callout"][data-variant="hypothesis"]::before {{ content: "Hypothèse"; color: #6d28d9; }}
+        div[data-type="callout"] p {{ margin: 0.2em 0; }}
+        span[data-rating] {{
+            display: inline-block; font-size: 7.5pt; font-weight: bold; line-height: 1.2;
+            padding: 0 3px; margin: 0 2px; border: 1px solid #9ca3af; border-radius: 3px;
+            color: #374151; background: #f3f4f6; font-style: normal; vertical-align: 1px;
+        }}
+        span[data-rating^="A"], span[data-rating^="B"] {{ color: #15803d; border-color: #86efac; background: #f0fdf4; }}
+        span[data-rating^="C"] {{ color: #b45309; border-color: #fcd34d; background: #fffbeb; }}
+        span[data-rating^="D"], span[data-rating^="E"] {{ color: #b91c1c; border-color: #fca5a5; background: #fef2f2; }}
+        span.redacted {{ background: #000; color: #000; }}
+
+        /* Pages d'en-tete (gestion du document, synthese) et annexes */
+        .front-page {{ page-break-after: always; }}
+        .front-title {{ font-size: 18pt; border-bottom: 2px solid #ddd; padding-bottom: 0.3em; margin-bottom: 1em; }}
+        .summary-body {{ font-size: 11pt; line-height: 1.6; }}
+        table.control-sheet th {{ width: 32%; }}
+        .annex {{ page-break-before: always; }}
+        .annex-table {{ margin-bottom: 1em; }}
+        .annex-url {{ color: #555; font-size: 8pt; word-break: break-all; }}
+        .annex-hash {{ font-family: 'DejaVu Sans Mono', monospace; font-size: 6.5pt; word-break: break-all; width: 28%; }}
+        .grid-table {{ width: 70% !important; }}
 
         /* Notes de bas de page (numerotees automatiquement par WeasyPrint) */
         .footnote {{
@@ -418,8 +466,9 @@ def _wrap_html(
             {cover_badge}
         </div>
     </div>
+    {control_html}
     {toc_html}
-    {objectives_html}
+    {after_toc_html}
     {content_html}
 </body>
 </html>
@@ -507,12 +556,15 @@ def render_pdf(
     investigation_objectives: Optional[str] = None,
     analysis_start: Optional[date] = None,
     analysis_end: Optional[date] = None,
+    author: Optional[str] = None,
+    redacted: bool = False,
 ) -> Tuple[bytes, str]:
     """Retourne (bytes PDF, filename).
 
     `db` permet d'inliner les sources archivées et de charger l'image de couverture
     sans requête HTTP vers le backend. `tlp` et `pap` sont les niveaux de marquage
     (independants : aucun, l'un, l'autre, ou les deux) apposes en pied de page.
+    `redacted` noircit les passages marques comme caviardes (texte absent du PDF).
     """
     from weasyprint import HTML
 
@@ -521,20 +573,37 @@ def render_pdf(
     cover_uri = _cover_data_uri(document, db)
     # Assainir AVANT d'injecter les ancres : nh3 retirerait les `id` sinon.
     sanitized = sanitize_editor_html(document.content_html or "")
+    # Caviardage AVANT le sommaire, sinon un titre caviarde y apparaitrait en clair.
+    if redacted:
+        sanitized = report_blocks.apply_redaction(sanitized)
+    sanitized, figures_html = report_blocks.number_captions(sanitized)
+    sources = report_blocks.cited_sources(db, document.id_investigation, sanitized) if db is not None else []
+    # Annexes ajoutees au contenu pour figurer dans le sommaire.
+    sanitized += report_blocks.sources_annex(sources) + report_blocks.rating_grid_annex(sanitized)
     toc_html, anchored_content = _build_toc(sanitized)
     # Apres le sommaire : le texte des notes ne doit pas apparaitre dans les titres du sommaire.
     anchored_content = _render_footnotes(anchored_content)
-    objectives_html = _objectives_section(investigation_objectives)
+    after_toc_html = (
+        report_blocks.summary_section(document.summary)
+        + _objectives_section(investigation_objectives)
+    )
+    period = _analysis_period(analysis_start, analysis_end)
+    control_html = report_blocks.document_control_section(
+        document, author, investigation_title, period, markings,
+        datetime.now(ZoneInfo("Europe/Paris")).strftime("%d/%m/%Y"),
+    )
 
     html_str = _wrap_html(
         document.title,
         investigation_title,
         anchored_content,
-        toc_html,
-        objectives_html,
+        toc_html + figures_html,
+        after_toc_html,
         cover_uri,
         markings,
-        _analysis_period(analysis_start, analysis_end),
+        period,
+        control_html=control_html,
+        redacted=redacted,
     )
     if db is not None:
         html_str = _inline_source_views(html_str, db)
@@ -543,6 +612,8 @@ def render_pdf(
     if pdf_bytes is None:
         raise RuntimeError("WeasyPrint returned no bytes")
     safe_name = _safe_filename(document.title)
+    if redacted:
+        safe_name += "_caviarde"
     return pdf_bytes, f"{safe_name}.pdf"
 
 

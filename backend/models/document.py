@@ -1,7 +1,7 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Optional
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text, false
+from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, String, Text, false
 from sqlmodel import Field, SQLModel
 from zoneinfo import ZoneInfo
 
@@ -79,6 +79,13 @@ class Document(SQLModel, table=True):
             index=True,
         ),
     )
+    # Synthese du rapport (texte libre), imprimee sur sa propre page dans l'export PDF.
+    summary: Optional[str] = Field(default=None, sa_column=Column(Text, nullable=True))
+    # Fiche de suivi du document (page "Gestion du document" de l'export PDF).
+    version: Optional[str] = Field(default=None, sa_column=Column(String(50), nullable=True))
+    reviewer: Optional[str] = Field(default=None, sa_column=Column(String(100), nullable=True))
+    validated_at: Optional[date] = Field(default=None, sa_column=Column(Date, nullable=True))
+    distribution: Optional[str] = Field(default=None, sa_column=Column(Text, nullable=True))
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(ZoneInfo("Europe/Paris")),
         sa_column=Column(DateTime(timezone=True), nullable=False),

@@ -68,6 +68,11 @@ def get_document_detail(db: Session, document: Document) -> dict:
         "content_html": document.content_html,
         "created_by": document.created_by,
         "created_by_pseudo": creator[0] if creator else None,
+        "summary": document.summary,
+        "version": document.version,
+        "reviewer": document.reviewer,
+        "validated_at": document.validated_at.isoformat() if document.validated_at else None,
+        "distribution": document.distribution,
         "created_at": document.created_at.isoformat() if document.created_at else None,
         "updated_at": document.updated_at.isoformat() if document.updated_at else None,
     }
@@ -83,13 +88,25 @@ def create_document(db: Session,id_investigation: int,title: str,content_html: s
     return document
 
 
-def update_document(db: Session, document: Document, title: Optional[str], content_html: Optional[str],) -> Document:
-    """Goal: update a document's title/content (sanitizes HTML, bumps updated_at). Input: db, document, title, content_html. Output: the updated Document."""
+# Metadonnees du rapport modifiables via PATCH (cf. DocumentUpdateRequest).
+REPORT_META_FIELDS = ("summary", "version", "reviewer", "validated_at", "distribution")
+
+
+def update_document(
+    db: Session, document: Document, title: Optional[str], content_html: Optional[str],
+    report_meta: Optional[dict] = None,
+) -> Document:
+    """Goal: update a document's title/content/report metadata (sanitizes HTML, bumps updated_at). Input: db, document, title, content_html, report_meta (only provided keys are set; blank strings become None). Output: the updated Document."""
     if title is not None:
         document.title = title
 
     if content_html is not None:
         document.content_html = sanitize_editor_html(content_html)
+
+    for field, value in (report_meta or {}).items():
+        if isinstance(value, str):
+            value = value.strip() or None
+        setattr(document, field, value)
 
     document.updated_at = _now()
     db.commit()

@@ -140,6 +140,8 @@ export const DocumentEditor = forwardRef<DocumentEditorHandle, Props>(({
     {
       editable: isEditable,
       extensions: buildExtensions(ydoc, provider, cursorUserInfo, investigationId),
+      // French spell checking by the browser.
+      editorProps: { attributes: { spellcheck: 'true', lang: 'fr' } },
       onUpdate: ({ editor: instance }) => handleEditorUpdate(instance),
     },
     [ydoc, provider, investigationId],
