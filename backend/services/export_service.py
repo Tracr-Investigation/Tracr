@@ -5,6 +5,7 @@ Le PDF comporte (dans l'ordre) :
   2. un sommaire genere a partir des titres h1/h2/h3, avec numeros de page ;
   3. le contenu du document, avec un marquage TLP/PAP repete en pied de chaque page.
 
+Les notes de l'editeur (<sup data-footnote>) sont imprimees en bas de page.
 Chaque page (hors couverture) porte en en-tete le titre du document et la periode
 d'analyse de l'enquete.
 """
@@ -132,6 +133,18 @@ def _cover_data_uri(document: Document, db) -> str:
 
 _HEADING_RE = re.compile(r"<(h[1-3])\b([^>]*)>(.*?)</\1>", re.IGNORECASE | re.DOTALL)
 _TAG_RE = re.compile(r"<[^>]+>")
+
+
+_FOOTNOTE_RE = re.compile(r'<sup\b[^>]*\bdata-footnote="([^"]*)"[^>]*></sup>')
+
+
+def _render_footnotes(html: str) -> str:
+    """Goal: turn editor footnotes into WeasyPrint footnotes (`float: footnote`). Input: sanitized HTML (attribute values already entity-escaped). Output: HTML with notes printed at the bottom of their page; empty notes are dropped."""
+    def _replace(match: re.Match) -> str:
+        note = match.group(1).strip()
+        return f'<span class="footnote">{note}</span>' if note else ""
+
+    return _FOOTNOTE_RE.sub(_replace, html)
 
 
 def _build_toc(content_html: str) -> Tuple[str, str]:
@@ -264,6 +277,7 @@ def _wrap_html(
             }}
             {header_boxes}
             {footer_box}
+            @footnote {{ border-top: 0.5pt solid #ccc; padding-top: 4pt; margin-top: 8pt; }}
         }}
         @page cover {{
             margin: 0;
@@ -286,6 +300,19 @@ def _wrap_html(
         h2 {{ font-size: 16pt; margin-top: 1em; }}
         h3 {{ font-size: 13pt; margin-top: 0.8em; }}
         h4 {{ font-size: 11pt; margin-top: 0.6em; }}
+
+        /* Notes de bas de page (numerotees automatiquement par WeasyPrint) */
+        .footnote {{
+            float: footnote;
+            font-size: 8pt; line-height: 1.35; color: #444;
+            font-weight: normal; font-style: normal; text-decoration: none;
+        }}
+        ::footnote-call {{
+            content: counter(footnote);
+            vertical-align: super; font-size: 0.7em; line-height: 0;
+            color: #b45309; font-weight: bold;
+        }}
+        ::footnote-marker {{ content: counter(footnote) ". "; font-weight: bold; color: #b45309; }}
         p {{ margin: 0.5em 0; }}
         a {{ color: #2563eb; }}
         blockquote {{
@@ -495,6 +522,8 @@ def render_pdf(
     # Assainir AVANT d'injecter les ancres : nh3 retirerait les `id` sinon.
     sanitized = sanitize_editor_html(document.content_html or "")
     toc_html, anchored_content = _build_toc(sanitized)
+    # Apres le sommaire : le texte des notes ne doit pas apparaitre dans les titres du sommaire.
+    anchored_content = _render_footnotes(anchored_content)
     objectives_html = _objectives_section(investigation_objectives)
 
     html_str = _wrap_html(

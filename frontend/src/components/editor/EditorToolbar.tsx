@@ -33,6 +33,7 @@ import {
   TableCellsSplit,
   PanelTop,
   Trash2,
+  Superscript,
 } from 'lucide-react';
 import { LocationModal } from './LocationModal';
 import { SourcePickerDialog } from './SourcePickerDialog';
@@ -685,6 +686,90 @@ const LinkDialog = ({ initialUrl, onApply, onClose }: LinkDialogProps) => {
   );
 };
 
+interface FootnoteDialogProps {
+  initialNote: string;
+  isEditing: boolean;
+  onApply: (note: string) => void;
+  onDelete: () => void;
+  onClose: () => void;
+}
+
+// Footnote text input modal (create or edit).
+const FootnoteDialog = ({ initialNote, isEditing, onApply, onDelete, onClose }: FootnoteDialogProps) => {
+  const [note, setNote] = useState(initialNote);
+
+  const handleApply = () => {
+    onApply(note);
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key !== 'Enter' || event.shiftKey) {
+      return;
+    }
+    event.preventDefault();
+    handleApply();
+  };
+
+  const handleStopPropagation = (event: React.MouseEvent) => {
+    event.stopPropagation();
+  };
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-card border border-primary/20 rounded-xl p-5 w-full max-w-md"
+        onClick={handleStopPropagation}
+      >
+        <h3 className="text-base font-semibold text-accent mb-4">
+          {isEditing ? 'Modifier la note' : 'Ajouter une note de bas de page'}
+        </h3>
+        <textarea
+          autoFocus
+          rows={4}
+          maxLength={2000}
+          value={note}
+          onChange={(event) => setNote(event.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Définition, explication, référence…"
+          className="w-full bg-dark border border-primary/20 rounded-lg px-3 py-2 text-accent focus:outline-none focus:border-primary resize-none"
+        />
+        <p className="text-xs text-secondary mt-2">
+          Placée après la sélection, numérotée automatiquement et imprimée en bas de page dans le PDF. Entrée pour valider, Maj+Entrée pour aller à la ligne.
+        </p>
+        <div className="flex gap-2 justify-end mt-4">
+          {isEditing && (
+            <button
+              type="button"
+              onClick={onDelete}
+              className="mr-auto px-3 py-1.5 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors text-sm"
+            >
+              Supprimer
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-3 py-1.5 rounded-lg bg-dark border border-primary/20 text-secondary hover:text-accent transition-colors text-sm"
+          >
+            Annuler
+          </button>
+          <button
+            type="button"
+            onClick={handleApply}
+            disabled={!note.trim()}
+            className="px-3 py-1.5 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors text-sm disabled:opacity-40"
+          >
+            Appliquer
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Apply URL or remove link.
 const applyLinkToEditor = (editor: Editor, url: string): void => {
   const trimmed = url.trim();
@@ -711,6 +796,7 @@ export const EditorToolbar = ({
   const [linkInitialUrl, setLinkInitialUrl] = useState('');
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showSourceDialog, setShowSourceDialog] = useState(false);
+  const [footnoteDialog, setFootnoteDialog] = useState<{ note: string; isEditing: boolean } | null>(null);
 
   const handleOpenLinkDialog = () => {
     const currentHref = (editor.getAttributes('link').href as string | undefined) ?? '';
@@ -725,6 +811,28 @@ export const EditorToolbar = ({
   const handleApplyLink = (url: string) => {
     applyLinkToEditor(editor, url);
     setShowLinkDialog(false);
+  };
+
+  // Edit the selected footnote, or create a new one after the selection.
+  const handleOpenFootnoteDialog = () => {
+    const isEditing = editor.isActive('footnote');
+    const note = isEditing ? ((editor.getAttributes('footnote').note as string | undefined) ?? '') : '';
+    setFootnoteDialog({ note, isEditing });
+  };
+
+  const handleApplyFootnote = (note: string) => {
+    const trimmed = note.trim();
+    if (footnoteDialog?.isEditing) {
+      focusChain(editor).updateFootnote(trimmed).run();
+    } else {
+      focusChain(editor).insertFootnote(trimmed).run();
+    }
+    setFootnoteDialog(null);
+  };
+
+  const handleDeleteFootnote = () => {
+    focusChain(editor).deleteSelection().run();
+    setFootnoteDialog(null);
   };
 
   const handleInsertTable = () => {
@@ -765,6 +873,13 @@ export const EditorToolbar = ({
         <Divider />
 
         <LinkButtons editor={editor} onOpenLinkDialog={handleOpenLinkDialog} />
+        <Btn
+          active={editor.isActive('footnote')}
+          onClick={handleOpenFootnoteDialog}
+          title="Note de bas de page (sélectionner un mot, ou cliquer sur un numéro de note pour la modifier)"
+        >
+          <Superscript size={ICON_SIZE} />
+        </Btn>
         <Divider />
 
         <Btn
@@ -803,6 +918,16 @@ export const EditorToolbar = ({
       </div>
 
       {isInTable && <TableBar editor={editor} />}
+
+      {footnoteDialog && (
+        <FootnoteDialog
+          initialNote={footnoteDialog.note}
+          isEditing={footnoteDialog.isEditing}
+          onApply={handleApplyFootnote}
+          onDelete={handleDeleteFootnote}
+          onClose={() => setFootnoteDialog(null)}
+        />
+      )}
 
       {showLinkDialog && (
         <LinkDialog

@@ -208,6 +208,30 @@
   cursor: col-resize;
 }
 
+/* Footnotes: numbered automatically in document order */
+.prose-document .ProseMirror {
+  counter-reset: footnote;
+}
+
+.prose-document .ProseMirror sup.footnote-ref {
+  counter-increment: footnote;
+  cursor: pointer;
+  color: var(--theme-primary);
+  font-weight: 700;
+  font-size: 0.7em;
+  padding: 0 0.1em;
+  border-radius: 3px;
+}
+
+.prose-document .ProseMirror sup.footnote-ref::after {
+  content: counter(footnote);
+}
+
+.prose-document .ProseMirror sup.footnote-ref:hover,
+.prose-document .ProseMirror sup.footnote-ref.ProseMirror-selectednode {
+  background: color-mix(in srgb, var(--theme-primary) 20%, transparent);
+}
+
 /* Selection */
 .prose-document .ProseMirror ::selection {
   background: color-mix(in srgb, var(--theme-primary) 30%, transparent);

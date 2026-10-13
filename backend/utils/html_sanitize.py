@@ -10,7 +10,7 @@ _ALLOWED_TAGS = frozenset({
     "h1", "h2", "h3", "h4", "h5", "h6",
     "p", "br", "hr", "blockquote", "pre", "code", "div",
     "strong", "b", "em", "i", "u", "s", "del", "mark", "span",
-    "a", "img",
+    "a", "img", "sup",
     "ul", "ol", "li",
     "table", "colgroup", "col", "thead", "tbody", "tfoot", "tr", "th", "td",
 })
@@ -25,6 +25,7 @@ _ALLOWED_ATTRS: dict[str, set[str]] = {
     "th": {"colspan", "rowspan", "colwidth"},
     "td": {"colspan", "rowspan", "colwidth"},
     "ul": {"data-type"},
+    "sup": {"data-footnote"},
     "li": {"data-checked"},
     "span": {"data-comment-id", "data-resolved"},
     "div": {"data-type", "data-lat", "data-lng", "data-address"},

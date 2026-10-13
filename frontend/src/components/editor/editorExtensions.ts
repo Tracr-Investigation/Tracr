@@ -16,6 +16,7 @@ import TableCell from '@tiptap/extension-table-cell';
 import type { Extensions } from '@tiptap/core';
 import { LocationNode } from './LocationNode';
 import { EmbedNode } from './EmbedNode';
+import { FootnoteNode } from './FootnoteNode';
 
 // Base TipTap extensions shared by all editors (DocumentEditor adds CommentMark + Collaboration).
 export const createBaseExtensions = (placeholder: string, hasCollaboration = false): Extensions => {
@@ -39,5 +40,6 @@ export const createBaseExtensions = (placeholder: string, hasCollaboration = fal
     TableCell,
     LocationNode,
     EmbedNode,
+    FootnoteNode,
   ];
 };
