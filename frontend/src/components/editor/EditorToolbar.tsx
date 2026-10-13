@@ -38,6 +38,7 @@ import {
 import { LocationModal } from './LocationModal';
 import { SourcePickerDialog } from './SourcePickerDialog';
 import { ReportTools } from './ReportTools';
+import { ImageBar } from './ImageBar';
 import { Btn, Divider, ICON_SIZE } from './ToolbarButton';
 
 const SWATCH_SIZE_PX = 20;
@@ -893,6 +894,7 @@ export const EditorToolbar = ({
       </div>
 
       {isInTable && <TableBar editor={editor} />}
+      {editor.isActive('image') && <ImageBar editor={editor} />}
 
       {footnoteDialog && (
         <FootnoteDialog

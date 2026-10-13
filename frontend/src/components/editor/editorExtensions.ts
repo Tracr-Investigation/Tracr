@@ -3,7 +3,7 @@ import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
-import Image from '@tiptap/extension-image';
+import { ImageNode } from './ImageNode';
 import Link from '@tiptap/extension-link';
 import Highlight from '@tiptap/extension-highlight';
 import TextStyle from '@tiptap/extension-text-style';
@@ -29,7 +29,7 @@ export const createBaseExtensions = (placeholder: string, hasCollaboration = fal
     TextAlign.configure({ types: ['heading', 'paragraph'] }),
     TaskList,
     TaskItem.configure({ nested: true }),
-    Image.configure({ HTMLAttributes: { class: 'editor-img' } }),
+    ImageNode.configure({ HTMLAttributes: { class: 'editor-img' } }),
     Link.configure({ openOnClick: false, autolink: true, protocols: ['http', 'https', 'mailto'] }),
     Highlight.configure({ multicolor: true }),
     TextStyle,

@@ -36,9 +36,10 @@ const computeStats = (html: string): ReportStats => {
   const text = (doc.body.textContent || '').replace(/\s+/g, ' ').trim();
   const words = text ? text.split(' ').length : 0;
   const count = (selector: string) => doc.querySelectorAll(selector).length;
-  const archivedSources = Array.from(doc.querySelectorAll('strong')).filter(
-    (el) => el.textContent?.trim() === 'Source archivée',
-  ).length;
+  // Archived images (served by /sources/{id}/view) + reference lines of other captures.
+  const archivedSources =
+    count('img[src*="/sources/"]') +
+    Array.from(doc.querySelectorAll('strong')).filter((el) => el.textContent?.trim().startsWith('Source archivée')).length;
 
   return {
     words,

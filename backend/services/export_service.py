@@ -386,7 +386,7 @@ def _wrap_html(
             font-size: 0.9em;
         }}
         pre code {{ background: transparent; padding: 0; }}
-        img {{ max-width: 100%; }}
+        img {{ max-width: 100%; display: block; margin: 0.4em 0; }}
         /* Tableaux compacts ; les largeurs en px de l'editeur sont ignorees (pleine largeur). */
         table {{
             border-collapse: collapse; width: 100% !important; min-width: 0 !important;
