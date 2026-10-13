@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { API_URL } from '../services/api';
 
 interface User {
-  id_user: number;
+  id_user: string;
   pseudo: string;
   role: string;
   language: string;

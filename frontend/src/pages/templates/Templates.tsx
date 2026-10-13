@@ -32,7 +32,7 @@ const FormPanel = ({ template, categories, open, onClose, onSave }: FormPanelPro
   const [description, setDescription] = useState(template?.description ?? '');
   const [contentHtml, setContentHtml] = useState(template?.content_html ?? '');
   const [isPublic, setIsPublic] = useState(template?.is_public ?? true);
-  const [categoryId, setCategoryId] = useState<number | null>(template?.category?.id_category_template ?? null);
+  const [categoryId, setCategoryId] = useState<string | null>(template?.category?.id_category_template ?? null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -383,8 +383,8 @@ export const Templates = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<Tab>('mine');
-  const [filterCategoryId, setFilterCategoryId] = useState<number | null | 'uncategorized'>(null);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [filterCategoryId, setFilterCategoryId] = useState<string | null | 'uncategorized'>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<FullTemplate | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);

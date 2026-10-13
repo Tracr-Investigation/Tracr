@@ -1,3 +1,4 @@
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import Session
 
@@ -61,7 +62,7 @@ async def create_template_category(
 @router.patch("/categories/{cat_id}")
 @limiter.limit("20/minute")
 async def update_template_category(
-    cat_id: int,
+    cat_id: UUID,
     body: TemplateCategoryUpdateRequest,
     request: Request,
     user=Depends(require_admin),
@@ -84,7 +85,7 @@ async def update_template_category(
 @router.delete("/categories/{cat_id}")
 @limiter.limit("10/minute")
 async def delete_template_category(
-    cat_id: int,
+    cat_id: UUID,
     request: Request,
     user=Depends(require_admin),
     db: Session = Depends(get_db),
@@ -144,7 +145,7 @@ async def create_template(
 
 @router.get("/{template_id}")
 async def get_template(
-    template_id: int,
+    template_id: UUID,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -160,7 +161,7 @@ async def get_template(
 @router.patch("/{template_id}")
 @limiter.limit("30/minute")
 async def update_template(
-    template_id: int,
+    template_id: UUID,
     body: TemplateUpdateRequest,
     request: Request,
     user=Depends(get_current_user),
@@ -173,6 +174,9 @@ async def update_template(
     role = user_service.get_user_role(db, user.id_user)
     is_admin = role in ("admin", "super-admin")
     if not template_service.can_modify(template, user.id_user) and not is_admin:
+        # Modele prive d'un autre : meme 404 que s'il n'existait pas
+        if not template_service.can_view(template, user.id_user):
+            raise HTTPException(status_code=404, detail="Template not found")
         raise HTTPException(status_code=403, detail="Only the creator can modify this template")
 
     if all(v is None for v in (body.name, body.description, body.content_html, body.is_public)) and not body.clear_category and body.id_category_template is None:
@@ -195,7 +199,7 @@ async def update_template(
 @router.delete("/{template_id}")
 @limiter.limit("10/minute")
 async def delete_template(
-    template_id: int,
+    template_id: UUID,
     request: Request,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -207,6 +211,9 @@ async def delete_template(
     role = user_service.get_user_role(db, user.id_user)
     is_admin = role in ("admin", "super-admin")
     if not template_service.can_modify(template, user.id_user) and not is_admin:
+        # Modele prive d'un autre : meme 404 que s'il n'existait pas
+        if not template_service.can_view(template, user.id_user):
+            raise HTTPException(status_code=404, detail="Template not found")
         raise HTTPException(status_code=403, detail="Only the creator can delete this template")
 
     name = template.name

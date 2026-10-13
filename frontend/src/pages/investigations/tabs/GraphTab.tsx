@@ -124,7 +124,7 @@ const EntityPanel = ({
     onClose,
     onSaved,
 }: {
-    investigationId: number;
+    investigationId: string;
     entity: EntityData | null;
     open: boolean;
     onClose: () => void;
@@ -429,7 +429,7 @@ export const GraphTab = ({
     investigationId,
     userPermission,
 }: {
-    investigationId: number;
+    investigationId: string;
     userPermission: string | null;
 }) => {
     const {t} = useTranslation();
@@ -504,8 +504,8 @@ export const GraphTab = ({
         setPendingConnection(null);
         try {
             await api.createRelation(investigationId, {
-                source_id: Number(pendingConnection.source),
-                target_id: Number(pendingConnection.target),
+                source_id: pendingConnection.source,
+                target_id: pendingConnection.target,
                 label: label.trim() || null,
             });
             await refreshGraph();
@@ -519,7 +519,7 @@ export const GraphTab = ({
         if (!canEdit) return;
         if (!confirm(t('investigationDetail.graph.deleteLinkConfirm'))) return;
         try {
-            await api.deleteRelation(investigationId, Number(edge.id));
+            await api.deleteRelation(investigationId, edge.id);
             await refreshGraph();
             toast('success', t('investigationDetail.graph.linkDeleted'));
         } catch (err) {
@@ -530,7 +530,7 @@ export const GraphTab = ({
     const onNodeDragStop = useCallback(async (_: React.MouseEvent, node: Node) => {
         if (!canEdit) return;
         try {
-            await api.updateEntity(investigationId, Number(node.id), {pos_x: node.position.x, pos_y: node.position.y});
+            await api.updateEntity(investigationId, node.id, {pos_x: node.position.x, pos_y: node.position.y});
         } catch { /* silent */ }
     }, [canEdit, investigationId]);
 

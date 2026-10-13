@@ -12,7 +12,7 @@ export interface ReportMeta {
 }
 
 interface Props {
-  documentId: number;
+  documentId: string;
   meta: ReportMeta;
   authorPseudo: string | null;
   html: string;

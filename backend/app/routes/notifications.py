@@ -1,3 +1,4 @@
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import Session
 
@@ -53,7 +54,7 @@ async def get_unread_count(
 
 @router.patch("/{id_notification}/read")
 async def mark_notification_read(
-    id_notification: int,
+    id_notification: UUID,
     request: Request,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),

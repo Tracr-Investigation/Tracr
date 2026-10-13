@@ -4,7 +4,7 @@ import { PASSWORD, authHeader, apiUrl, uniquePseudo } from '../support/constants
 
 describe('Tâches (Tasks)', () => {
 
-  let invId: number;
+  let invId: string;
 
   before(() => {
     cy.registerByApi(uniquePseudo('task'), PASSWORD);

@@ -11,6 +11,7 @@ Les notes de l'editeur (<sup data-footnote>) sont imprimees en bas de page.
 Chaque page (hors couverture) porte en en-tete le titre du document et la periode
 d'analyse de l'enquete.
 """
+from uuid import UUID
 import re
 import base64
 from datetime import date, datetime
@@ -491,7 +492,7 @@ def _generate_map_image(lat: float, lng: float) -> str | None:
         return None
 
 
-_SOURCE_VIEW_RE = re.compile(r'src="(https?://[^"]*?/sources/(\d+)/view\?sig=([A-Za-z0-9]+)[^"]*)"')
+_SOURCE_VIEW_RE = re.compile(r'src="(https?://[^"]*?/sources/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/view\?sig=([A-Za-z0-9]+)[^"]*)"')
 
 
 def _inline_source_views(html: str, db) -> str:
@@ -501,7 +502,7 @@ def _inline_source_views(html: str, db) -> str:
     from services import source_service
 
     def _replace(match: re.Match) -> str:
-        sid, sig = int(match.group(2)), match.group(3)
+        sid, sig = UUID(match.group(2)), match.group(3)
         try:
             source = source_service.get_source(db, sid)
             if not source or not source_service.verify_view_signature(source, sig):

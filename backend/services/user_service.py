@@ -1,3 +1,4 @@
+from uuid import UUID
 import secrets
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -37,7 +38,7 @@ def authenticate_user(db: Session, pseudo: str, password: str) -> Optional[User]
         return None
     return user
 
-def get_user_by_id(db: Session, user_id: int) -> Optional[User]:
+def get_user_by_id(db: Session, user_id: UUID) -> Optional[User]:
     """Get a user by ID"""
     return db.query(User).filter(User.id_user == user_id).first()
 
@@ -55,7 +56,7 @@ def create_user(db: Session, pseudo: str, password: str) -> tuple[User, list[str
     return user, words
 
 
-def get_user_role(db: Session, user_id: int) -> str:
+def get_user_role(db: Session, user_id: UUID) -> str:
     """Get a user's role"""
     role = (
         db.query(Role.name)

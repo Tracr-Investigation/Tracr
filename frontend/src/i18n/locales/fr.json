@@ -484,7 +484,6 @@
       "searchPlaceholder": "Rechercher par ID, action ou utilisateur...",
       "allCategories": "Toutes les catégories",
       "hideConsultations": "Masquer les consultations",
-      "colId": "ID",
       "colDate": "Date",
       "colUser": "Utilisateur",
       "colCategory": "Catégorie",
@@ -498,7 +497,6 @@
     "statuses": {
       "totalLabel": "Total des statuts",
       "newStatus": "Nouveau statut",
-      "colId": "ID",
       "colStatus": "Statut",
       "colColor": "Couleur",
       "colCreated": "Créé le",
@@ -526,7 +524,6 @@
     "categories": {
       "totalLabel": "Total des catégories",
       "newCategory": "Nouvelle catégorie",
-      "colId": "ID",
       "colCategory": "Catégorie",
       "colColor": "Couleur",
       "colIcon": "Icône",
@@ -556,7 +553,6 @@
     "templateCategories": {
       "totalLabel": "Total des catégories de modèles",
       "newCategory": "Nouvelle catégorie",
-      "colId": "ID",
       "colCategory": "Catégorie",
       "colColor": "Couleur",
       "colIcon": "Icône",

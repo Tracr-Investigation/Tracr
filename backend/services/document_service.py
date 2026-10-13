@@ -1,3 +1,4 @@
+from uuid import UUID
 from datetime import datetime, timedelta
 from typing import Optional
 from zoneinfo import ZoneInfo
@@ -21,13 +22,13 @@ def can_write(permission: Optional[str]) -> bool:
     return permission in ("owner", "manager", "editeur")
 
 
-def can_delete(permission: Optional[str], document: Document, user_id: int) -> bool:
+def can_delete(permission: Optional[str], document: Document, user_id: UUID) -> bool:
     """L'owner de l'investigation ou le créateur du document peuvent supprimer."""
     return permission == "owner" or document.created_by == user_id
 
 
 #  CRUD documents
-def list_documents(db: Session, id_investigation: int) -> list[dict]:
+def list_documents(db: Session, id_investigation: UUID) -> list[dict]:
     """Goal: list an investigation's documents (most recently updated first). Input: db, id_investigation. Output: list of document dicts (no content)."""
     docs = (
         db.query(Document, User.pseudo)
@@ -50,7 +51,7 @@ def list_documents(db: Session, id_investigation: int) -> list[dict]:
     ]
 
 
-def get_document(db: Session, id_document: int) -> Optional[Document]:
+def get_document(db: Session, id_document: UUID) -> Optional[Document]:
     """Goal: fetch a document by id. Input: db, id_document. Output: Document or None."""
     return db.query(Document).filter(Document.id_document == id_document).first()
 
@@ -78,7 +79,7 @@ def get_document_detail(db: Session, document: Document) -> dict:
     }
 
 
-def create_document(db: Session,id_investigation: int,title: str,content_html: str,created_by: int,) -> Document:
+def create_document(db: Session,id_investigation: UUID,title: str,content_html: str,created_by: UUID,) -> Document:
     """Goal: create a document (sanitizes the HTML). Input: db, id_investigation, title, content_html, created_by. Output: the created Document."""
     document = Document(id_investigation=id_investigation, title=title,
                         content_html=sanitize_editor_html(content_html or ""), created_by=created_by,)
@@ -133,7 +134,7 @@ class PinLimitError(Exception):
     """Levée quand le nombre max de backups épinglés est atteint."""
 
 
-def _apply_retention(db: Session, document_id: int) -> None:
+def _apply_retention(db: Session, document_id: UUID) -> None:
     """Rétention intelligente. Les backups épinglés ne sont jamais supprimés.
 
     - manuels (non épinglés) : on garde les MAX_MANUAL_BACKUPS plus récents ;
@@ -179,7 +180,7 @@ def _apply_retention(db: Session, document_id: int) -> None:
 def create_backup(
     db: Session,
     document: Document,
-    user_id: Optional[int],
+    user_id: Optional[UUID],
     kind: str = "manual",
 ) -> DocumentBackup:
     """Goal: snapshot a document's current state and apply retention. Input: db, document, user_id, kind. Output: the created DocumentBackup."""
@@ -244,7 +245,7 @@ def auto_backup_sweep(db: Session) -> int:
     return created
 
 
-def list_backups(db: Session, document_id: int) -> list[dict]:
+def list_backups(db: Session, document_id: UUID) -> list[dict]:
     """Goal: list a document's backups (newest first, with author). Input: db, document_id. Output: list of backup dicts (no content)."""
     rows = (
         db.query(DocumentBackup, User.pseudo)
@@ -268,7 +269,7 @@ def list_backups(db: Session, document_id: int) -> list[dict]:
     ]
 
 
-def get_backup(db: Session, backup_id: int) -> Optional[DocumentBackup]:
+def get_backup(db: Session, backup_id: UUID) -> Optional[DocumentBackup]:
     """Goal: fetch a backup by id. Input: db, backup_id. Output: DocumentBackup or None."""
     return db.query(DocumentBackup).filter(DocumentBackup.id_backup == backup_id).first()
 
@@ -284,7 +285,7 @@ def restore_backup(db: Session, document: Document, backup: DocumentBackup) -> D
 
 
 #  liste commentaire inline
-def list_comments(db: Session, id_document: int) -> list[dict]:
+def list_comments(db: Session, id_document: UUID) -> list[dict]:
     """Goal: list a document's inline comments (oldest first, with author). Input: db, id_document. Output: list of comment dicts."""
     rows = (db.query(DocumentComment, User.pseudo).outerjoin(User, User.id_user == DocumentComment.author_id).filter(DocumentComment.id_document == id_document).order_by(DocumentComment.created_at.asc()).all())
     return [
@@ -303,12 +304,12 @@ def list_comments(db: Session, id_document: int) -> list[dict]:
     ]
 
 
-def get_comment(db: Session, id_comment: int) -> Optional[DocumentComment]:
+def get_comment(db: Session, id_comment: UUID) -> Optional[DocumentComment]:
     """Goal: fetch a comment by id. Input: db, id_comment. Output: DocumentComment or None."""
     return db.query(DocumentComment).filter(DocumentComment.id_comment == id_comment).first()
 
 
-def create_comment(db: Session, id_document: int, comment_id: str, quote: str, content: str, author_id: int) -> DocumentComment:
+def create_comment(db: Session, id_document: UUID, comment_id: str, quote: str, content: str, author_id: UUID) -> DocumentComment:
     """Goal: create an inline comment anchored on a quoted span. Input: db, id_document, comment_id, quote, content, author_id. Output: the created DocumentComment."""
     comment = DocumentComment(id_document=id_document, comment_id=comment_id, quote=quote or "", content=content, author_id=author_id)
     db.add(comment)

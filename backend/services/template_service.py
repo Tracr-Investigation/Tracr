@@ -1,3 +1,4 @@
+from uuid import UUID
 from datetime import datetime
 from typing import Optional
 from zoneinfo import ZoneInfo
@@ -16,12 +17,12 @@ def _now() -> datetime:
     return datetime.now(ZoneInfo("Europe/Paris"))
 
 
-def can_modify(template: Template, user_id: int) -> bool:
+def can_modify(template: Template, user_id: UUID) -> bool:
     """Goal: tell if a user may modify a template (its creator only). Input: template, user_id. Output: bool."""
     return template.created_by == user_id
 
 
-def can_view(template: Template, user_id: int) -> bool:
+def can_view(template: Template, user_id: UUID) -> bool:
     """Goal: tell if a user may view a template (public or own). Input: template, user_id. Output: bool."""
     return template.is_public or template.created_by == user_id
 
@@ -34,7 +35,7 @@ def list_template_categories(db: Session) -> list[dict]:
     return [_category_to_dict(c) for c in rows]
 
 
-def get_template_category(db: Session, id_category_template: int) -> Optional[TemplateCategory]:
+def get_template_category(db: Session, id_category_template: UUID) -> Optional[TemplateCategory]:
     """Goal: fetch a template category by id. Input: db, id_category_template. Output: TemplateCategory or None."""
     return db.query(TemplateCategory).filter(
         TemplateCategory.id_category_template == id_category_template
@@ -88,7 +89,7 @@ def _category_to_dict(c: TemplateCategory) -> dict:
 
 # ── Template CRUD ────────────────────────────────────────────────────────────
 
-def _template_to_dict(t: Template, pseudo: Optional[str], user_id: int, category: Optional[TemplateCategory]) -> dict:
+def _template_to_dict(t: Template, pseudo: Optional[str], user_id: UUID, category: Optional[TemplateCategory]) -> dict:
     """Goal: serialize a template to a dict (without content_html). Input: t, pseudo, user_id, category. Output: dict."""
     return {
         "id_template": t.id_template,
@@ -104,7 +105,7 @@ def _template_to_dict(t: Template, pseudo: Optional[str], user_id: int, category
     }
 
 
-def list_templates(db: Session, user_id: int) -> list[dict]:
+def list_templates(db: Session, user_id: UUID) -> list[dict]:
     """Goal: list templates visible to a user (own + public, newest first). Input: db, user_id. Output: list of template dicts."""
     rows = (
         db.query(Template, User.pseudo, TemplateCategory)
@@ -117,12 +118,12 @@ def list_templates(db: Session, user_id: int) -> list[dict]:
     return [_template_to_dict(t, pseudo, user_id, cat) for t, pseudo, cat in rows]
 
 
-def get_template(db: Session, id_template: int) -> Optional[Template]:
+def get_template(db: Session, id_template: UUID) -> Optional[Template]:
     """Goal: fetch a template by id. Input: db, id_template. Output: Template or None."""
     return db.query(Template).filter(Template.id_template == id_template).first()
 
 
-def get_template_detail(db: Session, id_template: int, user_id: int) -> Optional[dict]:
+def get_template_detail(db: Session, id_template: UUID, user_id: UUID) -> Optional[dict]:
     """Goal: serialize a template with its content_html and author. Input: db, id_template, user_id. Output: template dict or None."""
     row = (
         db.query(Template, User.pseudo, TemplateCategory)
@@ -143,8 +144,8 @@ def create_template(
     description: str,
     content_html: str,
     is_public: bool,
-    created_by: int,
-    id_category_template: Optional[int] = None,
+    created_by: UUID,
+    id_category_template: Optional[UUID] = None,
 ) -> Template:
     """Goal: create a template (sanitizes the HTML). Input: db, name, description, content_html, is_public, created_by, id_category_template. Output: the created Template."""
     template = Template(
@@ -168,7 +169,7 @@ def update_template(
     description: Optional[str],
     content_html: Optional[str],
     is_public: Optional[bool],
-    id_category_template: Optional[int] = None,
+    id_category_template: Optional[UUID] = None,
     clear_category: bool = False,
 ) -> Template:
     """Goal: update a template's fields (sanitizes HTML, can clear category). Input: db, template, name, description, content_html, is_public, id_category_template, clear_category. Output: the updated Template."""

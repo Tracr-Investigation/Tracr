@@ -4,12 +4,12 @@ import { api } from '../services/api';
 import { connectSocket, disconnectSocket } from '../services/socket';
 
 interface NotificationData {
-    id_notification: number;
-    id_user: number;
+    id_notification: string;
+    id_user: string;
     type: string;
     title: string;
     message: string | null;
-    reference_id: number | null;
+    reference_id: string | null;
     reference_type: string | null;
     is_read: boolean;
     created_at: string | null;
@@ -20,7 +20,7 @@ interface NotificationContextType {
     unreadCount: number;
     loading: boolean;
     fetchNotifications: () => Promise<void>;
-    markAsRead: (id: number) => Promise<void>;
+    markAsRead: (id: string) => Promise<void>;
     markAllAsRead: () => Promise<void>;
 }
 
@@ -55,7 +55,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
         }
     }, []);
 
-    const markAsRead = useCallback(async (id: number) => {
+    const markAsRead = useCallback(async (id: string) => {
         try {
             await api.markNotificationRead(id);
             setNotifications((prev) =>

@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, AlertCircle } from 'lucide-react';
 import { api } from '../../services/api';
-import { toInvestigationSlug } from '../../utils/slug';
+import { investigationPath } from '../../utils/paths';
 
 type Task = {
-    id_task: number;
-    id_investigation: number;
+    id_task: string;
+    id_investigation: string;
     investigation_title: string;
     title: string;
     status: 'todo' | 'en_cours' | 'bloque' | 'en_revue' | 'a_valider' | 'termine';
@@ -247,7 +247,7 @@ export const CalendarView = () => {
                                         return (
                                             <button
                                                 key={task.id_task}
-                                                onClick={() => navigate(`/investigations/${toInvestigationSlug(task.investigation_title, task.id_investigation)}`)}
+                                                onClick={() => navigate(investigationPath(task.id_investigation))}
                                                 className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-input-bg transition-all border border-border-subtle hover:border-border group"
                                             >
                                                 <div className="flex items-center gap-2 mb-0.5">

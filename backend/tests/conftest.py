@@ -66,7 +66,7 @@ def setup_test_db():
 
     - Cree la base test_tracr si absente
     - Cree toutes les tables via SQLModel.metadata
-    - Insere les 4 statuts d investigation requis par DEFAULT_STATUS_ID = 4
+    - Insere les 4 statuts d investigation (UUID fixes, dont DEFAULT_STATUS_ID)
     - Detruit les tables en fin de session
 
     Yields:
@@ -79,11 +79,12 @@ def setup_test_db():
     SQLModel.metadata.create_all(test_engine)
 
     with Session(test_engine) as s:
+        # memes UUID fixes que la migration 0001_uuid_initial ("Nouveau" = DEFAULT_STATUS_ID)
         for sid, name, color in [
-            (1, "En cours",  "#f59e0b"),
-            (2, "Suspendue", "#6b7280"),
-            (3, "Cloturee",  "#10b981"),
-            (4, "Nouveau",   "#3b82f6"),
+            (uuid.UUID("5ea9bbe6-83f0-4b28-ad19-50420c566837"), "En cours",  "#f59e0b"),
+            (uuid.UUID("0a4a652a-7402-4ce2-aeaa-a269d4ea5cc9"), "Suspendue", "#6b7280"),
+            (uuid.UUID("b2c31e89-3cc4-43a4-8441-865d95c26278"), "Cloturee",  "#10b981"),
+            (uuid.UUID("55d1cec1-491d-4251-bd76-14354ff831fb"), "Nouveau",   "#3b82f6"),
         ]:
             if not s.get(InvestigationStatus, sid):
                 s.add(InvestigationStatus(
@@ -112,7 +113,7 @@ def clean_tables():
     """
     yield
     with test_engine.connect() as conn:
-        conn.execute(text("TRUNCATE TABLE users RESTART IDENTITY CASCADE"))
+        conn.execute(text("TRUNCATE TABLE users CASCADE"))
         conn.commit()
 
 

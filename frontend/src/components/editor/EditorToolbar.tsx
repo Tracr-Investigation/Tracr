@@ -69,7 +69,7 @@ interface Props {
   editor: Editor;
   hasSelection: boolean;
   commentCount?: number;
-  investigationId?: number;
+  investigationId?: string;
   onCommentClick?: () => void;
   onInsertTemplateClick?: () => void;
 }

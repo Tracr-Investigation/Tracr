@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Tracr - Archivage de sources",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Capture et archive des sources (pages, screenshots, médias) horodatées dans une enquête Tracr.",
   "permissions": [
     "activeTab",

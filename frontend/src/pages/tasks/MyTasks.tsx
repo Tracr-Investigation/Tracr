@@ -5,7 +5,7 @@ import { Plus, Trash2, ListChecks } from 'lucide-react';
 import { Layout } from '../../components/Layout';
 import { api } from '../../services/api';
 import { useToast } from '../../contexts/ToastContext';
-import { toInvestigationSlug } from '../../utils/slug';
+import { investigationPath } from '../../utils/paths';
 import { KanbanBoard } from '../../components/tasks/KanbanBoard';
 import { CalendarView } from '../calendar/Calendar';
 import { usePageTitle } from '../../hooks/usePageTitle';
@@ -48,7 +48,7 @@ export const MyTasks = () => {
         fetchAll();
     }, [fetchAll]);
 
-    const handleMovePersonal = useCallback(async (taskId: number, status: TaskStatus, position: number) => {
+    const handleMovePersonal = useCallback(async (taskId: string, status: TaskStatus, position: number) => {
         setPersonalTasks((prev) => prev.map((t) => (t.id_task === taskId ? { ...t, status, position } : t)));
         try {
             await api.movePersonalTask(taskId, { status, position });
@@ -174,7 +174,7 @@ export const MyTasks = () => {
                         onMove={() => {}}
                         onCardClick={(task) =>
                             task.id_investigation &&
-                            navigate(`/investigations/${toInvestigationSlug(task.investigation_title || '', task.id_investigation)}`)
+                            navigate(investigationPath(task.id_investigation))
                         }
                     />
                 )}

@@ -6,7 +6,7 @@ import { api } from '../../services/api';
 import { BackupDiffView } from './BackupDiffView';
 
 interface Backup {
-  id_backup: number;
+  id_backup: string;
   title: string;
   author_pseudo: string | null;
   kind: 'manual' | 'auto';
@@ -19,7 +19,7 @@ interface BackupDetail extends Backup {
 }
 
 interface Props {
-  documentId: number;
+  documentId: string;
   currentHtml: string;
   onClose: () => void;
   onRestored: (newTitle: string, newHtml: string) => void;
@@ -32,7 +32,7 @@ export const BackupPanel = ({ documentId, currentHtml, onClose, onRestored }: Pr
   const [selected, setSelected] = useState<BackupDetail | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [restoring, setRestoring] = useState(false);
-  const [pinningId, setPinningId] = useState<number | null>(null);
+  const [pinningId, setPinningId] = useState<string | null>(null);
   const [error, setError] = useState('');
 
   const loadBackups = useCallback(async () => {

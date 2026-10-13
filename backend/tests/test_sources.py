@@ -10,6 +10,7 @@ endpoints couverts
 Le stockage MinIO est remplace par un dictionnaire en memoire (fixture
 fake_storage) pour que les tests n'aient pas besoin d'un MinIO live.
 """
+import uuid
 import hashlib
 
 import pytest
@@ -106,9 +107,9 @@ class TestSourceCreate:
         assert resp.status_code == 401
 
     def test_create_non_member_forbidden(self, client, second_auth, investigation):
-        """un non-membre de l'enquete ne peut pas deposer 403"""
+        """un non-membre de l'enquete ne peut pas deposer : 404 (l'enquete lui est invisible)"""
         resp = _upload(client, second_auth, investigation["id_investigation"])
-        assert resp.status_code == 403
+        assert resp.status_code == 404
 
     def test_capture_group_links_captures(self, client, auth, investigation):
         """screenshot + mhtml d'une meme page partagent le capture_group"""
@@ -148,14 +149,15 @@ class TestSourceRead:
         assert resp.headers["content-type"].startswith("image/png")
 
     def test_get_source_non_member_forbidden(self, client, auth, second_auth, investigation):
-        """un non-membre ne peut pas lire une source 403"""
+        """un non-membre ne peut pas lire une source : meme 404 qu'une source inexistante"""
         created = _upload(client, auth, investigation["id_investigation"]).json()
         resp = client.get(f"/sources/{created['id_source']}", headers=second_auth)
-        assert resp.status_code == 403
+        assert resp.status_code == 404
+        assert resp.json() == client.get(f"/sources/{uuid.uuid4()}", headers=auth).json()
 
     def test_get_missing_source_404(self, client, auth, investigation):
         """une source inexistante renvoie 404"""
-        assert client.get("/sources/999999", headers=auth).status_code == 404
+        assert client.get(f"/sources/{uuid.uuid4()}", headers=auth).status_code == 404
 
 
 class TestSourceDelete:
@@ -173,7 +175,7 @@ class TestSourceDelete:
         assert created["id_source"] not in [s["id_source"] for s in listed["sources"]]
 
     def test_delete_non_member_forbidden(self, client, auth, second_auth, investigation):
-        """un non-membre ne peut pas supprimer 403"""
+        """un non-membre ne peut pas supprimer : 404"""
         created = _upload(client, auth, investigation["id_investigation"]).json()
         resp = client.delete(f"/sources/{created['id_source']}", headers=second_auth)
-        assert resp.status_code == 403
+        assert resp.status_code == 404

@@ -1,3 +1,4 @@
+from uuid import UUID
 from datetime import datetime
 from typing import Optional
 from zoneinfo import ZoneInfo
@@ -11,10 +12,10 @@ from models.user import User
 
 def invite_collaborator(
     db: Session,
-    id_investigation: int,
-    id_user: int,
+    id_investigation: UUID,
+    id_user: UUID,
     permission_level: str,
-    invited_by: int,
+    invited_by: UUID,
 ) -> dict:
     """Goal: create a collaborator invitation on an investigation. Input: db, id_investigation, id_user, permission_level, invited_by. Output: the collaborator dict."""
     collab = InvestigationCollaborator(
@@ -37,7 +38,7 @@ def invite_collaborator(
     }
 
 
-def accept_invitation(db: Session, id_collaborator: int, id_user: int) -> Optional[dict]:
+def accept_invitation(db: Session, id_collaborator: UUID, id_user: UUID) -> Optional[dict]:
     """Goal: accept a pending invitation (stamps accepted_at). Input: db, id_collaborator, id_user. Output: collaborator dict or None if not found."""
     collab = (
         db.query(InvestigationCollaborator)
@@ -63,7 +64,7 @@ def accept_invitation(db: Session, id_collaborator: int, id_user: int) -> Option
     }
 
 
-def reject_invitation(db: Session, id_collaborator: int, id_user: int) -> bool:
+def reject_invitation(db: Session, id_collaborator: UUID, id_user: UUID) -> bool:
     """Goal: reject (delete) a pending invitation. Input: db, id_collaborator, id_user. Output: bool (False if not found)."""
     collab = (
         db.query(InvestigationCollaborator)
@@ -81,7 +82,7 @@ def reject_invitation(db: Session, id_collaborator: int, id_user: int) -> bool:
     return True
 
 
-def remove_collaborator(db: Session, id_collaborator: int, id_investigation: int) -> bool:
+def remove_collaborator(db: Session, id_collaborator: UUID, id_investigation: UUID) -> bool:
     """Goal: remove a collaborator from an investigation. Input: db, id_collaborator, id_investigation. Output: bool (False if not found)."""
     collab = (
         db.query(InvestigationCollaborator)
@@ -99,7 +100,7 @@ def remove_collaborator(db: Session, id_collaborator: int, id_investigation: int
 
 
 def update_permission(
-    db: Session, id_collaborator: int, id_investigation: int, new_permission: str
+    db: Session, id_collaborator: UUID, id_investigation: UUID, new_permission: str
 ) -> Optional[dict]:
     """Goal: change a collaborator's permission level. Input: db, id_collaborator, id_investigation, new_permission. Output: collaborator dict or None if not found."""
     collab = (
@@ -123,7 +124,7 @@ def update_permission(
     }
 
 
-def get_collaborators_for_investigation(db: Session, id_investigation: int) -> list[dict]:
+def get_collaborators_for_investigation(db: Session, id_investigation: UUID) -> list[dict]:
     """Goal: list an investigation's collaborators with their pseudo. Input: db, id_investigation. Output: list of collaborator dicts."""
     rows = (
         db.query(InvestigationCollaborator, User)
@@ -145,7 +146,7 @@ def get_collaborators_for_investigation(db: Session, id_investigation: int) -> l
     ]
 
 
-def get_pending_invitations_for_user(db: Session, id_user: int) -> list[dict]:
+def get_pending_invitations_for_user(db: Session, id_user: UUID) -> list[dict]:
     """Goal: list a user's pending invitations (with investigation/inviter). Input: db, id_user. Output: list of invitation dicts."""
     rows = (
         db.query(InvestigationCollaborator, Investigation, User)
@@ -171,7 +172,7 @@ def get_pending_invitations_for_user(db: Session, id_user: int) -> list[dict]:
     ]
 
 
-def get_collaborator_permission(db: Session, id_investigation: int, id_user: int) -> Optional[str]:
+def get_collaborator_permission(db: Session, id_investigation: UUID, id_user: UUID) -> Optional[str]:
     """Goal: return a user's accepted permission on an investigation. Input: db, id_investigation, id_user. Output: permission string or None."""
     collab = (
         db.query(InvestigationCollaborator)
@@ -187,7 +188,7 @@ def get_collaborator_permission(db: Session, id_investigation: int, id_user: int
     return collab.permission_level.value if hasattr(collab.permission_level, "value") else collab.permission_level
 
 
-def get_collaborator_by_id(db: Session, id_collaborator: int) -> Optional[InvestigationCollaborator]:
+def get_collaborator_by_id(db: Session, id_collaborator: UUID) -> Optional[InvestigationCollaborator]:
     """Goal: fetch a collaborator row by id. Input: db, id_collaborator. Output: InvestigationCollaborator or None."""
     return (
         db.query(InvestigationCollaborator)

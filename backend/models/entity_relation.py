@@ -1,6 +1,7 @@
+import uuid
 from datetime import datetime
 from typing import Optional
-from sqlalchemy import Column, DateTime, ForeignKey, Integer
+from sqlalchemy import Column, DateTime, ForeignKey, Uuid
 from sqlmodel import Field, SQLModel
 from zoneinfo import ZoneInfo
 
@@ -10,20 +11,20 @@ class EntityRelation(SQLModel, table=True):
 
     __tablename__ = "entity_relations"
 
-    id_relation: Optional[int] = Field(default=None, primary_key=True)
-    id_investigation: int = Field(
-        sa_column=Column(Integer, ForeignKey("investigations.id_investigation", ondelete="CASCADE"), nullable=False, index=True),
+    id_relation: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    id_investigation: uuid.UUID = Field(
+        sa_column=Column(Uuid, ForeignKey("investigations.id_investigation", ondelete="CASCADE"), nullable=False, index=True),
     )
-    source_id: int = Field(
-        sa_column=Column(Integer, ForeignKey("entities.id_entity", ondelete="CASCADE"), nullable=False, index=True),
+    source_id: uuid.UUID = Field(
+        sa_column=Column(Uuid, ForeignKey("entities.id_entity", ondelete="CASCADE"), nullable=False, index=True),
     )
-    target_id: int = Field(
-        sa_column=Column(Integer, ForeignKey("entities.id_entity", ondelete="CASCADE"), nullable=False, index=True),
+    target_id: uuid.UUID = Field(
+        sa_column=Column(Uuid, ForeignKey("entities.id_entity", ondelete="CASCADE"), nullable=False, index=True),
     )
     label: Optional[str] = Field(default=None, max_length=100)
-    created_by: Optional[int] = Field(
+    created_by: Optional[uuid.UUID] = Field(
         default=None,
-        sa_column=Column(Integer, ForeignKey("users.id_user", ondelete="SET NULL"), nullable=True),
+        sa_column=Column(Uuid, ForeignKey("users.id_user", ondelete="SET NULL"), nullable=True),
     )
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(ZoneInfo("Europe/Paris")),

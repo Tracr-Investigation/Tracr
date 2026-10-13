@@ -1,3 +1,4 @@
+from uuid import UUID
 from typing import Optional
 
 from sqlalchemy.orm import Session
@@ -24,7 +25,7 @@ def get_all_categories(db: Session) -> list[dict]:
     ]
 
 
-def get_category_by_id(db: Session, category_id: int) -> Optional[Category]:
+def get_category_by_id(db: Session, category_id: UUID) -> Optional[Category]:
     """Goal: fetch a category by id. Input: db, category_id. Output: Category or None."""
     return (
         db.query(Category)
@@ -75,7 +76,7 @@ def count_categories(db: Session) -> int:
     return db.query(Category).count()
 
 
-def get_categories_for_investigation(db: Session, investigation_id: int) -> list[dict]:
+def get_categories_for_investigation(db: Session, investigation_id: UUID) -> list[dict]:
     """Goal: list categories assigned to an investigation. Input: db, investigation_id. Output: list of category dicts."""
     rows = (
         db.query(Category)
@@ -94,7 +95,7 @@ def get_categories_for_investigation(db: Session, investigation_id: int) -> list
     ]
 
 
-def add_category_to_investigation(db: Session, investigation_id: int, category_id: int) -> dict:
+def add_category_to_investigation(db: Session, investigation_id: UUID, category_id: UUID) -> dict:
     """Goal: assign a category to an investigation. Input: db, investigation_id, category_id. Output: the category dict."""
     link = InvestigationCategory(id_investigation=investigation_id, id_category=category_id)
     db.add(link)
@@ -109,7 +110,7 @@ def add_category_to_investigation(db: Session, investigation_id: int, category_i
     }
 
 
-def remove_category_from_investigation(db: Session, investigation_id: int, category_id: int) -> bool:
+def remove_category_from_investigation(db: Session, investigation_id: UUID, category_id: UUID) -> bool:
     """Goal: unassign a category from an investigation. Input: db, investigation_id, category_id. Output: bool (False if not linked)."""
     link = (
         db.query(InvestigationCategory)

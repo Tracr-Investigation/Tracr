@@ -1,7 +1,8 @@
+import uuid
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String, Text, Uuid
 from sqlmodel import Field, SQLModel
 from zoneinfo import ZoneInfo
 
@@ -11,10 +12,10 @@ class DocumentComment(SQLModel, table=True):
 
     __tablename__ = "document_comments"
 
-    id_comment: Optional[int] = Field(default=None, primary_key=True)
-    id_document: int = Field(
+    id_comment: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    id_document: uuid.UUID = Field(
         sa_column=Column(
-            Integer,
+            Uuid,
             ForeignKey("documents.id_document", ondelete="CASCADE"),
             nullable=False,
             index=True,
@@ -28,7 +29,7 @@ class DocumentComment(SQLModel, table=True):
 
     content: str = Field(sa_column=Column(Text, nullable=False))
 
-    author_id: Optional[int] = Field(default=None, sa_column=Column( Integer, ForeignKey("users.id_user", ondelete="SET NULL"), nullable=True, index=True))
+    author_id: Optional[uuid.UUID] = Field(default=None, sa_column=Column( Uuid, ForeignKey("users.id_user", ondelete="SET NULL"), nullable=True, index=True))
 
     resolved: bool = Field(default=False,sa_column=Column(Boolean, nullable=False, default=False))
 

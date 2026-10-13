@@ -1,3 +1,4 @@
+from uuid import UUID
 import os
 from urllib.parse import quote
 
@@ -22,6 +23,7 @@ from utils.schemas import (
     DocumentUpdateRequest,
     DocumentCommentCreateRequest,
 )
+from app.access import require_member
 from app.dependencies import get_db
 
 
@@ -37,30 +39,24 @@ def get_current_user(payload: dict = Depends(verify_token), db: Session = Depend
     return user
 
 
-def _check_investigation_access(db: Session, investigation_id: int, user_id: int):
-    """Goal: return (investigation, permission). 404 if missing, 403 if not a member. Input: db, investigation_id, user_id. Output: (investigation, permission)."""
-    investigation = investigation_service.get_investigation_by_id(db, investigation_id)
-    if not investigation:
-        raise HTTPException(status_code=404, detail="Investigation not found")
-    permission = task_service.get_user_permission(db, investigation_id, user_id)
-    if permission is None:
-        raise HTTPException(status_code=403, detail="Access denied")
-    return investigation, permission
+def _check_investigation_access(db: Session, investigation_id: UUID, user_id: UUID):
+    """Goal: return (investigation, permission) for a member. Input: db, investigation_id, user_id. Output: (investigation, permission) (404 if missing or not a member)."""
+    return require_member(db, investigation_id, user_id)
 
 
-def _load_document_with_access(db: Session, document_id: int, user_id: int):
+def _load_document_with_access(db: Session, document_id: UUID, user_id: UUID):
     """Goal: load the document and check access via its investigation. Input: db, document_id, user_id. Output: (document, permission) (404 if not found)."""
     document = document_service.get_document(db, document_id)
     if not document:
         raise HTTPException(status_code=404, detail="Document not found")
-    _, permission = _check_investigation_access(db, document.id_investigation, user_id)
+    _, permission = require_member(db, document.id_investigation, user_id, "Document not found")
     return document, permission
 
 
 #  Liste / création d'un doc pour une investigation
 @router.get("/{investigation_id}/documents")
 async def list_documents(
-    investigation_id: int,
+    investigation_id: UUID,
     request: Request,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -79,7 +75,7 @@ async def list_documents(
 
 @router.post("/{investigation_id}/documents")
 async def create_document(
-    investigation_id: int,
+    investigation_id: UUID,
     body: DocumentCreateRequest,
     request: Request,
     user=Depends(get_current_user),
@@ -122,7 +118,7 @@ async def create_document(
 #  Détail / modification / suppression (par id document) 
 @docs_router.get("/{document_id}")
 async def get_document(
-    document_id: int,
+    document_id: UUID,
     request: Request,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -138,9 +134,20 @@ async def get_document(
     return document_service.get_document_detail(db, document)
 
 
+@docs_router.get("/{document_id}/collab-access")
+async def get_collab_access(
+    document_id: UUID,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Goal: tell the Yjs collaboration server whether the user may join the document room, and in which mode. Input: document_id, auth, db. Output: {"read_only": bool} (404 if missing or not a member)."""
+    _, permission = _load_document_with_access(db, document_id, user.id_user)
+    return {"read_only": not document_service.can_write(permission)}
+
+
 @docs_router.patch("/{document_id}")
 async def update_document(
-    document_id: int,
+    document_id: UUID,
     body: DocumentUpdateRequest,
     request: Request,
     user=Depends(get_current_user),
@@ -173,7 +180,7 @@ async def update_document(
 
 @docs_router.delete("/{document_id}")
 async def delete_document(
-    document_id: int,
+    document_id: UUID,
     request: Request,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -199,7 +206,7 @@ async def delete_document(
 #  Export PDF / DOCX 
 @docs_router.get("/{document_id}/export")
 async def export_document(
-    document_id: int,
+    document_id: UUID,
     format: str,
     request: Request,
     tlp: str | None = None,
@@ -272,7 +279,7 @@ async def export_document(
 
 @docs_router.get("/{document_id}/comments")
 async def list_comments(
-    document_id: int,
+    document_id: UUID,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -284,7 +291,7 @@ async def list_comments(
 
 @docs_router.post("/{document_id}/comments")
 async def create_comment(
-    document_id: int,
+    document_id: UUID,
     body: DocumentCommentCreateRequest,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -317,8 +324,8 @@ async def create_comment(
 
 @docs_router.post("/{document_id}/comments/{comment_id}/resolve")
 async def toggle_resolve_comment(
-    document_id: int,
-    comment_id: int,
+    document_id: UUID,
+    comment_id: UUID,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -337,7 +344,7 @@ async def toggle_resolve_comment(
 
 @docs_router.post("/{document_id}/backups")
 async def create_backup(
-    document_id: int,
+    document_id: UUID,
     request: Request,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -355,7 +362,7 @@ async def create_backup(
 
 @docs_router.get("/{document_id}/backups")
 async def list_backups(
-    document_id: int,
+    document_id: UUID,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -368,8 +375,8 @@ async def list_backups(
 
 @docs_router.get("/{document_id}/backups/{backup_id}")
 async def get_backup(
-    document_id: int,
-    backup_id: int,
+    document_id: UUID,
+    backup_id: UUID,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -392,8 +399,8 @@ async def get_backup(
 
 @docs_router.post("/{document_id}/backups/{backup_id}/pin")
 async def toggle_pin_backup(
-    document_id: int,
-    backup_id: int,
+    document_id: UUID,
+    backup_id: UUID,
     request: Request,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -421,8 +428,8 @@ async def toggle_pin_backup(
 
 @docs_router.post("/{document_id}/backups/{backup_id}/restore")
 async def restore_backup(
-    document_id: int,
-    backup_id: int,
+    document_id: UUID,
+    backup_id: UUID,
     request: Request,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -443,8 +450,8 @@ async def restore_backup(
 
 @docs_router.delete("/{document_id}/comments/{comment_id}")
 async def delete_comment(
-    document_id: int,
-    comment_id: int,
+    document_id: UUID,
+    comment_id: UUID,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):

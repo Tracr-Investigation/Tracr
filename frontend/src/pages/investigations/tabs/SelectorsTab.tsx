@@ -9,10 +9,10 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { formatRelativeDate } from '../../../utils/date';
 
 interface Props {
-  investigationId: number;
+  investigationId: string;
   userPermission: string | null;
   /** Opens a source in the Sources tab (slide panel). */
-  onOpenSource?: (sourceId: number) => void;
+  onOpenSource?: (sourceId: string) => void;
 }
 
 const getErrorMessage = (err: unknown, fallback: string): string =>
@@ -24,7 +24,7 @@ const canWrite = (permission: string | null) =>
 const canDeleteSelector = (
   selector: SelectorData,
   permission: string | null,
-  currentUserId: number | null,
+  currentUserId: string | null,
 ) => permission === 'owner' || selector.created_by === currentUserId;
 
 // ── Formulaire d'ajout ──────────────────────────────────────────────────────
@@ -166,7 +166,7 @@ const SelectorRow = ({
 
 // ── Analysis results (hits) ───────────────────────────────────────────────────
 
-const HitCard = ({ hit, onOpenSource }: { hit: SelectorHit; onOpenSource?: (id: number) => void }) => {
+const HitCard = ({ hit, onOpenSource }: { hit: SelectorHit; onOpenSource?: (id: string) => void }) => {
   const [open, setOpen] = useState(false);
   const has = hit.source_count > 0;
 
@@ -228,7 +228,7 @@ const HitCard = ({ hit, onOpenSource }: { hit: SelectorHit; onOpenSource?: (id: 
   );
 };
 
-const HitsResults = ({ result, onClose, onOpenSource }: { result: HitsResult; onClose: () => void; onOpenSource?: (id: number) => void }) => {
+const HitsResults = ({ result, onClose, onOpenSource }: { result: HitsResult; onClose: () => void; onOpenSource?: (id: string) => void }) => {
   const withHits = result.hits.filter((h) => h.source_count > 0);
   return (
     <div className="mb-5 rounded-xl border border-border-subtle bg-card/20 p-4">
@@ -308,7 +308,7 @@ export const SelectorsTab = ({ investigationId, userPermission, onOpenSource }: 
 
   // Per-selector summary (id -> counters) to annotate the list.
   const hitMap = useMemo(() => {
-    const m = new Map<number, { source_count: number; hit_count: number }>();
+    const m = new Map<string, { source_count: number; hit_count: number }>();
     hits?.hits.forEach((h) => m.set(h.selector.id_selector, { source_count: h.source_count, hit_count: h.hit_count }));
     return m;
   }, [hits]);

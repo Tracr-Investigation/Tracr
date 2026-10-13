@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 from typing import Optional
 
@@ -8,6 +9,7 @@ from sqlalchemy import (
     Integer,
     Text,
     UniqueConstraint,
+    Uuid,
 )
 from sqlmodel import Field, SQLModel
 from zoneinfo import ZoneInfo
@@ -21,26 +23,26 @@ class SelectorHit(SQLModel, table=True):
         UniqueConstraint("id_selector", "id_source", name="uq_hit_selector_source"),
     )
 
-    id_hit: Optional[int] = Field(default=None, primary_key=True)
-    id_investigation: int = Field(
+    id_hit: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    id_investigation: uuid.UUID = Field(
         sa_column=Column(
-            Integer,
+            Uuid,
             ForeignKey("investigations.id_investigation", ondelete="CASCADE"),
             nullable=False,
             index=True,
         ),
     )
-    id_selector: int = Field(
+    id_selector: uuid.UUID = Field(
         sa_column=Column(
-            Integer,
+            Uuid,
             ForeignKey("investigation_selectors.id_selector", ondelete="CASCADE"),
             nullable=False,
             index=True,
         ),
     )
-    id_source: int = Field(
+    id_source: uuid.UUID = Field(
         sa_column=Column(
-            Integer,
+            Uuid,
             ForeignKey("investigation_sources.id_source", ondelete="CASCADE"),
             nullable=False,
             index=True,

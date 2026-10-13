@@ -1,7 +1,7 @@
 import {forwardRef, useEffect, useImperativeHandle, useState} from 'react';
 
 export interface EntityItem {
-    id: number;
+    id: string;
     label: string;
     type: string;
     value: string | null;

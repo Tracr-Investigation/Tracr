@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 from typing import Optional
 from sqlalchemy import Column, DateTime
@@ -10,7 +11,7 @@ class Category(SQLModel, table=True):
 
     __tablename__ = "categories"
 
-    id_category: Optional[int] = Field(default=None, primary_key=True)
+    id_category: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     name: str = Field(index=True, nullable=False, sa_column_kwargs={"unique": True}, max_length=50)
     color: Optional[str] = Field(default=None, max_length=7)
     icon: Optional[str] = Field(default=None, max_length=50)

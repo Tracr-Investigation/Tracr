@@ -1,3 +1,4 @@
+from uuid import UUID
 from datetime import datetime
 from typing import Optional
 from sqlalchemy.orm import Session
@@ -41,7 +42,7 @@ def _relation_to_dict(relation: EntityRelation, pseudo: str | None = None) -> di
     }
 
 
-def get_entities(db: Session, investigation_id: int) -> list[dict]:
+def get_entities(db: Session, investigation_id: UUID) -> list[dict]:
     """Goal: list an investigation's entities (with creator pseudo). Input: db, investigation_id. Output: list of entity dicts."""
     rows = (
         db.query(Entity, User.pseudo)
@@ -53,17 +54,17 @@ def get_entities(db: Session, investigation_id: int) -> list[dict]:
     return [_entity_to_dict(e, pseudo) for e, pseudo in rows]
 
 
-def get_entity_by_id(db: Session, entity_id: int) -> Optional[Entity]:
+def get_entity_by_id(db: Session, entity_id: UUID) -> Optional[Entity]:
     """Goal: fetch an entity by id. Input: db, entity_id. Output: Entity or None."""
     return db.query(Entity).filter(Entity.id_entity == entity_id).first()
 
 
 def create_entity(
     db: Session,
-    id_investigation: int,
+    id_investigation: UUID,
     type: str,
     label: str,
-    created_by: int,
+    created_by: UUID,
     value: Optional[str] = None,
     notes: Optional[str] = None,
     color: Optional[str] = None,
@@ -133,7 +134,7 @@ def delete_entity(db: Session, entity: Entity) -> None:
     db.commit()
 
 
-def reset_positions(db: Session, investigation_id: int) -> int:
+def reset_positions(db: Session, investigation_id: UUID) -> int:
     """Goal: clear all entities' positions for an investigation. Input: db, investigation_id. Output: count of reset entities."""
     entities = db.query(Entity).filter(Entity.id_investigation == investigation_id).all()
     for entity in entities:
@@ -143,7 +144,7 @@ def reset_positions(db: Session, investigation_id: int) -> int:
     return len(entities)
 
 
-def get_relations(db: Session, investigation_id: int) -> list[dict]:
+def get_relations(db: Session, investigation_id: UUID) -> list[dict]:
     """Goal: list an investigation's relations (with creator pseudo). Input: db, investigation_id. Output: list of relation dicts."""
     rows = (
         db.query(EntityRelation, User.pseudo)
@@ -155,17 +156,17 @@ def get_relations(db: Session, investigation_id: int) -> list[dict]:
     return [_relation_to_dict(r, pseudo) for r, pseudo in rows]
 
 
-def get_relation_by_id(db: Session, relation_id: int) -> Optional[EntityRelation]:
+def get_relation_by_id(db: Session, relation_id: UUID) -> Optional[EntityRelation]:
     """Goal: fetch a relation by id. Input: db, relation_id. Output: EntityRelation or None."""
     return db.query(EntityRelation).filter(EntityRelation.id_relation == relation_id).first()
 
 
 def create_relation(
     db: Session,
-    id_investigation: int,
-    source_id: int,
-    target_id: int,
-    created_by: int,
+    id_investigation: UUID,
+    source_id: UUID,
+    target_id: UUID,
+    created_by: UUID,
     label: Optional[str] = None,
 ) -> EntityRelation:
     """Goal: create a relation between two entities. Input: db, id_investigation, source_id, target_id, created_by, label. Output: the created EntityRelation."""
@@ -199,7 +200,7 @@ def delete_relation(db: Session, relation: EntityRelation) -> None:
     db.commit()
 
 
-def get_graph(db: Session, investigation_id: int) -> dict:
+def get_graph(db: Session, investigation_id: UUID) -> dict:
     """Goal: build the investigation's graph (nodes + edges). Input: db, investigation_id. Output: {"nodes", "edges"}."""
     entities = get_entities(db, investigation_id)
     relations = get_relations(db, investigation_id)

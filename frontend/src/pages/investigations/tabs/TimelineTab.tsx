@@ -15,10 +15,11 @@ import {api} from '../../../services/api';
 import {formatRelativeDate} from '../../../utils/date';
 import {useTranslation} from 'react-i18next';
 import {HelpTooltip} from '../../../components/HelpTooltip';
+import {formatLogDetail} from '../../../utils/logDetail';
 
 interface TimelineEvent {
-    id_log: number;
-    id_user: number | null;
+    id_log: string;
+    id_user: string | null;
     pseudo: string | null;
     category: string;
     action: string;
@@ -76,7 +77,7 @@ function formatAction(category: string, action: string): string {
 
 const PAGE_SIZE = 20;
 
-export const TimelineTab = ({investigationId}: {investigationId: number}) => {
+export const TimelineTab = ({investigationId}: {investigationId: string}) => {
     const {t} = useTranslation();
     const [events, setEvents] = useState<TimelineEvent[]>([]);
     const [total, setTotal] = useState(0);
@@ -256,7 +257,7 @@ export const TimelineTab = ({investigationId}: {investigationId: number}) => {
                                         </span>
                                     </div>
                                     {event.detail && (
-                                        <p className="text-text-muted text-xs mt-0.5 font-mono">{event.detail}</p>
+                                        <p className="text-text-muted text-xs mt-0.5 font-mono">{formatLogDetail(event.detail)}</p>
                                     )}
                                 </div>
                             </div>

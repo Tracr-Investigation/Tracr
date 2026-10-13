@@ -9,12 +9,16 @@ const COLOR_PALETTE: readonly string[] = [
   '#ec4899',
 ];
 
-const computePaletteIndex = (userId: number): number => {
-  const positiveId = Math.abs(userId);
-  return positiveId % COLOR_PALETTE.length;
+// Hash stable (djb2) de l'UUID : un meme utilisateur garde toujours la meme couleur.
+const computePaletteIndex = (userId: string): number => {
+  let hash = 5381;
+  for (let i = 0; i < userId.length; i++) {
+    hash = ((hash << 5) + hash + userId.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash) % COLOR_PALETTE.length;
 };
 
-export const userColor = (userId: number): string => {
+export const userColor = (userId: string): string => {
   const index = computePaletteIndex(userId);
   return COLOR_PALETTE[index];
 };

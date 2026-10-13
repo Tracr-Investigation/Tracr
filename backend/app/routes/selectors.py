@@ -7,10 +7,12 @@ Endpoints :
   PATCH  /selectors/{id}                           modification
   DELETE /selectors/{id}                           suppression
 """
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlmodel import Session
 
+from app.access import require_member
 from app.dependencies import get_db
 from services import (
     hit_service,
@@ -48,23 +50,17 @@ def get_current_user(payload: dict = Depends(verify_token), db: Session = Depend
     return user
 
 
-def _check_investigation_access(db: Session, investigation_id: int, user_id: int):
-    """Goal: ensure the investigation exists and the user can access it. Input: db, investigation_id, user_id. Output: (investigation, permission) (403/404 on errors)."""
-    investigation = investigation_service.get_investigation_by_id(db, investigation_id)
-    if not investigation:
-        raise HTTPException(status_code=404, detail="Investigation not found")
-    permission = task_service.get_user_permission(db, investigation_id, user_id)
-    if permission is None:
-        raise HTTPException(status_code=403, detail="Access denied")
-    return investigation, permission
+def _check_investigation_access(db: Session, investigation_id: UUID, user_id: UUID):
+    """Goal: return (investigation, permission) for a member. Input: db, investigation_id, user_id. Output: (investigation, permission) (404 if missing or not a member)."""
+    return require_member(db, investigation_id, user_id)
 
 
-def _load_selector_with_access(db: Session, selector_id: int, user_id: int):
+def _load_selector_with_access(db: Session, selector_id: UUID, user_id: UUID):
     """Goal: load a selector and check the user's access to its investigation. Input: db, selector_id, user_id. Output: (selector, permission) (404 if not found)."""
     selector = selector_service.get_selector(db, selector_id)
     if not selector:
         raise HTTPException(status_code=404, detail="Selector not found")
-    _, permission = _check_investigation_access(db, selector.id_investigation, user_id)
+    _, permission = require_member(db, selector.id_investigation, user_id, "Selector not found")
     return selector, permission
 
 
@@ -81,7 +77,7 @@ async def list_selector_types(user=Depends(get_current_user)):
 
 @router.get("/{investigation_id}/selectors")
 async def list_selectors(
-    investigation_id: int,
+    investigation_id: UUID,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -93,7 +89,7 @@ async def list_selectors(
 
 @router.get("/{investigation_id}/hits")
 async def list_hits(
-    investigation_id: int,
+    investigation_id: UUID,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -104,7 +100,7 @@ async def list_hits(
 
 @router.post("/{investigation_id}/hits/scan")
 async def scan_hits(
-    investigation_id: int,
+    investigation_id: UUID,
     request: Request,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -127,7 +123,7 @@ async def scan_hits(
 
 @router.post("/{investigation_id}/selectors")
 async def create_selector(
-    investigation_id: int,
+    investigation_id: UUID,
     body: SelectorCreate,
     request: Request,
     user=Depends(get_current_user),
@@ -171,7 +167,7 @@ async def create_selector(
 
 @selectors_router.patch("/{selector_id}")
 async def update_selector(
-    selector_id: int,
+    selector_id: UUID,
     body: SelectorUpdate,
     request: Request,
     user=Depends(get_current_user),
@@ -207,7 +203,7 @@ async def update_selector(
 
 @selectors_router.delete("/{selector_id}")
 async def delete_selector(
-    selector_id: int,
+    selector_id: UUID,
     request: Request,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),

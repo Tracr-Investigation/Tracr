@@ -77,7 +77,7 @@ const TemplateItem = ({
 interface Props {
   open: boolean;
   onClose: () => void;
-  onInsert: (templateId: number) => Promise<void>;
+  onInsert: (templateId: string) => Promise<void>;
 }
 
 export const TemplateSidebar = ({ open, onClose, onInsert }: Props) => {
@@ -86,9 +86,9 @@ export const TemplateSidebar = ({ open, onClose, onInsert }: Props) => {
   const [categories, setCategories] = useState<TemplateCategoryData[]>([]);
   const [loading, setLoading]       = useState(false);
   const [search, setSearch]         = useState('');
-  const [filterCat, setFilterCat]   = useState<number | null>(null);
-  const [insertingId, setInsertingId] = useState<number | null>(null);
-  const [draggingId, setDraggingId]   = useState<number | null>(null);
+  const [filterCat, setFilterCat]   = useState<string | null>(null);
+  const [insertingId, setInsertingId] = useState<string | null>(null);
+  const [draggingId, setDraggingId]   = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -118,7 +118,7 @@ export const TemplateSidebar = ({ open, onClose, onInsert }: Props) => {
     return matchSearch && matchCat;
   });
 
-  const handleInsert = async (id: number) => {
+  const handleInsert = async (id: string) => {
     setInsertingId(id);
     try {
       await onInsert(id);

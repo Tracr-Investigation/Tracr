@@ -8,6 +8,7 @@ endpoints couverts
   DELETE /investigations/{id}/tasks/{task_id}/responses/{resp_id}
   GET /tasks/me
 """
+import uuid
 from tests.helpers import patch_task, post_task_response
 
 
@@ -178,7 +179,8 @@ class TestTaskCRUD:
         Returns:
             None
         """
-        assert client.delete(f"/investigations/{investigation['id_investigation']}/tasks/{task['id_task']}", headers=second_auth).status_code == 403
+        # non-membre : 404 (l'enquete lui est invisible)
+        assert client.delete(f"/investigations/{investigation['id_investigation']}/tasks/{task['id_task']}", headers=second_auth).status_code == 404
 
 
 class TestTaskResponses:

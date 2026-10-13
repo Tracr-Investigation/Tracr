@@ -13,10 +13,10 @@ import { ArchivedPageViewer } from './ArchivedPageViewer';
 import { ExtensionInstallCard } from './ExtensionInstallCard';
 
 interface Props {
-  investigationId: number;
+  investigationId: string;
   userPermission: string | null;
   /** Source to open automatically (from a hit in the Selectors tab). */
-  openSourceId?: number | null;
+  openSourceId?: string | null;
   onSourceOpened?: () => void;
 }
 
@@ -26,7 +26,7 @@ const getErrorMessage = (err: unknown, fallback: string): string =>
 const canDeleteSource = (
   source: SourceData,
   permission: string | null,
-  currentUserId: number | null,
+  currentUserId: string | null,
 ) => permission === 'owner' || source.created_by === currentUserId;
 
 const TYPE_META: Record<SourceType, { label: string; icon: typeof Camera }> = {
@@ -273,7 +273,7 @@ const EmbeddedMediaSection = ({ source, canEdit, onDownload, onUpdated, onReload
 }) => {
   const [media, setMedia] = useState<SourceData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [busyId, setBusyId] = useState<number | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {

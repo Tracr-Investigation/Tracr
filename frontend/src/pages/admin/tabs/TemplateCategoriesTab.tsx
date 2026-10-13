@@ -254,7 +254,6 @@ export const TemplateCategoriesTab = () => {
                     <table className="w-full">
                         <thead>
                         <tr className="border-b border-border">
-                            <th className="text-left px-6 py-4 text-sm font-medium text-text-muted">{t('admin.templateCategories.colId')}</th>
                             <th className="text-left px-6 py-4 text-sm font-medium text-text-muted">{t('admin.templateCategories.colCategory')}</th>
                             <th className="text-left px-6 py-4 text-sm font-medium text-text-muted">{t('admin.templateCategories.colColor')}</th>
                             <th className="text-left px-6 py-4 text-sm font-medium text-text-muted">{t('admin.templateCategories.colIcon')}</th>
@@ -264,15 +263,14 @@ export const TemplateCategoriesTab = () => {
                         </thead>
                         <tbody>
                         {loading ? (
-                            <tr><td colSpan={6} className="px-6 py-12 text-center text-text-muted">{t('admin.templateCategories.loading')}</td></tr>
+                            <tr><td colSpan={5} className="px-6 py-12 text-center text-text-muted">{t('admin.templateCategories.loading')}</td></tr>
                         ) : categories.length === 0 ? (
-                            <tr><td colSpan={6} className="px-6 py-12 text-center text-text-muted">{t('admin.templateCategories.empty')}</td></tr>
+                            <tr><td colSpan={5} className="px-6 py-12 text-center text-text-muted">{t('admin.templateCategories.empty')}</td></tr>
                         ) : (
                             categories.map((c) => {
                                 const IconComp = getIconComponent(c.icon);
                                 return (
                                     <tr key={c.id_category_template} className="border-b border-border-subtle hover:bg-card/20 transition-colors">
-                                        <td className="px-6 py-4 text-text-muted text-sm font-mono">#{c.id_category_template}</td>
                                         <td className="px-6 py-4"><CategoryBadge name={c.name} color={c.color} icon={c.icon}/></td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">

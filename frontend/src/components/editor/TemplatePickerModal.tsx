@@ -4,7 +4,7 @@ import { api } from '../../services/api';
 import { useToast } from '../../contexts/ToastContext';
 
 interface Template {
-  id_template: number;
+  id_template: string;
   name: string;
   description: string;
   is_public: boolean;
@@ -55,7 +55,7 @@ const TemplateItem = ({
 }: {
   template: Template;
   inserting: boolean;
-  onSelect: (id: number) => void;
+  onSelect: (id: string) => void;
 }) => (
   <button
     onClick={() => onSelect(template.id_template)}
@@ -82,7 +82,7 @@ const TemplateItem = ({
 interface Props {
   open: boolean;
   onClose: () => void;
-  onSelect: (templateId: number) => Promise<void>;
+  onSelect: (templateId: string) => Promise<void>;
 }
 
 export const TemplatePickerModal = ({ open, onClose, onSelect }: Props) => {
@@ -90,7 +90,7 @@ export const TemplatePickerModal = ({ open, onClose, onSelect }: Props) => {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
-  const [insertingId, setInsertingId] = useState<number | null>(null);
+  const [insertingId, setInsertingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -117,7 +117,7 @@ export const TemplatePickerModal = ({ open, onClose, onSelect }: Props) => {
 
   const filtered = templates.filter((t) => matchesSearch(t, search));
 
-  const handleSelect = async (id: number) => {
+  const handleSelect = async (id: string) => {
     setInsertingId(id);
     try {
       await onSelect(id);

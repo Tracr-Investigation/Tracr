@@ -9,7 +9,7 @@ import {useNotifications} from '../../contexts/NotificationContext';
 import {useToast} from '../../contexts/ToastContext';
 import {api} from '../../services/api';
 import {formatRelativeDate} from '../../utils/date';
-import {toInvestigationSlug} from '../../utils/slug';
+import {investigationPath} from '../../utils/paths';
 import {
     FileSearch, ArrowRight, Users, Tag, CheckSquare, Calendar, AlertCircle, ChevronRight,
     Clock, Mail, Check, X, UserPlus, Bell, MessageSquare, Info, PieChart,
@@ -27,20 +27,20 @@ function getIconComponent(iconName: string | null): IconCmp {
 }
 
 interface StatusData {
-    id_status: number;
+    id_status: string;
     name: string;
     color: string | null;
 }
 
 interface CategoryData {
-    id_category: number;
+    id_category: string;
     name: string;
     color: string | null;
     icon: string | null;
 }
 
 interface InvestigationData {
-    id_investigation: number;
+    id_investigation: string;
     title: string;
     description: string | null;
     is_owner: boolean;
@@ -51,8 +51,8 @@ interface InvestigationData {
 }
 
 interface PendingInvitation {
-    id_collaborator: number;
-    id_investigation: number;
+    id_collaborator: string;
+    id_investigation: string;
     investigation_title: string;
     permission_level: string;
     invited_by_pseudo: string | null;
@@ -144,7 +144,7 @@ export const Home = () => {
     const [myTasks, setMyTasks] = useState<Awaited<ReturnType<typeof api.getMyTasks>>['tasks']>([]);
     const [loadingTasks, setLoadingTasks] = useState(true);
     const [invitations, setInvitations] = useState<PendingInvitation[]>([]);
-    const [processingId, setProcessingId] = useState<number | null>(null);
+    const [processingId, setProcessingId] = useState<string | null>(null);
 
     const fetchRecent = useCallback(async () => {
         setLoading(true);
@@ -188,7 +188,7 @@ export const Home = () => {
         fetchInvitations();
     }, [fetchRecent, fetchMyTasks, fetchInvitations]);
 
-    const handleAccept = async (id: number) => {
+    const handleAccept = async (id: string) => {
         setProcessingId(id);
         try {
             await api.acceptInvitation(id);
@@ -202,7 +202,7 @@ export const Home = () => {
         }
     };
 
-    const handleReject = async (id: number) => {
+    const handleReject = async (id: string) => {
         setProcessingId(id);
         try {
             await api.rejectInvitation(id);
@@ -218,7 +218,7 @@ export const Home = () => {
     const handleNotifClick = async (n: typeof notifications[0]) => {
         if (!n.is_read) await markAsRead(n.id_notification);
         if (n.reference_id && (n.reference_type === 'investigation' || n.reference_type === 'collaboration')) {
-            navigate(`/investigations/${n.reference_id}`);
+            navigate(investigationPath(n.reference_id));
         }
     };
 
@@ -254,7 +254,7 @@ export const Home = () => {
     }, [allInvestigations]);
 
     const categoryBreakdown = useMemo<BreakdownItem[]>(() => {
-        const map = new Map<number, BreakdownItem>();
+        const map = new Map<string, BreakdownItem>();
         for (const inv of allInvestigations) {
             for (const cat of inv.categories ?? []) {
                 const existing = map.get(cat.id_category);
@@ -373,10 +373,9 @@ export const Home = () => {
                                     {recentInvestigations.map((inv) => (
                                         <button
                                             key={inv.id_investigation}
-                                            onClick={() => navigate(`/investigations/${toInvestigationSlug(inv.title, inv.id_investigation)}`)}
+                                            onClick={() => navigate(investigationPath(inv.id_investigation))}
                                             className="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-input-bg transition-all group"
                                         >
-                                            <span className="text-text-dim text-xs font-mono shrink-0">#{inv.id_investigation}</span>
                                             <span className="text-text-default text-sm font-medium truncate flex-1">{inv.title}</span>
                                             {!inv.is_owner && (
                                                 <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-blue-500/15 text-blue-400 shrink-0">
@@ -452,7 +451,7 @@ export const Home = () => {
                                         return (
                                             <button
                                                 key={task.id_task}
-                                                onClick={() => navigate(`/investigations/${toInvestigationSlug(task.investigation_title, task.id_investigation)}`)}
+                                                onClick={() => navigate(investigationPath(task.id_investigation))}
                                                 className="w-full text-left flex flex-col gap-1 px-3 py-2.5 rounded-lg hover:bg-input-bg transition-all group"
                                             >
                                                 <div className="flex items-center gap-2 min-w-0">

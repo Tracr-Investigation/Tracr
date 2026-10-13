@@ -6,8 +6,8 @@ export type TaskStatus = 'todo' | 'en_cours' | 'bloque' | 'en_revue' | 'a_valide
 export type TaskPriority = 'basse' | 'normale' | 'haute' | 'urgente';
 
 export interface TaskData {
-    id_task: number;
-    id_investigation: number | null;
+    id_task: string;
+    id_investigation: string | null;
     investigation_title?: string;
     title: string;
     description: string | null;
@@ -15,9 +15,9 @@ export interface TaskData {
     priority: TaskPriority;
     is_private: boolean;
     position: number;
-    created_by: number | null;
+    created_by: string | null;
     created_by_pseudo: string | null;
-    assigned_to: number | null;
+    assigned_to: string | null;
     assigned_to_pseudo: string | null;
     due_date: string | null;
     created_at: string | null;
@@ -26,7 +26,7 @@ export interface TaskData {
 }
 
 export interface MemberOption {
-    id_user: number;
+    id_user: string;
     pseudo: string;
 }
 
@@ -105,7 +105,7 @@ export const TaskForm = ({
     const [status, setStatus] = useState<TaskStatus>(task?.status || defaultStatus || 'todo');
     const [priority, setPriority] = useState<TaskPriority>(task?.priority || 'normale');
     const [isPrivate, setIsPrivate] = useState(task?.is_private ?? false);
-    const [assignedTo, setAssignedTo] = useState<number | null>(task?.assigned_to ?? null);
+    const [assignedTo, setAssignedTo] = useState<string | null>(task?.assigned_to ?? null);
     const [dueDate, setDueDate] = useState(task?.due_date ? task.due_date.substring(0, 10) : '');
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -188,7 +188,7 @@ export const TaskForm = ({
                         <label className="block text-xs text-text-muted mb-1">{t('tasks.assignedLabel')}</label>
                         <select
                             value={assignedTo ?? ''}
-                            onChange={(e) => setAssignedTo(e.target.value ? Number(e.target.value) : null)}
+                            onChange={(e) => setAssignedTo(e.target.value || null)}
                             className="w-full px-3 py-2 bg-input-bg border border-border rounded-lg text-text-default text-sm focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"
                         >
                             <option value="">{t('tasks.assignedNobody')}</option>

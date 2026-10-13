@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 from typing import Optional
 from sqlalchemy import Boolean, Column, DateTime, String, false
@@ -10,7 +11,7 @@ class User(SQLModel, table=True):
 
     __tablename__ = "users"
 
-    id_user: Optional[int] = Field(default=None, primary_key=True)
+    id_user: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     pseudo: str = Field(index=True, nullable=False, sa_column_kwargs={"unique": True})
     password_hash: str = Field(max_length=256, nullable=False)
     is_active: bool = Field(default=True, nullable=False)

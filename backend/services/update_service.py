@@ -13,6 +13,8 @@ va changer. Aucune écriture, aucune action sur l'hôte ici.
 """
 from __future__ import annotations
 
+from uuid import UUID
+
 import json
 import os
 import time
@@ -300,14 +302,14 @@ def delete_backup(name: str) -> bool:
     return True
 
 
-def request_apply(user_id: int, pseudo: str, target_sha: str) -> dict:
+def request_apply(user_id: UUID, pseudo: str, target_sha: str) -> dict:
     """Écrit la demande de mise à jour. Lève UpdateInProgressError si déjà en cours."""
     current = get_apply_state()
     if current["status"] in ("pending", "running"):
         raise UpdateInProgressError()
 
     _atomic_write(_request_file(), {
-        "requested_by": user_id,
+        "requested_by": str(user_id),
         "requested_by_pseudo": pseudo,
         "target_sha": target_sha,
         "requested_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),

@@ -23,10 +23,10 @@ export type CommentSidebarHandle = {
 
 interface Props {
   editor: Editor | null;
-  documentId: number;
+  documentId: string;
   canWrite: boolean;
   isOwner: boolean;
-  currentUserId: number;
+  currentUserId: string;
   onHasSelectionChange: (v: boolean) => void;
   onCountChange: (n: number) => void;
   panelOpen: boolean;

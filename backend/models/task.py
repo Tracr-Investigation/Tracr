@@ -1,7 +1,8 @@
+import uuid
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String, Text, Uuid
 from sqlmodel import Field, SQLModel
 from zoneinfo import ZoneInfo
 
@@ -33,12 +34,12 @@ class Task(SQLModel, table=True):
 
     __tablename__ = "tasks"
 
-    id_task: Optional[int] = Field(default=None, primary_key=True)
+    id_task: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     # NULL = tâche personnelle (rattachée à son créateur, hors enquête)
-    id_investigation: Optional[int] = Field(
+    id_investigation: Optional[uuid.UUID] = Field(
         default=None,
         sa_column=Column(
-            Integer,
+            Uuid,
             ForeignKey("investigations.id_investigation", ondelete="CASCADE"),
             nullable=True,
             index=True,
@@ -74,19 +75,19 @@ class Task(SQLModel, table=True):
         default=0,
         sa_column=Column(Integer, nullable=False, default=0, server_default="0"),
     )
-    created_by: Optional[int] = Field(
+    created_by: Optional[uuid.UUID] = Field(
         default=None,
         sa_column=Column(
-            Integer,
+            Uuid,
             ForeignKey("users.id_user", ondelete="SET NULL"),
             nullable=True,
             index=True,
         ),
     )
-    assigned_to: Optional[int] = Field(
+    assigned_to: Optional[uuid.UUID] = Field(
         default=None,
         sa_column=Column(
-            Integer,
+            Uuid,
             ForeignKey("users.id_user", ondelete="SET NULL"),
             nullable=True,
             index=True,

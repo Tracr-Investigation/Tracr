@@ -1,8 +1,8 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export interface EntityData {
-    id_entity: number;
-    id_investigation: number;
+    id_entity: string;
+    id_investigation: string;
     type: string;
     label: string;
     value: string | null;
@@ -10,19 +10,19 @@ export interface EntityData {
     color: string | null;
     pos_x: number | null;
     pos_y: number | null;
-    created_by: number | null;
+    created_by: string | null;
     created_by_pseudo: string | null;
     created_at: string | null;
     updated_at: string | null;
 }
 
 export interface RelationData {
-    id_relation: number;
-    id_investigation: number;
-    source_id: number;
-    target_id: number;
+    id_relation: string;
+    id_investigation: string;
+    source_id: string;
+    target_id: string;
     label: string | null;
-    created_by: number | null;
+    created_by: string | null;
     created_by_pseudo: string | null;
     created_at: string | null;
 }
@@ -77,9 +77,9 @@ export {API_URL};
 export type SourceType = 'page_screenshot' | 'page_mhtml' | 'media' | 'web_archive' | 'manual_file';
 
 export interface SourceData {
-    id_source: number;
-    id_investigation: number;
-    created_by: number | null;
+    id_source: string;
+    id_investigation: string;
+    created_by: string | null;
     created_by_pseudo: string | null;
     title: string;
     source_url: string;
@@ -100,9 +100,9 @@ export interface SourceData {
 }
 
 export interface SelectorData {
-    id_selector: number;
-    id_investigation: number;
-    created_by: number | null;
+    id_selector: string;
+    id_investigation: string;
+    created_by: string | null;
     created_by_pseudo: string | null;
     selector_type: string;
     selector_type_label: string;
@@ -119,7 +119,7 @@ export interface SelectorTypeOption {
 }
 
 export interface HitSourceRef {
-    id_source: number;
+    id_source: string;
     title: string;
     source_type: SourceType;
     source_url: string;
@@ -151,7 +151,7 @@ export interface SourceHitEntry {
 }
 
 export interface SourceHitsResult {
-    id_source: number;
+    id_source: string;
     title: string;
     text_status: string;
     analyzed: boolean;
@@ -161,7 +161,7 @@ export interface SourceHitsResult {
 }
 
 export interface TemplateCategoryData {
-    id_category_template: number;
+    id_category_template: string;
     name: string;
     color: string | null;
     icon: string | null;
@@ -169,11 +169,11 @@ export interface TemplateCategoryData {
 }
 
 export interface TemplateData {
-    id_template: number;
+    id_template: string;
     name: string;
     description: string;
     is_public: boolean;
-    created_by: number | null;
+    created_by: string | null;
     created_by_pseudo: string | null;
     is_owner: boolean;
     created_at: string | null;
@@ -309,7 +309,7 @@ export const api = {
         return data;
     },
 
-    adminDeleteUser: async (userId: number) => {
+    adminDeleteUser: async (userId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/admin/users/${userId}`, {
             method: 'DELETE',
@@ -327,7 +327,7 @@ export const api = {
         return data;
     },
 
-    adminResetPassword: async (userId: number, newPassword: string) => {
+    adminResetPassword: async (userId: string, newPassword: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/admin/users/${userId}/reset-password`, {
             method: 'POST',
@@ -532,7 +532,7 @@ export const api = {
         return data;
     },
 
-    updateStatus: async (id: number, name: string, color: string | null) => {
+    updateStatus: async (id: string, name: string, color: string | null) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/admin/statuses/${id}`, {
             method: 'PUT',
@@ -552,7 +552,7 @@ export const api = {
         return data;
     },
 
-    deleteStatus: async (id: number) => {
+    deleteStatus: async (id: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/admin/statuses/${id}`, {
             method: 'DELETE',
@@ -605,7 +605,7 @@ export const api = {
         return data;
     },
 
-    getInvestigation: async (id: number) => {
+    getInvestigation: async (id: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${id}`, {
             headers: {
@@ -639,7 +639,7 @@ export const api = {
         return data;
     },
 
-    updateInvestigationStatus: async (investigationId: number, idStatus: number) => {
+    updateInvestigationStatus: async (investigationId: string, idStatus: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/status`, {
             method: 'PATCH',
@@ -680,7 +680,7 @@ export const api = {
     },
 
     updateInvestigation: async (
-        id: number,
+        id: string,
         title: string | null,
         description: string | null,
         objectives: string | null = null,
@@ -705,7 +705,7 @@ export const api = {
         return data;
     },
 
-    transferInvestigation: async (id: number, newOwnerPseudo: string) => {
+    transferInvestigation: async (id: string, newOwnerPseudo: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${id}/transfer`, {
             method: 'POST',
@@ -720,7 +720,7 @@ export const api = {
         return data;
     },
 
-    deleteInvestigation: async (id: number) => {
+    deleteInvestigation: async (id: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${id}`, {
             method: 'DELETE',
@@ -751,7 +751,7 @@ export const api = {
         return data;
     },
 
-    inviteCollaborator: async (investigationId: number, pseudo: string, permissionLevel: string) => {
+    inviteCollaborator: async (investigationId: string, pseudo: string, permissionLevel: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/collaborators`, {
             method: 'POST',
@@ -771,7 +771,7 @@ export const api = {
         return data;
     },
 
-    getCollaborators: async (investigationId: number) => {
+    getCollaborators: async (investigationId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/collaborators`, {
             headers: {
@@ -788,7 +788,7 @@ export const api = {
         return data;
     },
 
-    updateCollaboratorPermission: async (investigationId: number, collaboratorId: number, permissionLevel: string) => {
+    updateCollaboratorPermission: async (investigationId: string, collaboratorId: string, permissionLevel: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/collaborators/${collaboratorId}`, {
             method: 'PATCH',
@@ -808,7 +808,7 @@ export const api = {
         return data;
     },
 
-    removeCollaborator: async (investigationId: number, collaboratorId: number) => {
+    removeCollaborator: async (investigationId: string, collaboratorId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/collaborators/${collaboratorId}`, {
             method: 'DELETE',
@@ -843,7 +843,7 @@ export const api = {
         return data;
     },
 
-    acceptInvitation: async (collaboratorId: number) => {
+    acceptInvitation: async (collaboratorId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/invitations/${collaboratorId}/accept`, {
             method: 'POST',
@@ -861,7 +861,7 @@ export const api = {
         return data;
     },
 
-    rejectInvitation: async (collaboratorId: number) => {
+    rejectInvitation: async (collaboratorId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/invitations/${collaboratorId}/reject`, {
             method: 'POST',
@@ -914,7 +914,7 @@ export const api = {
         return data;
     },
 
-    markNotificationRead: async (id: number) => {
+    markNotificationRead: async (id: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/notifications/${id}/read`, {
             method: 'PATCH',
@@ -972,7 +972,7 @@ export const api = {
         return data;
     },
 
-    updateCategory: async (id: number, name: string, color: string | null, icon: string | null) => {
+    updateCategory: async (id: string, name: string, color: string | null, icon: string | null) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/admin/categories/${id}`, {
             method: 'PUT',
@@ -984,7 +984,7 @@ export const api = {
         return data;
     },
 
-    deleteCategory: async (id: number) => {
+    deleteCategory: async (id: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/admin/categories/${id}`, {
             method: 'DELETE',
@@ -1005,7 +1005,7 @@ export const api = {
         return data;
     },
 
-    addCategoryToInvestigation: async (investigationId: number, categoryId: number) => {
+    addCategoryToInvestigation: async (investigationId: string, categoryId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/categories`, {
             method: 'POST',
@@ -1017,7 +1017,7 @@ export const api = {
         return data;
     },
 
-    removeCategoryFromInvestigation: async (investigationId: number, categoryId: number) => {
+    removeCategoryFromInvestigation: async (investigationId: string, categoryId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/categories/${categoryId}`, {
             method: 'DELETE',
@@ -1036,8 +1036,8 @@ export const api = {
         const data = await response.json();
         if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching my tasks'));
         return data as { tasks: Array<{
-            id_task: number;
-            id_investigation: number;
+            id_task: string;
+            id_investigation: string;
             investigation_title: string;
             title: string;
             status: 'todo' | 'en_cours' | 'bloque' | 'en_revue' | 'a_valider' | 'termine';
@@ -1047,7 +1047,7 @@ export const api = {
         }> };
     },
 
-    getTasks: async (investigationId: number) => {
+    getTasks: async (investigationId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/tasks`, {
             headers: {'Authorization': `Bearer ${token}`},
@@ -1057,13 +1057,13 @@ export const api = {
         return data;
     },
 
-    createTask: async (investigationId: number, body: {
+    createTask: async (investigationId: string, body: {
         title: string;
         description?: string | null;
         status?: string;
         priority?: string;
         is_private?: boolean;
-        assigned_to?: number | null;
+        assigned_to?: string | null;
         due_date?: string | null;
     }) => {
         const token = localStorage.getItem('token');
@@ -1077,13 +1077,13 @@ export const api = {
         return data;
     },
 
-    updateTask: async (investigationId: number, taskId: number, body: {
+    updateTask: async (investigationId: string, taskId: string, body: {
         title?: string | null;
         description?: string | null;
         status?: string | null;
         priority?: string | null;
         is_private?: boolean | null;
-        assigned_to?: number | null;
+        assigned_to?: string | null;
         clear_assigned?: boolean;
         due_date?: string | null;
         clear_due_date?: boolean;
@@ -1099,7 +1099,7 @@ export const api = {
         return data;
     },
 
-    deleteTask: async (investigationId: number, taskId: number) => {
+    deleteTask: async (investigationId: string, taskId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/tasks/${taskId}`, {
             method: 'DELETE',
@@ -1110,7 +1110,7 @@ export const api = {
         return data;
     },
 
-    getTaskResponses: async (investigationId: number, taskId: number) => {
+    getTaskResponses: async (investigationId: string, taskId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/tasks/${taskId}/responses`, {
             headers: {'Authorization': `Bearer ${token}`},
@@ -1120,7 +1120,7 @@ export const api = {
         return data;
     },
 
-    createTaskResponse: async (investigationId: number, taskId: number, content: string) => {
+    createTaskResponse: async (investigationId: string, taskId: string, content: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/tasks/${taskId}/responses`, {
             method: 'POST',
@@ -1132,7 +1132,7 @@ export const api = {
         return data;
     },
 
-    deleteTaskResponse: async (investigationId: number, taskId: number, responseId: number) => {
+    deleteTaskResponse: async (investigationId: string, taskId: string, responseId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/tasks/${taskId}/responses/${responseId}`, {
             method: 'DELETE',
@@ -1144,7 +1144,7 @@ export const api = {
     },
 
     // ── Kanban: move an investigation task ──────────────────────────────────
-    moveTask: async (investigationId: number, taskId: number, body: { status: string; position: number }) => {
+    moveTask: async (investigationId: string, taskId: string, body: { status: string; position: number }) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/tasks/${taskId}/move`, {
             method: 'PATCH',
@@ -1185,7 +1185,7 @@ export const api = {
         return data;
     },
 
-    updatePersonalTask: async (taskId: number, body: {
+    updatePersonalTask: async (taskId: string, body: {
         title?: string | null;
         description?: string | null;
         status?: string | null;
@@ -1204,7 +1204,7 @@ export const api = {
         return data;
     },
 
-    movePersonalTask: async (taskId: number, body: { status: string; position: number }) => {
+    movePersonalTask: async (taskId: string, body: { status: string; position: number }) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/tasks/personal/${taskId}/move`, {
             method: 'PATCH',
@@ -1216,7 +1216,7 @@ export const api = {
         return data;
     },
 
-    deletePersonalTask: async (taskId: number) => {
+    deletePersonalTask: async (taskId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/tasks/personal/${taskId}`, {
             method: 'DELETE',
@@ -1260,7 +1260,7 @@ export const api = {
         return data as TemplateCategoryData;
     },
 
-    updateTemplateCategory: async (id: number, body: { name?: string; color?: string; icon?: string }) => {
+    updateTemplateCategory: async (id: string, body: { name?: string; color?: string; icon?: string }) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/templates/categories/${id}`, {
             method: 'PATCH',
@@ -1272,7 +1272,7 @@ export const api = {
         return data as TemplateCategoryData;
     },
 
-    deleteTemplateCategory: async (id: number) => {
+    deleteTemplateCategory: async (id: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/templates/categories/${id}`, {
             method: 'DELETE',
@@ -1294,7 +1294,7 @@ export const api = {
         return data as { templates: TemplateData[] };
     },
 
-    getTemplate: async (id: number) => {
+    getTemplate: async (id: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/templates/${id}`, {
             headers: {'Authorization': `Bearer ${token}`},
@@ -1309,7 +1309,7 @@ export const api = {
         description?: string;
         content_html?: string;
         is_public?: boolean;
-        id_category_template?: number | null;
+        id_category_template?: string | null;
     }) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/templates`, {
@@ -1322,12 +1322,12 @@ export const api = {
         return data as TemplateData;
     },
 
-    updateTemplate: async (id: number, body: {
+    updateTemplate: async (id: string, body: {
         name?: string;
         description?: string;
         content_html?: string;
         is_public?: boolean;
-        id_category_template?: number | null;
+        id_category_template?: string | null;
         clear_category?: boolean;
     }) => {
         const token = localStorage.getItem('token');
@@ -1341,7 +1341,7 @@ export const api = {
         return data as TemplateData;
     },
 
-    deleteTemplate: async (id: number) => {
+    deleteTemplate: async (id: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/templates/${id}`, {
             method: 'DELETE',
@@ -1352,7 +1352,7 @@ export const api = {
         return data;
     },
 
-    listDocuments: async (investigationId: number) => {
+    listDocuments: async (investigationId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/documents`, {
             headers: {'Authorization': `Bearer ${token}`},
@@ -1362,10 +1362,10 @@ export const api = {
         return data;
     },
 
-    createDocument: async (investigationId: number, body: {
+    createDocument: async (investigationId: string, body: {
         title: string;
         content_html?: string;
-        id_template?: number | null;
+        id_template?: string | null;
     }) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/documents`, {
@@ -1378,7 +1378,7 @@ export const api = {
         return data;
     },
 
-    getDocument: async (id: number) => {
+    getDocument: async (id: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/documents/${id}`, {
             headers: {'Authorization': `Bearer ${token}`},
@@ -1389,7 +1389,7 @@ export const api = {
     },
 
     updateDocument: async (
-        id: number,
+        id: string,
         body: {
             title?: string;
             content_html?: string;
@@ -1412,7 +1412,7 @@ export const api = {
         return data;
     },
 
-    deleteDocument: async (id: number) => {
+    deleteDocument: async (id: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/documents/${id}`, {
             method: 'DELETE',
@@ -1424,7 +1424,7 @@ export const api = {
     },
 
     exportDocument: async (
-        id: number,
+        id: string,
         format: 'pdf',
         // sources: bundle the report with its archived sources in a ZIP.
         marking?: { tlp?: string; pap?: string; redacted?: boolean; sources?: 'cited' | 'all' },
@@ -1450,7 +1450,7 @@ export const api = {
     },
 
     // Investigation cover image (front page of PDF exports).
-    uploadInvestigationCover: async (investigationId: number, file: File) => {
+    uploadInvestigationCover: async (investigationId: string, file: File) => {
         const token = localStorage.getItem('token');
         const fd = new FormData();
         fd.append('file', file);
@@ -1464,7 +1464,7 @@ export const api = {
         return data as { has_cover: boolean };
     },
 
-    deleteInvestigationCover: async (investigationId: number) => {
+    deleteInvestigationCover: async (investigationId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/cover`, {
             method: 'DELETE',
@@ -1476,7 +1476,7 @@ export const api = {
     },
 
     // Fetch the cover image as an object URL (or null if absent).
-    getInvestigationCoverUrl: async (investigationId: number): Promise<string | null> => {
+    getInvestigationCoverUrl: async (investigationId: string): Promise<string | null> => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/cover`, {
             headers: {'Authorization': `Bearer ${token}`},
@@ -1486,7 +1486,7 @@ export const api = {
         return URL.createObjectURL(blob);
     },
 
-    listDocumentComments: async (documentId: number) => {
+    listDocumentComments: async (documentId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/documents/${documentId}/comments`, {
             headers: {'Authorization': `Bearer ${token}`},
@@ -1496,7 +1496,7 @@ export const api = {
         return data;
     },
 
-    createDocumentComment: async (documentId: number, body: { comment_id: string; quote: string; content: string }) => {
+    createDocumentComment: async (documentId: string, body: { comment_id: string; quote: string; content: string }) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/documents/${documentId}/comments`, {
             method: 'POST',
@@ -1508,7 +1508,7 @@ export const api = {
         return data;
     },
 
-    toggleResolveDocumentComment: async (documentId: number, commentId: number) => {
+    toggleResolveDocumentComment: async (documentId: string, commentId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/documents/${documentId}/comments/${commentId}/resolve`, {
             method: 'POST',
@@ -1519,7 +1519,7 @@ export const api = {
         return data;
     },
 
-    deleteDocumentComment: async (documentId: number, commentId: number) => {
+    deleteDocumentComment: async (documentId: string, commentId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/documents/${documentId}/comments/${commentId}`, {
             method: 'DELETE',
@@ -1586,7 +1586,7 @@ export const api = {
         return data;
     },
 
-    createBackup: async (documentId: number) => {
+    createBackup: async (documentId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/documents/${documentId}/backups`, {
             method: 'POST',
@@ -1594,20 +1594,20 @@ export const api = {
         });
         const data = await response.json();
         if (!response.ok) throw new Error(parseApiError(data.detail, 'Backup error'));
-        return data as { id_backup: number; created_at: string };
+        return data as { id_backup: string; created_at: string };
     },
 
-    listBackups: async (documentId: number) => {
+    listBackups: async (documentId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/documents/${documentId}/backups`, {
             headers: { 'Authorization': `Bearer ${token}` },
         });
         const data = await response.json();
         if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching backups'));
-        return data as { backups: { id_backup: number; title: string; author_pseudo: string | null; kind: 'manual' | 'auto'; pinned: boolean; created_at: string }[] };
+        return data as { backups: { id_backup: string; title: string; author_pseudo: string | null; kind: 'manual' | 'auto'; pinned: boolean; created_at: string }[] };
     },
 
-    pinBackup: async (documentId: number, backupId: number) => {
+    pinBackup: async (documentId: string, backupId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/documents/${documentId}/backups/${backupId}/pin`, {
             method: 'POST',
@@ -1615,20 +1615,20 @@ export const api = {
         });
         const data = await response.json();
         if (!response.ok) throw new Error(parseApiError(data.detail, 'Pin error'));
-        return data as { id_backup: number; pinned: boolean };
+        return data as { id_backup: string; pinned: boolean };
     },
 
-    getBackup: async (documentId: number, backupId: number) => {
+    getBackup: async (documentId: string, backupId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/documents/${documentId}/backups/${backupId}`, {
             headers: { 'Authorization': `Bearer ${token}` },
         });
         const data = await response.json();
         if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching backup'));
-        return data as { id_backup: number; title: string; content_html: string; created_at: string };
+        return data as { id_backup: string; title: string; content_html: string; created_at: string };
     },
 
-    restoreBackup: async (documentId: number, backupId: number) => {
+    restoreBackup: async (documentId: string, backupId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/documents/${documentId}/backups/${backupId}/restore`, {
             method: 'POST',
@@ -1641,7 +1641,7 @@ export const api = {
 
     // --- Sources (OSINT evidence) ---
 
-    listSources: async (investigationId: number) => {
+    listSources: async (investigationId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/sources`, {
             headers: {'Authorization': `Bearer ${token}`},
@@ -1651,7 +1651,7 @@ export const api = {
         return data as { sources: SourceData[] };
     },
 
-    getSource: async (id: number) => {
+    getSource: async (id: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/sources/${id}`, {
             headers: {'Authorization': `Bearer ${token}`},
@@ -1661,7 +1661,7 @@ export const api = {
         return data as SourceData;
     },
 
-    deleteSource: async (id: number) => {
+    deleteSource: async (id: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/sources/${id}`, {
             method: 'DELETE',
@@ -1673,7 +1673,7 @@ export const api = {
     },
 
     updateSource: async (
-        id: number,
+        id: string,
         body: { title?: string; notes?: string | null; show_in_list?: boolean },
     ) => {
         const token = localStorage.getItem('token');
@@ -1687,7 +1687,7 @@ export const api = {
         return data as SourceData;
     },
 
-    listSourceMedia: async (id: number) => {
+    listSourceMedia: async (id: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/sources/${id}/media`, {
             headers: {'Authorization': `Bearer ${token}`},
@@ -1699,7 +1699,7 @@ export const api = {
 
     // Manually add a file as a source (outside the browser extension).
     uploadSource: async (
-        investigationId: number,
+        investigationId: string,
         params: { file: File; title: string; source_url?: string; notes?: string },
     ) => {
         const token = localStorage.getItem('token');
@@ -1721,7 +1721,7 @@ export const api = {
 
     // Fetch the capture binary (preview + download) via fetch + blob (auth required,
     // so a direct <img src> URL won't work).
-    downloadSource: async (id: number) => {
+    downloadSource: async (id: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/sources/${id}/download`, {
             headers: {'Authorization': `Bearer ${token}`},
@@ -1749,7 +1749,7 @@ export const api = {
         return data as { types: SelectorTypeOption[] };
     },
 
-    listSelectors: async (investigationId: number) => {
+    listSelectors: async (investigationId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/selectors`, {
             headers: {'Authorization': `Bearer ${token}`},
@@ -1760,7 +1760,7 @@ export const api = {
     },
 
     createSelector: async (
-        investigationId: number,
+        investigationId: string,
         body: { selector_type: string; value: string; label?: string | null; notes?: string | null },
     ) => {
         const token = localStorage.getItem('token');
@@ -1775,7 +1775,7 @@ export const api = {
     },
 
     updateSelector: async (
-        id: number,
+        id: string,
         body: { selector_type?: string; value?: string; label?: string | null; notes?: string | null },
     ) => {
         const token = localStorage.getItem('token');
@@ -1789,7 +1789,7 @@ export const api = {
         return data as SelectorData;
     },
 
-    deleteSelector: async (id: number) => {
+    deleteSelector: async (id: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/selectors/${id}`, {
             method: 'DELETE',
@@ -1801,7 +1801,7 @@ export const api = {
     },
 
     // Already-stored matches (last scan) + date of the last analysis.
-    getHits: async (investigationId: number) => {
+    getHits: async (investigationId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/hits`, {
             headers: {'Authorization': `Bearer ${token}`},
@@ -1812,7 +1812,7 @@ export const api = {
     },
 
     // (Re)run the analysis over the whole investigation and store the matches.
-    scanHits: async (investigationId: number) => {
+    scanHits: async (investigationId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/hits/scan`, {
             method: 'POST',
@@ -1824,7 +1824,7 @@ export const api = {
     },
 
     // Already-stored hits for a source (no recompute).
-    getSourceHits: async (sourceId: number) => {
+    getSourceHits: async (sourceId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/sources/${sourceId}/hits`, {
             headers: {'Authorization': `Bearer ${token}`},
@@ -1835,7 +1835,7 @@ export const api = {
     },
 
     // (Re)run the analysis of one source against the selectors and store the hits.
-    analyzeSource: async (sourceId: number) => {
+    analyzeSource: async (sourceId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/sources/${sourceId}/analyze`, {
             method: 'POST',
@@ -1847,7 +1847,7 @@ export const api = {
     },
 
     // Run OCR (local Tesseract) on an image source, then re-analyze.
-    ocrSource: async (sourceId: number) => {
+    ocrSource: async (sourceId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/sources/${sourceId}/ocr`, {
             method: 'POST',
@@ -1860,7 +1860,7 @@ export const api = {
 
     // --- Timeline ---
 
-    getTimeline: async (investigationId: number, skip = 0, limit = 50, category = '') => {
+    getTimeline: async (investigationId: string, skip = 0, limit = 50, category = '') => {
         const token = localStorage.getItem('token');
         const params = new URLSearchParams({skip: String(skip), limit: String(limit)});
         if (category) params.set('category', category);
@@ -1871,8 +1871,8 @@ export const api = {
         if (!response.ok) throw new Error(parseApiError(data.detail, 'Error fetching timeline'));
         return data as {
             events: Array<{
-                id_log: number;
-                id_user: number | null;
+                id_log: string;
+                id_user: string | null;
                 pseudo: string | null;
                 category: string;
                 action: string;
@@ -1886,7 +1886,7 @@ export const api = {
 
     // --- Graph ---
 
-    getGraph: async (investigationId: number) => {
+    getGraph: async (investigationId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/graph`, {
             headers: {'Authorization': `Bearer ${token}`},
@@ -1901,7 +1901,7 @@ export const api = {
 
     // --- Entities ---
 
-    listEntities: async (investigationId: number) => {
+    listEntities: async (investigationId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/entities`, {
             headers: {'Authorization': `Bearer ${token}`},
@@ -1911,7 +1911,7 @@ export const api = {
         return data as { entities: EntityData[] };
     },
 
-    createEntity: async (investigationId: number, body: {
+    createEntity: async (investigationId: string, body: {
         type: string; label: string; value?: string | null; notes?: string | null;
         color?: string | null; pos_x?: number | null; pos_y?: number | null;
     }) => {
@@ -1926,7 +1926,7 @@ export const api = {
         return data as EntityData;
     },
 
-    updateEntity: async (investigationId: number, entityId: number, body: {
+    updateEntity: async (investigationId: string, entityId: string, body: {
         label?: string | null; value?: string | null; notes?: string | null;
         color?: string | null; pos_x?: number | null; pos_y?: number | null;
         clear_value?: boolean; clear_notes?: boolean;
@@ -1942,7 +1942,7 @@ export const api = {
         return data as EntityData;
     },
 
-    resetEntityPositions: async (investigationId: number) => {
+    resetEntityPositions: async (investigationId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/entities/reset-positions`, {
             method: 'POST',
@@ -1953,7 +1953,7 @@ export const api = {
         return data;
     },
 
-    deleteEntity: async (investigationId: number, entityId: number) => {
+    deleteEntity: async (investigationId: string, entityId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/entities/${entityId}`, {
             method: 'DELETE',
@@ -1966,8 +1966,8 @@ export const api = {
 
     // --- Relations ---
 
-    createRelation: async (investigationId: number, body: {
-        source_id: number; target_id: number; label?: string | null;
+    createRelation: async (investigationId: string, body: {
+        source_id: string; target_id: string; label?: string | null;
     }) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/relations`, {
@@ -1980,7 +1980,7 @@ export const api = {
         return data as RelationData;
     },
 
-    updateRelation: async (investigationId: number, relationId: number, label: string | null) => {
+    updateRelation: async (investigationId: string, relationId: string, label: string | null) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/relations/${relationId}`, {
             method: 'PATCH',
@@ -1992,7 +1992,7 @@ export const api = {
         return data as RelationData;
     },
 
-    deleteRelation: async (investigationId: number, relationId: number) => {
+    deleteRelation: async (investigationId: string, relationId: string) => {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/investigations/${investigationId}/relations/${relationId}`, {
             method: 'DELETE',

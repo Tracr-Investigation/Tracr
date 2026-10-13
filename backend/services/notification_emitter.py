@@ -1,3 +1,4 @@
+from uuid import UUID
 from typing import Optional
 from sqlalchemy.orm import Session
 from services import notification_service
@@ -6,11 +7,11 @@ from app.socketio_server import emit_notification
 
 async def create_and_emit(
     db: Session,
-    id_user: int,
+    id_user: UUID,
     type: str,
     title: str,
     message: Optional[str] = None,
-    reference_id: Optional[int] = None,
+    reference_id: Optional[UUID] = None,
     reference_type: Optional[str] = None,
 ) -> dict:
     """Goal: create a notification and push it in real-time over Socket.IO. Input: db, id_user, type, title, message, reference_id, reference_type. Output: the notification dict."""

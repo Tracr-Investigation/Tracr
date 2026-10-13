@@ -1,12 +1,12 @@
 import { Check, Trash2 } from 'lucide-react';
 
 export interface DocumentComment {
-  id_comment: number;
-  id_document: number;
+  id_comment: string;
+  id_document: string;
   comment_id: string;
   quote: string;
   content: string;
-  author_id: number | null;
+  author_id: string | null;
   author_pseudo: string | null;
   resolved: boolean;
   created_at: string | null;

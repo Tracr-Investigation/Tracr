@@ -5,26 +5,25 @@ import { api } from '../../../services/api';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { formatRelativeDate } from '../../../utils/date';
-import { toInvestigationSlug } from '../../../utils/slug';
+import { documentPath } from '../../../utils/paths';
 
 interface Props {
-  investigationId: number;
-  investigationTitle: string;
+  investigationId: string;
   userPermission: string | null;
 }
 
 interface DocumentItem {
-  id_document: number;
-  id_investigation: number;
+  id_document: string;
+  id_investigation: string;
   title: string;
-  created_by: number | null;
+  created_by: string | null;
   created_by_pseudo: string | null;
   created_at: string | null;
   updated_at: string | null;
 }
 
 interface TemplateOption {
-  id_template: number;
+  id_template: string;
   name: string;
   description: string;
   is_public: boolean;
@@ -43,11 +42,8 @@ const canWriteDocuments = (permission: string | null) =>
 const canDeleteDocument = (
   doc: DocumentItem,
   permission: string | null,
-  currentUserId: number | null,
+  currentUserId: string | null,
 ) => permission === 'owner' || doc.created_by === currentUserId;
-
-const buildDocumentLink = (slug: string, documentId: number) =>
-  `/investigations/${slug}/documents/${documentId}`;
 
 // ── Document preview panel ────────────────────────────────────────────────────
 
@@ -56,14 +52,14 @@ const DocumentPreviewPanel = ({
   html,
   loading,
   open,
-  slug,
+  investigationId,
   onClose,
 }: {
   doc: DocumentItem | null;
   html: string;
   loading: boolean;
   open: boolean;
-  slug: string;
+  investigationId: string;
   onClose: () => void;
 }) => {
   const contentRef = useRef<HTMLDivElement>(null);
@@ -126,7 +122,7 @@ const DocumentPreviewPanel = ({
         {doc && (
           <div className="px-6 py-4 border-t border-border-subtle shrink-0">
             <Link
-              to={buildDocumentLink(slug, doc.id_document)}
+              to={documentPath(investigationId, doc.id_document)}
               onClick={onClose}
               className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-semibold transition-all hover:opacity-90"
               style={{ background: 'var(--theme-primary)' }}
@@ -145,13 +141,13 @@ const DocumentPreviewPanel = ({
 
 interface DocumentCardProps {
   document: DocumentItem;
-  slug: string;
+  investigationId: string;
   canDelete: boolean;
   onDelete: (doc: DocumentItem) => void;
   onPreview: (doc: DocumentItem) => void;
 }
 
-const DocumentCard = ({ document, slug, canDelete, onDelete, onPreview }: DocumentCardProps) => {
+const DocumentCard = ({ document, investigationId, canDelete, onDelete, onPreview }: DocumentCardProps) => {
   const author = document.created_by_pseudo ?? 'inconnu';
   const authorLine = document.updated_at
     ? `${author} · ${formatRelativeDate(document.updated_at)}`
@@ -160,7 +156,7 @@ const DocumentCard = ({ document, slug, canDelete, onDelete, onPreview }: Docume
   return (
     <div className="bg-card/30 border border-border-subtle rounded-xl p-4 hover:border-border transition-colors flex flex-col group">
       <Link
-        to={buildDocumentLink(slug, document.id_document)}
+        to={documentPath(investigationId, document.id_document)}
         className="font-semibold text-text-default hover:text-[var(--theme-primary)] transition-colors mb-1 line-clamp-2 text-sm"
       >
         {document.title}
@@ -195,7 +191,7 @@ const DocumentCard = ({ document, slug, canDelete, onDelete, onPreview }: Docume
 const DocumentList = ({
   loading,
   documents,
-  slug,
+  investigationId,
   permission,
   currentUserId,
   onDelete,
@@ -203,9 +199,9 @@ const DocumentList = ({
 }: {
   loading: boolean;
   documents: DocumentItem[];
-  slug: string;
+  investigationId: string;
   permission: string | null;
-  currentUserId: number | null;
+  currentUserId: string | null;
   onDelete: (doc: DocumentItem) => void;
   onPreview: (doc: DocumentItem) => void;
 }) => {
@@ -223,7 +219,7 @@ const DocumentList = ({
         <DocumentCard
           key={doc.id_document}
           document={doc}
-          slug={slug}
+          investigationId={investigationId}
           canDelete={canDeleteDocument(doc, permission, currentUserId)}
           onDelete={onDelete}
           onPreview={onPreview}
@@ -236,18 +232,17 @@ const DocumentList = ({
 // ── Create document panel ─────────────────────────────────────────────────────
 
 interface CreatePanelProps {
-  investigationId: number;
-  slug: string;
+  investigationId: string;
   open: boolean;
   onClose: () => void;
   onCreated: () => void;
 }
 
-const CreateDocumentPanel = ({ investigationId, slug, open, onClose, onCreated }: CreatePanelProps) => {
+const CreateDocumentPanel = ({ investigationId, open, onClose, onCreated }: CreatePanelProps) => {
   const { toast } = useToast();
   const [title, setTitle] = useState(DEFAULT_DOCUMENT_TITLE);
   const [templates, setTemplates] = useState<TemplateOption[]>([]);
-  const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [showTemplates, setShowTemplates] = useState(false);
   const [creating, setCreating] = useState(false);
 
@@ -282,7 +277,7 @@ const CreateDocumentPanel = ({ investigationId, slug, open, onClose, onCreated }
       });
       toast('success', 'Document créé');
       onCreated();
-      window.location.href = buildDocumentLink(slug, doc.id_document);
+      window.location.href = documentPath(investigationId, doc.id_document);
     } catch (err) {
       toast('error', getErrorMessage(err, 'Erreur'));
     } finally {
@@ -413,7 +408,7 @@ const CreateDocumentPanel = ({ investigationId, slug, open, onClose, onCreated }
 
 // ── Tab ───────────────────────────────────────────────────────────────────────
 
-export const DocumentsTab = ({ investigationId, investigationTitle, userPermission }: Props) => {
+export const DocumentsTab = ({ investigationId, userPermission }: Props) => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
@@ -428,7 +423,6 @@ export const DocumentsTab = ({ investigationId, investigationTitle, userPermissi
 
   const canWrite = canWriteDocuments(userPermission);
   const currentUserId = user?.id_user ?? null;
-  const slug = toInvestigationSlug(investigationTitle, investigationId);
 
   const fetchDocuments = useCallback(async () => {
     setLoading(true);
@@ -493,7 +487,7 @@ export const DocumentsTab = ({ investigationId, investigationTitle, userPermissi
       <DocumentList
         loading={loading}
         documents={documents}
-        slug={slug}
+        investigationId={investigationId}
         permission={userPermission}
         currentUserId={currentUserId}
         onDelete={handleDelete}
@@ -502,7 +496,6 @@ export const DocumentsTab = ({ investigationId, investigationTitle, userPermissi
 
       <CreateDocumentPanel
         investigationId={investigationId}
-        slug={slug}
         open={showCreate}
         onClose={() => setShowCreate(false)}
         onCreated={fetchDocuments}
@@ -513,7 +506,7 @@ export const DocumentsTab = ({ investigationId, investigationTitle, userPermissi
         html={previewHtml}
         loading={previewLoading}
         open={previewOpen}
-        slug={slug}
+        investigationId={investigationId}
         onClose={() => setPreviewOpen(false)}
       />
     </div>

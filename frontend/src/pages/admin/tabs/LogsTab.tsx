@@ -4,10 +4,11 @@ import {LogCategoryBadge} from '../../../components/LogCategoryBadge';
 import {SearchBar} from '../../../components/SearchBar';
 import {ChevronLeft, ChevronRight} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
+import {formatLogDetail} from '../../../utils/logDetail';
 
 interface LogData {
-    id_log: number;
-    id_user: number | null;
+    id_log: string;
+    id_user: string | null;
     pseudo: string | null;
     category: string;
     action: string;
@@ -108,7 +109,6 @@ export const LogsTab = () => {
                     <table className="w-full">
                         <thead>
                         <tr className="border-b border-border">
-                            <th className="text-left px-6 py-4 text-sm font-medium text-text-muted">{t('admin.logs.colId')}</th>
                             <th className="text-left px-6 py-4 text-sm font-medium text-text-muted">{t('admin.logs.colDate')}</th>
                             <th className="text-left px-6 py-4 text-sm font-medium text-text-muted">{t('admin.logs.colUser')}</th>
                             <th className="text-left px-6 py-4 text-sm font-medium text-text-muted">{t('admin.logs.colCategory')}</th>
@@ -119,18 +119,17 @@ export const LogsTab = () => {
                         </thead>
                         <tbody>
                         {loading ? (
-                            <tr><td colSpan={7} className="px-6 py-12 text-center text-text-muted">{t('admin.logs.loading')}</td></tr>
+                            <tr><td colSpan={6} className="px-6 py-12 text-center text-text-muted">{t('admin.logs.loading')}</td></tr>
                         ) : logs.length === 0 ? (
-                            <tr><td colSpan={7} className="px-6 py-12 text-center text-text-muted">{t('admin.logs.empty')}</td></tr>
+                            <tr><td colSpan={6} className="px-6 py-12 text-center text-text-muted">{t('admin.logs.empty')}</td></tr>
                         ) : (
                             logs.map((log) => (
                                 <tr key={log.id_log} className="border-b border-border-subtle hover:bg-card/20 transition-colors">
-                                    <td className="px-6 py-4 text-text-muted text-sm font-mono">#{log.id_log}</td>
                                     <td className="px-6 py-4 text-text-muted text-sm whitespace-nowrap">{formatDate(log.created_at)}</td>
                                     <td className="px-6 py-4 text-text-default text-sm font-medium">{log.pseudo || '-'}</td>
                                     <td className="px-6 py-4"><LogCategoryBadge category={log.category}/></td>
                                     <td className="px-6 py-4 text-text-default text-sm">{log.action}</td>
-                                    <td className="px-6 py-4 text-text-muted text-sm max-w-xs truncate">{log.detail || '-'}</td>
+                                    <td className="px-6 py-4 text-text-muted text-sm max-w-xs truncate">{log.detail ? formatLogDetail(log.detail) : '-'}</td>
                                     <td className="px-6 py-4 text-text-muted text-sm font-mono">{log.ip_address || '-'}</td>
                                 </tr>
                             ))

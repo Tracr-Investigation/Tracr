@@ -1,3 +1,4 @@
+from uuid import UUID
 import asyncio
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -168,7 +169,7 @@ async def create_admin_user(
 
 @router.delete("/users/{user_id}")
 async def delete_user(
-        user_id: int,
+        user_id: UUID,
         request: Request,
         admin=Depends(verify_admin),
         db: Session = Depends(get_db),
@@ -199,7 +200,7 @@ async def delete_user(
 
 @router.post("/users/{user_id}/reset-password")
 async def admin_reset_user_password(
-        user_id: int,
+        user_id: UUID,
         body: AdminResetPasswordRequest,
         request: Request,
         admin=Depends(verify_admin),
@@ -276,7 +277,7 @@ async def create_admin_status(
 
 @router.put("/statuses/{status_id}")
 async def update_admin_status(
-        status_id: int,
+        status_id: UUID,
         body: StatusUpdateRequest,
         user=Depends(verify_admin),
         db: Session = Depends(get_db),
@@ -291,7 +292,7 @@ async def update_admin_status(
 
 @router.delete("/statuses/{status_id}")
 async def delete_admin_status(
-        status_id: int,
+        status_id: UUID,
         user=Depends(verify_admin),
         db: Session = Depends(get_db),
 ):
@@ -333,7 +334,7 @@ async def create_admin_category(
 
 @router.put("/categories/{category_id}")
 async def update_admin_category(
-        category_id: int,
+        category_id: UUID,
         body: CategoryUpdateRequest,
         request: Request,
         user=Depends(verify_admin),
@@ -354,7 +355,7 @@ async def update_admin_category(
 
 @router.delete("/categories/{category_id}")
 async def delete_admin_category(
-        category_id: int,
+        category_id: UUID,
         request: Request,
         user=Depends(verify_admin),
         db: Session = Depends(get_db),
