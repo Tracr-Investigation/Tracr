@@ -7,7 +7,7 @@ const TOKEN_PROTOCOL_PREFIX = 'tracr.token.';
 
 export interface RemoteUser {
   clientId: number;
-  userId: number;
+  userId: string;
   pseudo: string;
   color: string;
 }
@@ -18,7 +18,7 @@ interface YjsConnection {
 }
 
 interface UseYjsDocumentOptions {
-  documentId: number;
+  documentId: string;
   initialContent: string;
   onInitialSync: () => void;
 }
@@ -33,7 +33,7 @@ const buildAuthWebSocketClass = (token: string): typeof WebSocket => {
   return AuthWebSocket as unknown as typeof WebSocket;
 };
 
-const createConnection = (documentId: number): YjsConnection => {
+const createConnection = (documentId: string): YjsConnection => {
   const ydoc = new Y.Doc();
   const token = localStorage.getItem('token') ?? '';
   const provider = new WebsocketProvider(
@@ -101,17 +101,17 @@ export const useRemoteUsers = (
     };
 
     const hasValidUserState = (
-      userState: { userId?: number; name?: string; color?: string } | undefined,
+      userState: { userId?: string; name?: string; color?: string } | undefined,
     ): boolean => {
       if (!userState) {
         return false;
       }
-      return typeof userState.userId === 'number';
+      return typeof userState.userId === 'string';
     };
 
     const computeRemoteUsers = (): RemoteUser[] => {
       const users: RemoteUser[] = [];
-      const seenUserIds = new Set<number>();
+      const seenUserIds = new Set<string>();
 
       awareness.getStates().forEach((state, clientId) => {
         if (!isRemoteClient(clientId)) {
@@ -123,7 +123,7 @@ export const useRemoteUsers = (
           return;
         }
 
-        const userId = userState.userId as number;
+        const userId = userState.userId as string;
         if (seenUserIds.has(userId)) {
           return;
         }

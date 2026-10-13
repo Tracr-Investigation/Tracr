@@ -10,6 +10,7 @@ Deux strategies de recherche selon le type de selecteur :
   - textuel (email, pseudo, domaine, mot-cle...) : recherche insensible a la casse
     dans le texte normalise.
 """
+from uuid import UUID
 import re
 from datetime import datetime
 from typing import Optional
@@ -82,7 +83,7 @@ def _match_in_source(
     return {"occurrences": occ, "snippet": _snippet(lower, original, needle)}
 
 
-def compute_hits(db: Session, investigation_id: int) -> dict:
+def compute_hits(db: Session, investigation_id: UUID) -> dict:
     """Scanne les sources de l'enquete et retourne les hits groupes par selecteur.
 
     Effet de bord : declenche l'extraction paresseuse du texte des sources encore
@@ -112,7 +113,7 @@ def compute_hits(db: Session, investigation_id: int) -> dict:
             analyzable.append((source, lower, alnum))
 
     results = []
-    persist_rows: list[tuple[int, int, int, Optional[str]]] = []  # (selector, source, occ, snippet)
+    persist_rows: list[tuple[UUID, UUID, int, Optional[str]]] = []  # (selector, source, occ, snippet)
     for selector in selectors:
         matched_sources = []
         total = 0
@@ -160,7 +161,7 @@ def compute_hits(db: Session, investigation_id: int) -> dict:
     }
 
 
-def get_stored_hits(db: Session, investigation_id: int) -> dict:
+def get_stored_hits(db: Session, investigation_id: UUID) -> dict:
     """Renvoie les hits DEJA enregistres (dernier scan), sans recalcul ni
     extraction. Permet d'afficher les correspondances + la date de derniere
     analyse instantanement, et de signaler si l'analyse est potentiellement
@@ -179,7 +180,7 @@ def get_stored_hits(db: Session, investigation_id: int) -> dict:
         .all()
     )
 
-    by_selector: dict[int, list] = {}
+    by_selector: dict[UUID, list] = {}
     last_computed = None
     for hit, title, stype, surl in rows:
         by_selector.setdefault(hit.id_selector, []).append({

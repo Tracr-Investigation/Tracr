@@ -92,7 +92,7 @@ function App() {
             }
           />
           <Route
-            path="/investigations/:slug"
+            path="/investigations/:investigationId"
             element={
               <ProtectedRoute>
                 <InvestigationDetail />
@@ -100,7 +100,7 @@ function App() {
             }
           />
           <Route
-            path="/investigations/:slug/documents/:docId"
+            path="/investigations/:investigationId/documents/:documentId"
             element={
               <ProtectedRoute>
                 <DocumentDetail />

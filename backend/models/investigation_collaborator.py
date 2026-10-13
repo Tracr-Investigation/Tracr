@@ -1,6 +1,7 @@
+import uuid
 from datetime import datetime
 from typing import Optional
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, UniqueConstraint
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, UniqueConstraint, Uuid
 from sqlmodel import Field, SQLModel
 from zoneinfo import ZoneInfo
 
@@ -23,18 +24,18 @@ class InvestigationCollaborator(SQLModel, table=True):
         UniqueConstraint("id_investigation", "id_user", name="uq_investigation_user"),
     )
 
-    id_collaborator: Optional[int] = Field(default=None, primary_key=True)
-    id_investigation: int = Field(
+    id_collaborator: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    id_investigation: uuid.UUID = Field(
         sa_column=Column(
-            Integer,
+            Uuid,
             ForeignKey("investigations.id_investigation", ondelete="CASCADE"),
             nullable=False,
             index=True,
         ),
     )
-    id_user: int = Field(
+    id_user: uuid.UUID = Field(
         sa_column=Column(
-            Integer,
+            Uuid,
             ForeignKey("users.id_user", ondelete="CASCADE"),
             nullable=False,
             index=True,
@@ -47,9 +48,9 @@ class InvestigationCollaborator(SQLModel, table=True):
             default=PermissionLevel.lecteur,
         ),
     )
-    invited_by: Optional[int] = Field(
+    invited_by: Optional[uuid.UUID] = Field(
         sa_column=Column(
-            Integer,
+            Uuid,
             ForeignKey("users.id_user", ondelete="SET NULL"),
             nullable=True,
         ),

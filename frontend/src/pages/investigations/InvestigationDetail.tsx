@@ -43,7 +43,7 @@ import {GraphTab} from './tabs/GraphTab';
 import {MapTab} from './tabs/MapTab';
 import * as LucideIcons from 'lucide-react';
 import {formatRelativeDate} from '../../utils/date';
-import {extractIdFromSlug, toInvestigationSlug} from '../../utils/slug';
+import {isUuid} from '../../utils/paths';
 import {useTranslation} from 'react-i18next';
 
 function getIconComponent(iconName: string | null): React.ComponentType<{ size?: number; className?: string; style?: React.CSSProperties }> {
@@ -59,26 +59,26 @@ function getIconComponent(iconName: string | null): React.ComponentType<{ size?:
 }
 
 interface StatusData {
-    id_status: number;
+    id_status: string;
     name: string;
     color: string | null;
 }
 
 interface CategoryData {
-    id_category: number;
+    id_category: string;
     name: string;
     color: string | null;
     icon: string | null;
 }
 
 interface OwnerData {
-    id_user: number;
+    id_user: string;
     pseudo: string;
 }
 
 interface CollaboratorData {
-    id_collaborator: number;
-    id_user: number;
+    id_collaborator: string;
+    id_user: string;
     pseudo: string;
     permission_level: string;
     invited_at: string | null;
@@ -86,7 +86,7 @@ interface CollaboratorData {
 }
 
 interface InvestigationDetailData {
-    id_investigation: number;
+    id_investigation: string;
     title: string;
     description: string | null;
     objectives: string | null;
@@ -104,7 +104,7 @@ interface InvestigationDetailData {
 }
 
 interface UserSearchResult {
-    id_user: number;
+    id_user: string;
     pseudo: string;
 }
 
@@ -122,9 +122,9 @@ const StatusDropdown = ({
     onSelect,
     onClose,
 }: {
-    currentStatusId: number;
+    currentStatusId: string;
     statuses: StatusData[];
-    onSelect: (id: number) => void;
+    onSelect: (id: string) => void;
     onClose: () => void;
 }) => {
     const ref = useRef<HTMLDivElement>(null);
@@ -167,7 +167,7 @@ const CollaboratorsTab = ({
     const [searching, setSearching] = useState(false);
     const [selectedPermission, setSelectedPermission] = useState('lecteur');
     const [inviting, setInviting] = useState(false);
-    const [permDropdown, setPermDropdown] = useState<number | null>(null);
+    const [permDropdown, setPermDropdown] = useState<string | null>(null);
     const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
     const searchRef = useRef<HTMLDivElement>(null);
     const permRef = useRef<HTMLDivElement>(null);
@@ -222,7 +222,7 @@ const CollaboratorsTab = ({
         }
     };
 
-    const handleUpdatePermission = async (collaboratorId: number, newPermission: string) => {
+    const handleUpdatePermission = async (collaboratorId: string, newPermission: string) => {
         setPermDropdown(null);
         try {
             await api.updateCollaboratorPermission(investigation.id_investigation, collaboratorId, newPermission);
@@ -233,7 +233,7 @@ const CollaboratorsTab = ({
         }
     };
 
-    const handleRemove = async (collaboratorId: number, pseudo: string) => {
+    const handleRemove = async (collaboratorId: string, pseudo: string) => {
         try {
             await api.removeCollaborator(investigation.id_investigation, collaboratorId);
             toast('success', t('investigationDetail.collaborators.removed', {pseudo}));
@@ -434,7 +434,7 @@ const CategoriesSection = ({
     const assignedIds = new Set(investigation.categories?.map(c => c.id_category) ?? []);
     const unassigned = allCategories.filter(c => !assignedIds.has(c.id_category));
 
-    const handleAdd = async (categoryId: number) => {
+    const handleAdd = async (categoryId: string) => {
         try {
             await api.addCategoryToInvestigation(investigation.id_investigation, categoryId);
             toast('success', t('investigationDetail.categories.added'));
@@ -444,7 +444,7 @@ const CategoriesSection = ({
         }
     };
 
-    const handleRemove = async (categoryId: number) => {
+    const handleRemove = async (categoryId: string) => {
         try {
             await api.removeCategoryFromInvestigation(investigation.id_investigation, categoryId);
             toast('success', t('investigationDetail.categories.removed'));
@@ -521,12 +521,10 @@ const SettingsTab = ({
     investigation,
     onRefresh,
     onNavigateAway,
-    onSlugUpdate,
 }: {
     investigation: InvestigationDetailData;
     onRefresh: () => void;
     onNavigateAway: () => void;
-    onSlugUpdate: (newTitle: string) => void;
 }) => {
     const {t} = useTranslation();
     const {toast} = useToast();
@@ -626,7 +624,6 @@ const SettingsTab = ({
             if (analysisEnd !== (investigation.analysis_end_date || '')) analysisDates.analysis_end_date = analysisEnd || null;
             await api.updateInvestigation(investigation.id_investigation, newTitle, newDesc, newObjectives, analysisDates);
             toast('success', t('investigationDetail.settings.updated'));
-            if (newTitle) onSlugUpdate(newTitle);
             onRefresh();
         } catch (err) {
             toast('error', err instanceof Error ? err.message : 'Erreur');
@@ -922,26 +919,27 @@ const SettingsTab = ({
 
 export const InvestigationDetail = () => {
     const {t} = useTranslation();
-    const {slug} = useParams<{ slug: string }>();
+    const {investigationId} = useParams<{ investigationId: string }>();
     const navigate = useNavigate();
-    const id = slug ? extractIdFromSlug(slug) : null;
+    // Un identifiant mal forme (ancienne URL a slug, saisie manuelle) n'est jamais envoye a l'API.
+    const id = isUuid(investigationId) ? investigationId : null;
     const [investigation, setInvestigation] = useState<InvestigationDetailData | null>(null);
     const [statuses, setStatuses] = useState<StatusData[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(id !== null);
     const [error, setError] = useState('');
     const [openDropdown, setOpenDropdown] = useState(false);
     const [headerCollapsed, setHeaderCollapsed] = useState(
         () => localStorage.getItem('investigationHeaderCollapsed') === '1',
     );
     // Source to open in the Sources tab (triggered from a hit in the Selectors tab)
-    const [openSourceId, setOpenSourceId] = useState<number | null>(null);
+    const [openSourceId, setOpenSourceId] = useState<string | null>(null);
     const toggleHeader = () => {
         setHeaderCollapsed((c) => {
             localStorage.setItem('investigationHeaderCollapsed', c ? '0' : '1');
             return !c;
         });
     };
-    const openSourceInTab = (sourceId: number) => {
+    const openSourceInTab = (sourceId: string) => {
         setOpenSourceId(sourceId);
         window.location.hash = 'preuves/sources';
     };
@@ -973,16 +971,12 @@ export const InvestigationDetail = () => {
         try {
             const data = await api.getInvestigation(id);
             setInvestigation(data);
-            const expectedSlug = toInvestigationSlug(data.title, data.id_investigation);
-            if (slug && slug !== expectedSlug) {
-                navigate(`/investigations/${expectedSlug}`, {replace: true});
-            }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Erreur');
         } finally {
             setLoading(false);
         }
-    }, [id, slug, navigate]);
+    }, [id]);
 
     const refreshInvestigation = useCallback(async () => {
         if (!id) return;
@@ -1006,7 +1000,7 @@ export const InvestigationDetail = () => {
         fetchStatuses();
     }, [fetchInvestigation, fetchStatuses]);
 
-    const handleStatusChange = async (newStatusId: number) => {
+    const handleStatusChange = async (newStatusId: string) => {
         if (!investigation) return;
         setOpenDropdown(false);
         try {
@@ -1121,8 +1115,6 @@ export const InvestigationDetail = () => {
                                             </span>
                                         </>
                                     )}
-                                    <span className="w-px h-4 bg-card/30"/>
-                                    <span className="font-mono text-text-dim">#{investigation.id_investigation}</span>
                                 </div>
                             </>
                         )}
@@ -1168,7 +1160,7 @@ export const InvestigationDetail = () => {
                                     content: (
                                         <TasksTab
                                             investigation={investigation}
-                                            currentUserId={currentUser?.id_user ?? 0}
+                                            currentUserId={currentUser?.id_user ?? ''}
                                         />
                                     ),
                                 },
@@ -1258,7 +1250,6 @@ export const InvestigationDetail = () => {
                                     content: (
                                         <DocumentsTab
                                             investigationId={investigation.id_investigation}
-                                            investigationTitle={investigation.title}
                                             userPermission={investigation.user_permission}
                                         />
                                     ),
@@ -1292,10 +1283,6 @@ export const InvestigationDetail = () => {
                                                             investigation={investigation}
                                                             onRefresh={refreshInvestigation}
                                                             onNavigateAway={() => navigate('/investigations')}
-                                                            onSlugUpdate={(newTitle: string) => {
-                                                                const newSlug = toInvestigationSlug(newTitle, investigation.id_investigation);
-                                                                navigate(`/investigations/${newSlug}`, {replace: true});
-                                                            }}
                                                         />
                                                     ),
                                                 }] : []),

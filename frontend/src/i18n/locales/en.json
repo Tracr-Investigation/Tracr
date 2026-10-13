@@ -484,7 +484,6 @@
       "searchPlaceholder": "Search by ID, action or user...",
       "allCategories": "All categories",
       "hideConsultations": "Hide consultations",
-      "colId": "ID",
       "colDate": "Date",
       "colUser": "User",
       "colCategory": "Category",
@@ -498,7 +497,6 @@
     "statuses": {
       "totalLabel": "Total statuses",
       "newStatus": "New status",
-      "colId": "ID",
       "colStatus": "Status",
       "colColor": "Color",
       "colCreated": "Created",
@@ -526,7 +524,6 @@
     "categories": {
       "totalLabel": "Total categories",
       "newCategory": "New category",
-      "colId": "ID",
       "colCategory": "Category",
       "colColor": "Color",
       "colIcon": "Icon",
@@ -556,7 +553,6 @@
     "templateCategories": {
       "totalLabel": "Total template categories",
       "newCategory": "New category",
-      "colId": "ID",
       "colCategory": "Category",
       "colColor": "Color",
       "colIcon": "Icon",

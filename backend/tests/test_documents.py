@@ -10,6 +10,7 @@ endpoints couverts
   POST GET /documents/{id}/backups
   POST /documents/{id}/backups/{id}/restore
 """
+import uuid
 from tests.helpers import create_backup, post_comment
 
 
@@ -98,7 +99,7 @@ class TestDocumentCRUD:
         Returns:
             None
         """
-        assert client.get("/documents/999999", headers=auth).status_code == 404
+        assert client.get(f"/documents/{uuid.uuid4()}", headers=auth).status_code == 404
 
     def test_update_document(self, client, auth, document):
         """verifie que titre et contenu peuvent etre mis a jour
@@ -156,7 +157,8 @@ class TestDocumentCRUD:
         Returns:
             None
         """
-        assert client.delete(f"/documents/{document['id_document']}", headers=second_auth).status_code == 403
+        # non-membre : meme 404 qu'un document inexistant (pas d'oracle d'existence)
+        assert client.delete(f"/documents/{document['id_document']}", headers=second_auth).status_code == 404
 
 
 class TestDocumentComments:

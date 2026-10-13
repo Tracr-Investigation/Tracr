@@ -1,7 +1,8 @@
+import uuid
 from datetime import date, datetime
 from typing import Optional
 
-from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, String, Text, false
+from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, String, Text, false, Uuid
 from sqlmodel import Field, SQLModel
 from zoneinfo import ZoneInfo
 
@@ -11,19 +12,19 @@ class DocumentBackup(SQLModel, table=True):
 
     __tablename__ = "document_backups"
 
-    id_backup: Optional[int] = Field(default=None, primary_key=True)
-    id_document: int = Field(
+    id_backup: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    id_document: uuid.UUID = Field(
         sa_column=Column(
-            Integer,
+            Uuid,
             ForeignKey("documents.id_document", ondelete="CASCADE"),
             nullable=False,
             index=True,
         ),
     )
-    id_user: Optional[int] = Field(
+    id_user: Optional[uuid.UUID] = Field(
         default=None,
         sa_column=Column(
-            Integer,
+            Uuid,
             ForeignKey("users.id_user", ondelete="SET NULL"),
             nullable=True,
         ),
@@ -54,10 +55,10 @@ class Document(SQLModel, table=True):
 
     __tablename__ = "documents"
 
-    id_document: Optional[int] = Field(default=None, primary_key=True)
-    id_investigation: int = Field(
+    id_document: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    id_investigation: uuid.UUID = Field(
         sa_column=Column(
-            Integer,
+            Uuid,
             ForeignKey("investigations.id_investigation", ondelete="CASCADE"),
             nullable=False,
             index=True,
@@ -70,10 +71,10 @@ class Document(SQLModel, table=True):
         default="",
         sa_column=Column(Text, nullable=False, server_default=""),
     )
-    created_by: Optional[int] = Field(
+    created_by: Optional[uuid.UUID] = Field(
         default=None,
         sa_column=Column(
-            Integer,
+            Uuid,
             ForeignKey("users.id_user", ondelete="SET NULL"),
             nullable=True,
             index=True,

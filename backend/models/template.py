@@ -1,7 +1,8 @@
+import uuid
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String, Text, Uuid
 from sqlmodel import Field, SQLModel
 from zoneinfo import ZoneInfo
 
@@ -11,7 +12,7 @@ class Template(SQLModel, table=True):
 
     __tablename__ = "templates"
 
-    id_template: Optional[int] = Field(default=None, primary_key=True)
+    id_template: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     name: str = Field(
         sa_column=Column(String(255), nullable=False),
     )
@@ -27,19 +28,19 @@ class Template(SQLModel, table=True):
         default=False,
         sa_column=Column(Boolean, nullable=False, default=False),
     )
-    id_category_template: Optional[int] = Field(
+    id_category_template: Optional[uuid.UUID] = Field(
         default=None,
         sa_column=Column(
-            Integer,
+            Uuid,
             ForeignKey("template_categories.id_category_template", ondelete="SET NULL"),
             nullable=True,
             index=True,
         ),
     )
-    created_by: Optional[int] = Field(
+    created_by: Optional[uuid.UUID] = Field(
         default=None,
         sa_column=Column(
-            Integer,
+            Uuid,
             ForeignKey("users.id_user", ondelete="SET NULL"),
             nullable=True,
             index=True,

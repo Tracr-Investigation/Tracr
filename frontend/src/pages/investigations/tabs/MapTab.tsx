@@ -15,7 +15,7 @@ L.Icon.Default.mergeOptions({
 });
 
 interface GeoPoint {
-    id_entity: number;
+    id_entity: string;
     label: string;
     value: string | null;
     lat: number;
@@ -23,7 +23,7 @@ interface GeoPoint {
 }
 
 interface FailedPoint {
-    id_entity: number;
+    id_entity: string;
     label: string;
     value: string | null;
 }
@@ -44,7 +44,7 @@ const FitBounds = ({points}: {points: GeoPoint[]}) => {
     return null;
 };
 
-export const MapTab = ({investigationId}: {investigationId: number}) => {
+export const MapTab = ({investigationId}: {investigationId: string}) => {
     const {t} = useTranslation();
     const [loading, setLoading] = useState(true);
     const [points, setPoints] = useState<GeoPoint[]>([]);

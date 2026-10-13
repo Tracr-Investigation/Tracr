@@ -1,3 +1,4 @@
+from uuid import UUID
 from typing import Optional
 from sqlalchemy import or_, cast, String
 from sqlalchemy.orm import Session
@@ -8,8 +9,8 @@ def create_log(
     db: Session,
     category: str,
     action: str,
-    id_user: Optional[int] = None,
-    id_investigation: Optional[int] = None,
+    id_user: Optional[UUID] = None,
+    id_investigation: Optional[UUID] = None,
     detail: Optional[str] = None,
     ip_address: Optional[str] = None,
 ) -> Log:
@@ -81,30 +82,24 @@ def count_logs(db: Session, category: str = "", search: str = "", exclude_reads:
     return query.count()
 
 
-def get_recent_investigation_ids(db: Session, user_id: int, limit: int = 8) -> list[int]:
-    """Goal: return a user's recently viewed investigation ids (most recent first). Input: db, user_id, limit. Output: list of ints."""
-    import re
+def get_recent_investigation_ids(db: Session, user_id: UUID, limit: int = 8) -> list[UUID]:
+    """Goal: return a user's recently viewed investigation ids (most recent first). Input: db, user_id, limit. Output: list of UUIDs."""
     rows = (
-        db.query(Log.detail, Log.created_at)
+        db.query(Log.id_investigation)
         .filter(
             Log.id_user == user_id,
             Log.action == "view_investigation",
-            Log.detail.isnot(None),
+            Log.id_investigation.isnot(None),
         )
         .order_by(Log.created_at.desc())
         .all()
     )
-    seen = set()
-    result = []
-    for detail, _ in rows:
-        match = re.search(r"#(\d+)", detail)
-        if match:
-            inv_id = int(match.group(1))
-            if inv_id not in seen:
-                seen.add(inv_id)
-                result.append(inv_id)
-                if len(result) >= limit:
-                    break
+    result: list[UUID] = []
+    for (inv_id,) in rows:
+        if inv_id not in result:
+            result.append(inv_id)
+            if len(result) >= limit:
+                break
     return result
 
 
@@ -116,7 +111,7 @@ def get_categories(db: Session) -> list[str]:
 
 def get_timeline_for_investigation(
     db: Session,
-    investigation_id: int,
+    investigation_id: UUID,
     skip: int = 0,
     limit: int = 50,
     category: str = "",
@@ -152,7 +147,7 @@ def get_timeline_for_investigation(
     ]
 
 
-def count_timeline_for_investigation(db: Session, investigation_id: int, category: str = "") -> int:
+def count_timeline_for_investigation(db: Session, investigation_id: UUID, category: str = "") -> int:
     """Goal: count an investigation's timeline events (excludes consultations). Input: db, investigation_id, category. Output: int."""
     query = db.query(Log).filter(
         Log.id_investigation == investigation_id,
@@ -163,7 +158,7 @@ def count_timeline_for_investigation(db: Session, investigation_id: int, categor
     return query.count()
 
 
-def get_timeline_categories(db: Session, investigation_id: int) -> list[str]:
+def get_timeline_categories(db: Session, investigation_id: UUID) -> list[str]:
     """Goal: list distinct categories present in an investigation's timeline. Input: db, investigation_id. Output: list of category strings."""
     rows = (
         db.query(Log.category)

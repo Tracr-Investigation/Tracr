@@ -7,6 +7,7 @@ import {useToast} from '../../contexts/ToastContext';
 import {api} from '../../services/api';
 import {formatRelativeDate} from '../../utils/date';
 import {useTranslation} from 'react-i18next';
+import {investigationPath} from '../../utils/paths';
 import {
     Bell,
     CheckCheck,
@@ -20,8 +21,8 @@ import {
 } from 'lucide-react';
 
 interface PendingInvitation {
-    id_collaborator: number;
-    id_investigation: number;
+    id_collaborator: string;
+    id_investigation: string;
     investigation_title: string;
     permission_level: string;
     invited_by_pseudo: string | null;
@@ -43,7 +44,7 @@ export const Notifications = () => {
     usePageTitle(t('sidebar.notifications'));
     const [invitations, setInvitations] = useState<PendingInvitation[]>([]);
     const [loadingInvitations, setLoadingInvitations] = useState(true);
-    const [processingId, setProcessingId] = useState<number | null>(null);
+    const [processingId, setProcessingId] = useState<string | null>(null);
 
     const fetchInvitations = useCallback(async () => {
         try {
@@ -60,7 +61,7 @@ export const Notifications = () => {
         fetchInvitations();
     }, [fetchInvitations]);
 
-    const handleAccept = async (id: number) => {
+    const handleAccept = async (id: string) => {
         setProcessingId(id);
         try {
             await api.acceptInvitation(id);
@@ -73,7 +74,7 @@ export const Notifications = () => {
         }
     };
 
-    const handleReject = async (id: number) => {
+    const handleReject = async (id: string) => {
         setProcessingId(id);
         try {
             await api.rejectInvitation(id);
@@ -92,7 +93,7 @@ export const Notifications = () => {
         }
         if (notification.reference_type && notification.reference_id) {
             if (notification.reference_type === 'investigation' || notification.reference_type === 'collaboration') {
-                navigate(`/investigations/${notification.reference_id}`);
+                navigate(investigationPath(notification.reference_id));
             }
         }
     };

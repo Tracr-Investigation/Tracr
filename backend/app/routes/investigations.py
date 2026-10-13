@@ -1,10 +1,16 @@
+from uuid import UUID
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, Response, UploadFile
 from sqlmodel import Session
 
 from services import user_service, investigation_service, log_service, status_service, collaborator_service, category_service, storage_service
 from services.notification_emitter import create_and_emit
 from utils.security import verify_token
-from utils.schemas import InvestigationCreateRequest, InvestigationUpdateRequest, InvestigationTransferRequest, CollaboratorInviteRequest, CollaboratorUpdateRequest
+from utils.schemas import (
+    InvestigationCreateRequest, InvestigationUpdateRequest, InvestigationTransferRequest,
+    InvestigationStatusUpdateRequest, InvestigationCategoryAssignRequest,
+    CollaboratorInviteRequest, CollaboratorUpdateRequest,
+)
+from app.access import require_member
 from app.dependencies import get_db
 
 router = APIRouter(prefix="/investigations")
@@ -131,7 +137,7 @@ async def search_users_for_invitation(
 
 @router.post("/invitations/{id_collaborator}/accept")
 async def accept_invitation(
-        id_collaborator: int,
+        id_collaborator: UUID,
         request: Request,
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
@@ -168,7 +174,7 @@ async def accept_invitation(
 
 @router.post("/invitations/{id_collaborator}/reject")
 async def reject_invitation(
-        id_collaborator: int,
+        id_collaborator: UUID,
         request: Request,
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
@@ -240,26 +246,20 @@ async def get_recent_investigations(
 
 @router.get("/{investigation_id}")
 async def get_investigation(
-        investigation_id: int,
+        investigation_id: UUID,
         request: Request,
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
-    """Goal: return an investigation's detail (owner or collaborator). Input: investigation_id, auth, db. Output: detail (403/404 on errors)."""
+    """Goal: return an investigation's detail (owner or collaborator). Input: investigation_id, auth, db. Output: detail (404 if missing or not a member)."""
+    require_member(db, investigation_id, user.id_user)
     detail = investigation_service.get_investigation_detail(db, investigation_id, current_user_id=user.id_user)
-    if not detail:
-        raise HTTPException(status_code=404, detail="Investigation not found")
-
-    is_owner = detail["owner"]["id_user"] == user.id_user
-    collab_permission = collaborator_service.get_collaborator_permission(db, investigation_id, user.id_user)
-
-    if not is_owner and not collab_permission:
-        raise HTTPException(status_code=403, detail="Access denied")
 
     ip = request.client.host if request.client else None
     log_service.create_log(
         db, category="consultation", action="view_investigation",
-        id_user=user.id_user, detail=f"Investigation #{investigation_id}",
+        id_user=user.id_user, id_investigation=investigation_id,
+        detail=f"Investigation #{investigation_id}",
         ip_address=ip,
     )
     return detail
@@ -267,16 +267,14 @@ async def get_investigation(
 
 @router.patch("/{investigation_id}")
 async def update_investigation(
-        investigation_id: int,
+        investigation_id: UUID,
         body: InvestigationUpdateRequest,
         request: Request,
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
     """Goal: update an investigation (owner only). Input: investigation_id, body, auth, db. Output: the updated investigation (403/404/422 on errors)."""
-    investigation = investigation_service.get_investigation_by_id(db, investigation_id)
-    if not investigation:
-        raise HTTPException(status_code=404, detail="Investigation not found")
+    investigation, _ = require_member(db, investigation_id, user.id_user)
 
     if investigation.owner_id != user.id_user:
         raise HTTPException(status_code=403, detail="Only the owner can update this investigation")
@@ -337,29 +335,22 @@ def cover_mime_from_key(storage_key: str) -> str:
     return _COVER_EXT_MIME.get(ext, "application/octet-stream")
 
 
-def _require_investigation_access(db: Session, investigation_id: int, user_id: int):
-    """Goal: return the investigation if the user has access (owner or collaborator). Input: db, investigation_id, user_id. Output: the investigation (403/404 on errors)."""
-    investigation = investigation_service.get_investigation_by_id(db, investigation_id)
-    if not investigation:
-        raise HTTPException(status_code=404, detail="Investigation not found")
-    if investigation.owner_id != user_id:
-        if not collaborator_service.get_collaborator_permission(db, investigation_id, user_id):
-            raise HTTPException(status_code=403, detail="Access denied")
+def _require_investigation_access(db: Session, investigation_id: UUID, user_id: UUID):
+    """Goal: return the investigation if the user has access (owner or collaborator). Input: db, investigation_id, user_id. Output: the investigation (404 if missing or not a member)."""
+    investigation, _ = require_member(db, investigation_id, user_id)
     return investigation
 
 
 @router.post("/{investigation_id}/cover")
 async def upload_investigation_cover(
-        investigation_id: int,
+        investigation_id: UUID,
         request: Request,
         file: UploadFile = File(...),
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
     """Goal: upload the investigation cover image (owner only). Input: investigation_id, file, auth, db. Output: {"has_cover": True} (400/403/404 on errors)."""
-    investigation = investigation_service.get_investigation_by_id(db, investigation_id)
-    if not investigation:
-        raise HTTPException(status_code=404, detail="Investigation not found")
+    investigation, _ = require_member(db, investigation_id, user.id_user)
     if investigation.owner_id != user.id_user:
         raise HTTPException(status_code=403, detail="Only the owner can set the cover image")
 
@@ -395,14 +386,12 @@ async def upload_investigation_cover(
 
 @router.delete("/{investigation_id}/cover")
 async def delete_investigation_cover(
-        investigation_id: int,
+        investigation_id: UUID,
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
     """Goal: remove the investigation cover image (owner only). Input: investigation_id, auth, db. Output: {"has_cover": False} (403/404 on errors)."""
-    investigation = investigation_service.get_investigation_by_id(db, investigation_id)
-    if not investigation:
-        raise HTTPException(status_code=404, detail="Investigation not found")
+    investigation, _ = require_member(db, investigation_id, user.id_user)
     if investigation.owner_id != user.id_user:
         raise HTTPException(status_code=403, detail="Only the owner can remove the cover image")
 
@@ -418,7 +407,7 @@ async def delete_investigation_cover(
 
 @router.get("/{investigation_id}/cover")
 async def get_investigation_cover(
-        investigation_id: int,
+        investigation_id: UUID,
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
@@ -435,16 +424,14 @@ async def get_investigation_cover(
 
 @router.post("/{investigation_id}/transfer")
 async def transfer_investigation(
-        investigation_id: int,
+        investigation_id: UUID,
         body: InvestigationTransferRequest,
         request: Request,
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
     """Goal: transfer ownership to another user (owner only; notifies them). Input: investigation_id, body (new_owner_pseudo), auth, db. Output: {"detail", "new_owner"} (400/403/404 on errors)."""
-    investigation = investigation_service.get_investigation_by_id(db, investigation_id)
-    if not investigation:
-        raise HTTPException(status_code=404, detail="Investigation not found")
+    investigation, _ = require_member(db, investigation_id, user.id_user)
 
     if investigation.owner_id != user.id_user:
         raise HTTPException(status_code=403, detail="Only the owner can transfer ownership")
@@ -499,15 +486,13 @@ async def transfer_investigation(
 
 @router.delete("/{investigation_id}")
 async def delete_investigation(
-        investigation_id: int,
+        investigation_id: UUID,
         request: Request,
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
     """Goal: delete an investigation (owner only). Input: investigation_id, auth, db. Output: {"detail"} (403/404 on errors)."""
-    investigation = investigation_service.get_investigation_by_id(db, investigation_id)
-    if not investigation:
-        raise HTTPException(status_code=404, detail="Investigation not found")
+    investigation, _ = require_member(db, investigation_id, user.id_user)
 
     if investigation.owner_id != user.id_user:
         raise HTTPException(status_code=403, detail="Only the owner can delete this investigation")
@@ -530,16 +515,14 @@ async def delete_investigation(
 
 @router.patch("/{investigation_id}/status")
 async def update_investigation_status(
-        investigation_id: int,
-        body: dict,
+        investigation_id: UUID,
+        body: InvestigationStatusUpdateRequest,
         request: Request,
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
     """Goal: change an investigation's status (owner/manager/editeur). Input: investigation_id, body (id_status), auth, db. Output: {"detail", "id_status", "status_name"} (403/404/422 on errors)."""
-    investigation = investigation_service.get_investigation_by_id(db, investigation_id)
-    if not investigation:
-        raise HTTPException(status_code=404, detail="Investigation not found")
+    investigation, _ = require_member(db, investigation_id, user.id_user)
 
     is_owner = investigation.owner_id == user.id_user
     collab_permission = collaborator_service.get_collaborator_permission(db, investigation_id, user.id_user)
@@ -547,9 +530,7 @@ async def update_investigation_status(
     if not is_owner and collab_permission not in ("manager", "editeur"):
         raise HTTPException(status_code=403, detail="Access denied")
 
-    new_status_id = body.get("id_status")
-    if not new_status_id:
-        raise HTTPException(status_code=422, detail="id_status is required")
+    new_status_id = body.id_status
 
     new_status = status_service.get_status_by_id(db, new_status_id)
     if not new_status:
@@ -578,16 +559,14 @@ async def update_investigation_status(
 
 @router.post("/{investigation_id}/collaborators")
 async def invite_collaborator(
-        investigation_id: int,
+        investigation_id: UUID,
         body: CollaboratorInviteRequest,
         request: Request,
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
     """Goal: invite a user as collaborator (owner/manager; notifies them). Input: investigation_id, body (pseudo/permission), auth, db. Output: invitation result (400/403/404/409 on errors)."""
-    investigation = investigation_service.get_investigation_by_id(db, investigation_id)
-    if not investigation:
-        raise HTTPException(status_code=404, detail="Investigation not found")
+    investigation, _ = require_member(db, investigation_id, user.id_user)
 
     is_owner = investigation.owner_id == user.id_user
     collab_permission = collaborator_service.get_collaborator_permission(db, investigation_id, user.id_user)
@@ -653,15 +632,13 @@ async def invite_collaborator(
 
 @router.get("/{investigation_id}/collaborators")
 async def get_collaborators(
-        investigation_id: int,
+        investigation_id: UUID,
         request: Request,
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
     """Goal: list an investigation's collaborators. Input: investigation_id, auth, db. Output: {"collaborators"} (403/404 on errors)."""
-    investigation = investigation_service.get_investigation_by_id(db, investigation_id)
-    if not investigation:
-        raise HTTPException(status_code=404, detail="Investigation not found")
+    investigation, _ = require_member(db, investigation_id, user.id_user)
 
     is_owner = investigation.owner_id == user.id_user
     collab_permission = collaborator_service.get_collaborator_permission(db, investigation_id, user.id_user)
@@ -681,17 +658,15 @@ async def get_collaborators(
 
 @router.patch("/{investigation_id}/collaborators/{id_collaborator}")
 async def update_collaborator_permission(
-        investigation_id: int,
-        id_collaborator: int,
+        investigation_id: UUID,
+        id_collaborator: UUID,
         body: CollaboratorUpdateRequest,
         request: Request,
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
     """Goal: change a collaborator's permission (owner only). Input: investigation_id, id_collaborator, body, auth, db. Output: result (403/404 on errors)."""
-    investigation = investigation_service.get_investigation_by_id(db, investigation_id)
-    if not investigation:
-        raise HTTPException(status_code=404, detail="Investigation not found")
+    investigation, _ = require_member(db, investigation_id, user.id_user)
 
     if investigation.owner_id != user.id_user:
         raise HTTPException(status_code=403, detail="Only the owner can modify permissions")
@@ -718,16 +693,14 @@ async def update_collaborator_permission(
 
 @router.delete("/{investigation_id}/collaborators/{id_collaborator}")
 async def remove_collaborator(
-        investigation_id: int,
-        id_collaborator: int,
+        investigation_id: UUID,
+        id_collaborator: UUID,
         request: Request,
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
     """Goal: remove a collaborator (owner, manager, or self). Input: investigation_id, id_collaborator, auth, db. Output: {"detail"} (403/404 on errors)."""
-    investigation = investigation_service.get_investigation_by_id(db, investigation_id)
-    if not investigation:
-        raise HTTPException(status_code=404, detail="Investigation not found")
+    investigation, _ = require_member(db, investigation_id, user.id_user)
 
     collab = collaborator_service.get_collaborator_by_id(db, id_collaborator)
     if not collab or collab.id_investigation != investigation_id:
@@ -773,15 +746,13 @@ async def remove_collaborator(
 
 @router.get("/{investigation_id}/categories")
 async def get_investigation_category_list(
-        investigation_id: int,
+        investigation_id: UUID,
         request: Request,
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
     """Goal: list an investigation's categories. Input: investigation_id, auth, db. Output: {"categories"} (403/404 on errors)."""
-    investigation = investigation_service.get_investigation_by_id(db, investigation_id)
-    if not investigation:
-        raise HTTPException(status_code=404, detail="Investigation not found")
+    investigation, _ = require_member(db, investigation_id, user.id_user)
 
     is_owner = investigation.owner_id == user.id_user
     collab_permission = collaborator_service.get_collaborator_permission(db, investigation_id, user.id_user)
@@ -800,25 +771,21 @@ async def get_investigation_category_list(
 
 @router.post("/{investigation_id}/categories")
 async def add_category_to_investigation(
-        investigation_id: int,
-        body: dict,
+        investigation_id: UUID,
+        body: InvestigationCategoryAssignRequest,
         request: Request,
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
     """Goal: assign a category to an investigation (owner/manager/editeur). Input: investigation_id, body (id_category), auth, db. Output: result (403/404/422 on errors)."""
-    investigation = investigation_service.get_investigation_by_id(db, investigation_id)
-    if not investigation:
-        raise HTTPException(status_code=404, detail="Investigation not found")
+    investigation, _ = require_member(db, investigation_id, user.id_user)
 
     is_owner = investigation.owner_id == user.id_user
     collab_permission = collaborator_service.get_collaborator_permission(db, investigation_id, user.id_user)
     if not is_owner and collab_permission not in ("manager", "editeur"):
         raise HTTPException(status_code=403, detail="Access denied")
 
-    category_id = body.get("id_category")
-    if not category_id:
-        raise HTTPException(status_code=422, detail="id_category is required")
+    category_id = body.id_category
 
     cat = category_service.get_category_by_id(db, category_id)
     if not cat:
@@ -836,16 +803,14 @@ async def add_category_to_investigation(
 
 @router.delete("/{investigation_id}/categories/{category_id}")
 async def remove_category_from_investigation(
-        investigation_id: int,
-        category_id: int,
+        investigation_id: UUID,
+        category_id: UUID,
         request: Request,
         user=Depends(get_current_user),
         db: Session = Depends(get_db),
 ):
     """Goal: unassign a category from an investigation (owner/manager/editeur). Input: investigation_id, category_id, auth, db. Output: {"detail"} (403/404 on errors)."""
-    investigation = investigation_service.get_investigation_by_id(db, investigation_id)
-    if not investigation:
-        raise HTTPException(status_code=404, detail="Investigation not found")
+    investigation, _ = require_member(db, investigation_id, user.id_user)
 
     is_owner = investigation.owner_id == user.id_user
     collab_permission = collaborator_service.get_collaborator_permission(db, investigation_id, user.id_user)

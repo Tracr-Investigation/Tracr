@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { PASSWORD_RULES, isPasswordValid } from '../../../utils/passwordValidation';
 
 interface UserData {
-  id_user: number;
+  id_user: string;
   pseudo: string;
   role: string;
   is_active: boolean;

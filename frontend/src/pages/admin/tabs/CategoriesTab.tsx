@@ -22,7 +22,7 @@ function getIconComponent(iconName: string | null): React.ComponentType<{ size?:
 }
 
 interface CategoryData {
-    id_category: number;
+    id_category: string;
     name: string;
     color: string | null;
     icon: string | null;
@@ -258,7 +258,6 @@ export const CategoriesTab = () => {
                     <table className="w-full">
                         <thead>
                         <tr className="border-b border-border">
-                            <th className="text-left px-6 py-4 text-sm font-medium text-text-muted">{t('admin.categories.colId')}</th>
                             <th className="text-left px-6 py-4 text-sm font-medium text-text-muted">{t('admin.categories.colCategory')}</th>
                             <th className="text-left px-6 py-4 text-sm font-medium text-text-muted">{t('admin.categories.colColor')}</th>
                             <th className="text-left px-6 py-4 text-sm font-medium text-text-muted">{t('admin.categories.colIcon')}</th>
@@ -268,15 +267,14 @@ export const CategoriesTab = () => {
                         </thead>
                         <tbody>
                         {loading ? (
-                            <tr><td colSpan={6} className="px-6 py-12 text-center text-text-muted">{t('admin.categories.loading')}</td></tr>
+                            <tr><td colSpan={5} className="px-6 py-12 text-center text-text-muted">{t('admin.categories.loading')}</td></tr>
                         ) : categories.length === 0 ? (
-                            <tr><td colSpan={6} className="px-6 py-12 text-center text-text-muted">{t('admin.categories.empty')}</td></tr>
+                            <tr><td colSpan={5} className="px-6 py-12 text-center text-text-muted">{t('admin.categories.empty')}</td></tr>
                         ) : (
                             categories.map((c) => {
                                 const IconComp = getIconComponent(c.icon);
                                 return (
                                     <tr key={c.id_category} className="border-b border-border-subtle hover:bg-card/20 transition-colors">
-                                        <td className="px-6 py-4 text-text-muted text-sm font-mono">#{c.id_category}</td>
                                         <td className="px-6 py-4"><CategoryBadge name={c.name} color={c.color} icon={c.icon}/></td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">

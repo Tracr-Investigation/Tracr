@@ -1,3 +1,4 @@
+from uuid import UUID
 from typing import Optional
 
 from sqlalchemy import or_
@@ -9,10 +10,11 @@ from models.user import User
 from models.category import Category
 from models.investigation_category import InvestigationCategory
 
-DEFAULT_STATUS_ID = 4
+# Statut "Nouveau" : UUID fixe seede par la migration 0001_uuid_initial.
+DEFAULT_STATUS_ID = UUID("55d1cec1-491d-4251-bd76-14354ff831fb")
 
 
-def get_investigations_for_user(db: Session, user_id: int) -> list[dict]:
+def get_investigations_for_user(db: Session, user_id: UUID) -> list[dict]:
     """Goal: list investigations a user owns or collaborates on (with status/categories). Input: db, user_id. Output: list of investigation dicts."""
     rows = (
         db.query(Investigation, InvestigationStatus)
@@ -67,7 +69,7 @@ def get_investigations_for_user(db: Session, user_id: int) -> list[dict]:
     return results
 
 
-def count_investigations_for_user(db: Session, user_id: int) -> int:
+def count_investigations_for_user(db: Session, user_id: UUID) -> int:
     """Goal: count investigations a user owns or collaborates on. Input: db, user_id. Output: int."""
     return (
         db.query(Investigation.id_investigation)
@@ -89,7 +91,7 @@ def count_investigations_for_user(db: Session, user_id: int) -> int:
 
 
 def create_investigation(
-    db: Session, title: str, owner_id: int, description: Optional[str] = None,
+    db: Session, title: str, owner_id: UUID, description: Optional[str] = None,
     objectives: Optional[str] = None,
 ) -> Investigation:
     """Goal: create an investigation with the default status. Input: db, title, owner_id, description, objectives. Output: the created Investigation."""
@@ -107,7 +109,7 @@ def create_investigation(
 
 
 def update_investigation_status(
-    db: Session, investigation: Investigation, new_status_id: int
+    db: Session, investigation: Investigation, new_status_id: UUID
 ) -> Investigation:
     """Goal: change an investigation's status (touches updated_at). Input: db, investigation, new_status_id. Output: the updated Investigation."""
     from datetime import datetime
@@ -163,7 +165,7 @@ def clear_cover(db: Session, investigation: Investigation) -> Investigation:
     return investigation
 
 
-def transfer_ownership(db: Session, investigation: Investigation, new_owner_id: int) -> Investigation:
+def transfer_ownership(db: Session, investigation: Investigation, new_owner_id: UUID) -> Investigation:
     """Goal: transfer ownership to another user (touches updated_at). Input: db, investigation, new_owner_id. Output: the updated Investigation."""
     from datetime import datetime
     from zoneinfo import ZoneInfo
@@ -176,7 +178,7 @@ def transfer_ownership(db: Session, investigation: Investigation, new_owner_id: 
     return investigation
 
 
-def delete_investigation(db: Session, investigation_id: int) -> bool:
+def delete_investigation(db: Session, investigation_id: UUID) -> bool:
     """Goal: delete an investigation and its collaborator/category links. Input: db, investigation_id. Output: bool (False if not found)."""
     investigation = db.query(Investigation).filter(Investigation.id_investigation == investigation_id).first()
     if not investigation:
@@ -192,7 +194,7 @@ def delete_investigation(db: Session, investigation_id: int) -> bool:
     return True
 
 
-def get_investigation_by_id(db: Session, investigation_id: int) -> Optional[Investigation]:
+def get_investigation_by_id(db: Session, investigation_id: UUID) -> Optional[Investigation]:
     """Goal: fetch an investigation by id. Input: db, investigation_id. Output: Investigation or None."""
     return (
         db.query(Investigation)
@@ -201,7 +203,7 @@ def get_investigation_by_id(db: Session, investigation_id: int) -> Optional[Inve
     )
 
 
-def get_investigation_detail(db: Session, investigation_id: int, current_user_id: Optional[int] = None) -> Optional[dict]:
+def get_investigation_detail(db: Session, investigation_id: UUID, current_user_id: Optional[UUID] = None) -> Optional[dict]:
     """Goal: build an investigation's full detail (status, categories, owner, collaborators, current user's permission). Input: db, investigation_id, current_user_id. Output: detail dict or None."""
     row = (
         db.query(Investigation, InvestigationStatus, User)

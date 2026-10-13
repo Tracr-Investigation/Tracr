@@ -12,15 +12,15 @@ import { IocPanel } from '../../components/osint/IocPanel';
 import { api } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
-import { extractIdFromSlug, toInvestigationSlug } from '../../utils/slug';
+import { investigationPath, isUuid } from '../../utils/paths';
 import { userColor } from '../../utils/userColor';
 
 interface DocumentData {
-  id_document: number;
-  id_investigation: number;
+  id_document: string;
+  id_investigation: string;
   title: string;
   content_html: string;
-  created_by: number | null;
+  created_by: string | null;
   created_by_pseudo: string | null;
   created_at: string | null;
   updated_at: string | null;
@@ -382,26 +382,19 @@ const ExportPanel = ({ exporting, onClose, onConfirm }: ExportPanelProps) => {
 };
 
 export const DocumentDetail = () => {
-  const { slug, docId } = useParams<{ slug: string; docId: string }>();
+  const params = useParams<{ investigationId: string; documentId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
 
-  let investigationId: number | null = null;
-  if (slug) {
-    investigationId = extractIdFromSlug(slug);
-  }
-
-  let documentId: number | null = null;
-  if (docId) {
-    documentId = parseInt(docId, 10);
-  }
+  // Identifiants mal formes (anciennes URLs, saisie manuelle) : jamais envoyes a l'API.
+  const investigationId = isUuid(params.investigationId) ? params.investigationId : null;
+  const documentId = isUuid(params.documentId) ? params.documentId : null;
 
   const [document, setDocument] = useState<DocumentData | null>(null);
   usePageTitle(document?.title);
-  const [investigationTitle, setInvestigationTitle] = useState('');
   const [permission, setPermission] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Boolean(documentId && investigationId));
   const [error, setError] = useState('');
   const [title, setTitle] = useState('');
   const [saveState, setSaveState] = useState<SaveState>('idle');
@@ -429,7 +422,6 @@ export const DocumentDetail = () => {
       }
       setDocument(doc);
       setTitle(doc.title);
-      setInvestigationTitle(inv.title);
       setPermission(inv.user_permission);
     };
 
@@ -568,9 +560,8 @@ export const DocumentDetail = () => {
     );
   }
 
-  const investigationSlug = toInvestigationSlug(investigationTitle, investigationId as number);
-  const backLink = `/investigations/${investigationSlug}`;
-  const currentUserId = user?.id_user ?? 0;
+  const backLink = investigationPath(investigationId as string);
+  const currentUserId = user?.id_user ?? '';
   const currentUserPseudo = user?.pseudo ?? DEFAULT_PSEUDO;
   const safeDocument = document as DocumentData;
 
@@ -638,7 +629,7 @@ export const DocumentDetail = () => {
             <DocumentEditor
               ref={editorRef}
               documentId={safeDocument.id_document}
-              investigationId={investigationId as number}
+              investigationId={investigationId as string}
               initialContent={safeDocument.content_html}
               readOnly={!canEdit}
               isOwner={isOwner}
@@ -670,7 +661,7 @@ export const DocumentDetail = () => {
 
           {showIocPanel && (
             <IocPanel
-              investigationId={investigationId as number}
+              investigationId={investigationId as string}
               html={currentHtml || safeDocument.content_html}
               canEdit={canEdit}
               onClose={() => setShowIocPanel(false)}

@@ -1,3 +1,4 @@
+from uuid import UUID
 from datetime import datetime
 from typing import Optional
 from zoneinfo import ZoneInfo
@@ -12,7 +13,7 @@ from models.task_response import TaskResponse
 from models.user import User
 
 
-def get_user_permission(db: Session, id_investigation: int, id_user: int) -> Optional[str]:
+def get_user_permission(db: Session, id_investigation: UUID, id_user: UUID) -> Optional[str]:
     """Retourne la permission de l'utilisateur sur l'investigation (owner/manager/editeur/lecteur ou None)."""
     investigation = db.query(Investigation).filter(Investigation.id_investigation == id_investigation).first()
     if not investigation:
@@ -33,7 +34,7 @@ def get_user_permission(db: Session, id_investigation: int, id_user: int) -> Opt
     return None
 
 
-def is_member(db: Session, id_investigation: int, id_user: int) -> bool:
+def is_member(db: Session, id_investigation: UUID, id_user: UUID) -> bool:
     """Vérifie si l'utilisateur est membre de l'investigation (owner ou collaborateur accepté)."""
     return get_user_permission(db, id_investigation, id_user) is not None
 
@@ -43,22 +44,22 @@ def can_create_task(permission: Optional[str]) -> bool:
     return permission in ("owner", "manager", "editeur")
 
 
-def can_edit_task(permission: Optional[str], id_user: int, task: Task) -> bool:
+def can_edit_task(permission: Optional[str], id_user: UUID, task: Task) -> bool:
     """Goal: tell if a user may edit a task (owner or its creator). Input: permission, id_user, task. Output: bool."""
     return permission == "owner" or task.created_by == id_user
 
 
-def can_delete_task(permission: Optional[str], id_user: int, task: Task) -> bool:
+def can_delete_task(permission: Optional[str], id_user: UUID, task: Task) -> bool:
     """Goal: tell if a user may delete a task (owner or its creator). Input: permission, id_user, task. Output: bool."""
     return permission == "owner" or task.created_by == id_user
 
 
-def can_change_status(permission: Optional[str], id_user: int, task: Task) -> bool:
+def can_change_status(permission: Optional[str], id_user: UUID, task: Task) -> bool:
     """Goal: tell if a user may change a task's status (owner, creator or assignee). Input: permission, id_user, task. Output: bool."""
     return permission == "owner" or task.created_by == id_user or task.assigned_to == id_user
 
 
-def _column_query(db: Session, id_investigation: Optional[int], created_by: Optional[int], status: str):
+def _column_query(db: Session, id_investigation: Optional[UUID], created_by: Optional[UUID], status: str):
     """Requête sur les tâches d'une même colonne Kanban (même scope + même statut).
 
     Scope = une enquête (id_investigation) pour un board d'enquête, ou les tâches
@@ -72,7 +73,7 @@ def _column_query(db: Session, id_investigation: Optional[int], created_by: Opti
     return q
 
 
-def _next_position(db: Session, id_investigation: Optional[int], created_by: Optional[int], status: str) -> int:
+def _next_position(db: Session, id_investigation: Optional[UUID], created_by: Optional[UUID], status: str) -> int:
     """Position pour ajouter une tâche en bas d'une colonne."""
     max_pos = _column_query(db, id_investigation, created_by, status).with_entities(
         func.max(Task.position)
@@ -107,7 +108,7 @@ def _task_to_dict(task: Task, db: Session) -> dict:
     }
 
 
-def get_tasks(db: Session, id_investigation: int, id_user: int) -> list[dict]:
+def get_tasks(db: Session, id_investigation: UUID, id_user: UUID) -> list[dict]:
     """Récupère les tâches visibles par l'utilisateur."""
     investigation = db.query(Investigation).filter(Investigation.id_investigation == id_investigation).first()
     if not investigation:
@@ -137,21 +138,21 @@ def get_tasks(db: Session, id_investigation: int, id_user: int) -> list[dict]:
     return [_task_to_dict(t, db) for t in tasks]
 
 
-def get_task_by_id(db: Session, id_task: int) -> Optional[Task]:
+def get_task_by_id(db: Session, id_task: UUID) -> Optional[Task]:
     """Goal: fetch a task by id. Input: db, id_task. Output: Task or None."""
     return db.query(Task).filter(Task.id_task == id_task).first()
 
 
 def create_task(
     db: Session,
-    id_investigation: Optional[int],
-    id_user: int,
+    id_investigation: Optional[UUID],
+    id_user: UUID,
     title: str,
     description: Optional[str] = None,
     status: str = "todo",
     priority: str = "normale",
     is_private: bool = False,
-    assigned_to: Optional[int] = None,
+    assigned_to: Optional[UUID] = None,
     due_date: Optional[datetime] = None,
 ) -> dict:
     """Goal: create a task (investigation or personal) appended to its column. Input: db, id_investigation, id_user, title, description, status, priority, is_private, assigned_to, due_date. Output: the created task dict."""
@@ -204,7 +205,7 @@ def move_task(db: Session, task: Task, new_status: str, new_position: int) -> di
     return _task_to_dict(task, db)
 
 
-def get_personal_tasks(db: Session, id_user: int) -> list[dict]:
+def get_personal_tasks(db: Session, id_user: UUID) -> list[dict]:
     """Tâches personnelles de l'utilisateur (hors enquête), ordonnées pour le Kanban."""
     tasks = (
         db.query(Task)
@@ -223,7 +224,7 @@ def update_task(
     status: Optional[str] = None,
     priority: Optional[str] = None,
     is_private: Optional[bool] = None,
-    assigned_to: Optional[int] = None,
+    assigned_to: Optional[UUID] = None,
     due_date: Optional[datetime] = None,
     clear_assigned: bool = False,
     clear_due_date: bool = False,
@@ -271,7 +272,7 @@ def delete_task(db: Session, task: Task) -> bool:
     return True
 
 
-def get_responses(db: Session, id_task: int) -> list[dict]:
+def get_responses(db: Session, id_task: UUID) -> list[dict]:
     """Goal: list a task's responses (oldest first, with author). Input: db, id_task. Output: list of response dicts."""
     rows = (
         db.query(TaskResponse, User)
@@ -294,7 +295,7 @@ def get_responses(db: Session, id_task: int) -> list[dict]:
     ]
 
 
-def create_response(db: Session, id_task: int, id_user: int, content: str) -> dict:
+def create_response(db: Session, id_task: UUID, id_user: UUID, content: str) -> dict:
     """Goal: add a response/comment to a task. Input: db, id_task, id_user, content. Output: the created response dict."""
     response = TaskResponse(
         id_task=id_task,
@@ -318,7 +319,7 @@ def create_response(db: Session, id_task: int, id_user: int, content: str) -> di
 
 def get_my_tasks(
     db: Session,
-    id_user: int,
+    id_user: UUID,
     limit: Optional[int] = 10,
     include_completed: bool = False,
 ) -> list[dict]:
@@ -365,7 +366,7 @@ def get_my_tasks(
     return result
 
 
-def get_response_by_id(db: Session, id_response: int) -> Optional[TaskResponse]:
+def get_response_by_id(db: Session, id_response: UUID) -> Optional[TaskResponse]:
     """Goal: fetch a task response by id. Input: db, id_response. Output: TaskResponse or None."""
     return db.query(TaskResponse).filter(TaskResponse.id_response == id_response).first()
 

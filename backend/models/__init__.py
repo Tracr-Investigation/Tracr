@@ -13,6 +13,7 @@ from models.task_response import TaskResponse
 from models.document import Document
 from models.document_comment import DocumentComment
 from models.template import Template
+from models.template_category import TemplateCategory
 from models.entity import Entity
 from models.entity_relation import EntityRelation
 from models.source import InvestigationSource
@@ -23,7 +24,7 @@ __all__ = [
     "Investigation", "InvestigationStatus", "Notification", "InvestigationCollaborator",
     "Category", "InvestigationCategory",
     "Task", "TaskResponse",
-    "Document", "DocumentComment", "Template",
+    "Document", "DocumentComment", "Template", "TemplateCategory",
     "Entity", "EntityRelation",
     "InvestigationSource",
     "InvestigationSelector",

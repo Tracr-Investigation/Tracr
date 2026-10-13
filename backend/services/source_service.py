@@ -5,6 +5,7 @@ image ou video) rattachee a une enquete. Le binaire est depose dans MinIO via
 storage_service ; la base ne garde que les metadonnees et l'empreinte SHA-256
 garantissant l'integrite de la preuve.
 """
+from uuid import UUID
 import hashlib
 import hmac
 import uuid
@@ -68,7 +69,7 @@ def can_write(permission: Optional[str]) -> bool:
     return permission in ("owner", "manager", "editeur")
 
 
-def can_delete(permission: Optional[str], source: InvestigationSource, user_id: int) -> bool:
+def can_delete(permission: Optional[str], source: InvestigationSource, user_id: UUID) -> bool:
     """L'owner de l'enquete ou le createur de la source peuvent supprimer."""
     return permission == "owner" or source.created_by == user_id
 
@@ -83,7 +84,7 @@ def is_valid_role(role: Optional[str]) -> bool:
     return role is None or role in ROLES
 
 
-def _storage_key(id_investigation: int, mime_type: str) -> str:
+def _storage_key(id_investigation: UUID, mime_type: str) -> str:
     """Goal: build a unique MinIO object key for a source. Input: id_investigation, mime_type. Output: storage key str."""
     ext = _EXT_BY_MIME.get(mime_type, "")
     return f"sources/{id_investigation}/{uuid.uuid4().hex}{ext}"
@@ -92,8 +93,8 @@ def _storage_key(id_investigation: int, mime_type: str) -> str:
 def create_source(
     db: Session,
     *,
-    id_investigation: int,
-    created_by: int,
+    id_investigation: UUID,
+    created_by: UUID,
     title: str,
     source_url: str,
     source_type: str,
@@ -232,7 +233,7 @@ def run_ocr(db: Session, source: InvestigationSource) -> InvestigationSource:
     return source
 
 
-def list_sources(db: Session, id_investigation: int) -> list[dict]:
+def list_sources(db: Session, id_investigation: UUID) -> list[dict]:
     """Liste les sources d'une enquete, plus recentes d'abord. Les medias
     embarques d'une page (role=page_media) sont masques par defaut pour ne pas
     noyer la liste, sauf ceux explicitement promus (show_in_list).
@@ -275,7 +276,7 @@ def list_embedded_media(db: Session, parent: InvestigationSource) -> list[dict]:
     return [_to_dict(s, pseudo) for s, pseudo in rows]
 
 
-def get_source(db: Session, id_source: int) -> Optional[InvestigationSource]:
+def get_source(db: Session, id_source: UUID) -> Optional[InvestigationSource]:
     """Goal: fetch a source by id. Input: db, id_source. Output: InvestigationSource or None."""
     return db.query(InvestigationSource).filter(InvestigationSource.id_source == id_source).first()
 

@@ -1,3 +1,4 @@
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 from sqlmodel import Session
@@ -7,6 +8,7 @@ from services import investigation_service, log_service, user_service
 from services import entity_service
 from services.collaborator_service import get_collaborator_permission
 from utils.security import verify_token
+from app.access import require_member
 from app.dependencies import get_db
 
 router = APIRouter(prefix="/investigations")
@@ -20,17 +22,9 @@ def get_current_user(payload: dict = Depends(verify_token), db: Session = Depend
     return user
 
 
-def _check_access(db: Session, investigation_id: int, user_id: int):
-    """Goal: ensure the investigation exists and the user is owner/collaborator. Input: db, investigation_id, user_id. Output: (investigation, permission) (403/404 on errors)."""
-    investigation = investigation_service.get_investigation_by_id(db, investigation_id)
-    if not investigation:
-        raise HTTPException(status_code=404, detail="Investigation not found")
-    is_owner = investigation.owner_id == user_id
-    collab_permission = get_collaborator_permission(db, investigation_id, user_id)
-    if not is_owner and not collab_permission:
-        raise HTTPException(status_code=403, detail="Access denied")
-    permission = "owner" if is_owner else collab_permission
-    return investigation, permission
+def _check_access(db: Session, investigation_id: UUID, user_id: UUID):
+    """Goal: return (investigation, permission) for a member. Input: db, investigation_id, user_id. Output: (investigation, permission) (404 if missing or not a member)."""
+    return require_member(db, investigation_id, user_id)
 
 
 def _require_write(permission: str):
@@ -44,7 +38,7 @@ def _require_write(permission: str):
 
 @router.get("/{investigation_id}/timeline")
 async def get_timeline(
-    investigation_id: int,
+    investigation_id: UUID,
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=50, ge=1, le=200),
     category: str = Query(default=""),
@@ -64,7 +58,7 @@ async def get_timeline(
 
 @router.get("/{investigation_id}/graph")
 async def get_graph(
-    investigation_id: int,
+    investigation_id: UUID,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -99,7 +93,7 @@ class EntityUpdateRequest(BaseModel):
 
 @router.get("/{investigation_id}/entities")
 async def list_entities(
-    investigation_id: int,
+    investigation_id: UUID,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -110,7 +104,7 @@ async def list_entities(
 
 @router.post("/{investigation_id}/entities")
 async def create_entity(
-    investigation_id: int,
+    investigation_id: UUID,
     body: EntityCreateRequest,
     request: Request,
     user=Depends(get_current_user),
@@ -149,8 +143,8 @@ async def create_entity(
 
 @router.patch("/{investigation_id}/entities/{entity_id}")
 async def update_entity(
-    investigation_id: int,
-    entity_id: int,
+    investigation_id: UUID,
+    entity_id: UUID,
     body: EntityUpdateRequest,
     request: Request,
     user=Depends(get_current_user),
@@ -188,7 +182,7 @@ async def update_entity(
 
 @router.post("/{investigation_id}/entities/reset-positions")
 async def reset_entity_positions(
-    investigation_id: int,
+    investigation_id: UUID,
     request: Request,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -210,8 +204,8 @@ async def reset_entity_positions(
 
 @router.delete("/{investigation_id}/entities/{entity_id}")
 async def delete_entity(
-    investigation_id: int,
-    entity_id: int,
+    investigation_id: UUID,
+    entity_id: UUID,
     request: Request,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -241,8 +235,8 @@ async def delete_entity(
 
 
 class RelationCreateRequest(BaseModel):
-    source_id: int
-    target_id: int
+    source_id: UUID
+    target_id: UUID
     label: Optional[str] = None
 
 
@@ -252,7 +246,7 @@ class RelationUpdateRequest(BaseModel):
 
 @router.get("/{investigation_id}/relations")
 async def list_relations(
-    investigation_id: int,
+    investigation_id: UUID,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -263,7 +257,7 @@ async def list_relations(
 
 @router.post("/{investigation_id}/relations")
 async def create_relation(
-    investigation_id: int,
+    investigation_id: UUID,
     body: RelationCreateRequest,
     request: Request,
     user=Depends(get_current_user),
@@ -305,8 +299,8 @@ async def create_relation(
 
 @router.patch("/{investigation_id}/relations/{relation_id}")
 async def update_relation(
-    investigation_id: int,
-    relation_id: int,
+    investigation_id: UUID,
+    relation_id: UUID,
     body: RelationUpdateRequest,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -325,8 +319,8 @@ async def update_relation(
 
 @router.delete("/{investigation_id}/relations/{relation_id}")
 async def delete_relation(
-    investigation_id: int,
-    relation_id: int,
+    investigation_id: UUID,
+    relation_id: UUID,
     request: Request,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),

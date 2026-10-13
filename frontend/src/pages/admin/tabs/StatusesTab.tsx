@@ -6,7 +6,7 @@ import { CircleDot, Plus, Pencil, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface StatusData {
-  id_status: number;
+  id_status: string;
   name: string;
   color: string | null;
   created_at: string | null;
@@ -199,7 +199,6 @@ export const StatusesTab = () => {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border">
-                <th className="text-left px-6 py-4 text-sm font-medium text-text-muted">{t('admin.statuses.colId')}</th>
                 <th className="text-left px-6 py-4 text-sm font-medium text-text-muted">{t('admin.statuses.colStatus')}</th>
                 <th className="text-left px-6 py-4 text-sm font-medium text-text-muted">{t('admin.statuses.colColor')}</th>
                 <th className="text-left px-6 py-4 text-sm font-medium text-text-muted">{t('admin.statuses.colCreated')}</th>
@@ -208,13 +207,12 @@ export const StatusesTab = () => {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={5} className="px-6 py-12 text-center text-text-muted">{t('admin.statuses.loading')}</td></tr>
+                <tr><td colSpan={4} className="px-6 py-12 text-center text-text-muted">{t('admin.statuses.loading')}</td></tr>
               ) : statuses.length === 0 ? (
-                <tr><td colSpan={5} className="px-6 py-12 text-center text-text-muted">{t('admin.statuses.empty')}</td></tr>
+                <tr><td colSpan={4} className="px-6 py-12 text-center text-text-muted">{t('admin.statuses.empty')}</td></tr>
               ) : (
                 statuses.map((s) => (
                   <tr key={s.id_status} className="border-b border-border-subtle hover:bg-card/20 transition-colors">
-                    <td className="px-6 py-4 text-text-muted text-sm font-mono">#{s.id_status}</td>
                     <td className="px-6 py-4"><StatusBadge name={s.name} color={s.color} /></td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">

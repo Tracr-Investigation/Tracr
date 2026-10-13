@@ -7,6 +7,7 @@ Endpoints :
   GET    /sources/{id}/download                telechargement du binaire
   DELETE /sources/{id}                         suppression
 """
+from uuid import UUID
 import json
 from datetime import datetime
 from urllib.parse import quote
@@ -17,6 +18,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel
 from sqlmodel import Session
 
+from app.access import require_member
 from app.dependencies import get_db
 from config import settings
 from services import (
@@ -47,29 +49,23 @@ def get_current_user(payload: dict = Depends(verify_token), db: Session = Depend
     return user
 
 
-def _check_investigation_access(db: Session, investigation_id: int, user_id: int):
-    """Goal: return (investigation, permission). 404 if missing, 403 if not a member. Input: db, investigation_id, user_id. Output: (investigation, permission)."""
-    investigation = investigation_service.get_investigation_by_id(db, investigation_id)
-    if not investigation:
-        raise HTTPException(status_code=404, detail="Investigation not found")
-    permission = task_service.get_user_permission(db, investigation_id, user_id)
-    if permission is None:
-        raise HTTPException(status_code=403, detail="Access denied")
-    return investigation, permission
+def _check_investigation_access(db: Session, investigation_id: UUID, user_id: UUID):
+    """Goal: return (investigation, permission) for a member. Input: db, investigation_id, user_id. Output: (investigation, permission) (404 if missing or not a member)."""
+    return require_member(db, investigation_id, user_id)
 
 
-def _load_source_with_access(db: Session, source_id: int, user_id: int):
+def _load_source_with_access(db: Session, source_id: UUID, user_id: UUID):
     """Goal: load the source and check access via its investigation. Input: db, source_id, user_id. Output: (source, permission) (404 if not found)."""
     source = source_service.get_source(db, source_id)
     if not source:
         raise HTTPException(status_code=404, detail="Source not found")
-    _, permission = _check_investigation_access(db, source.id_investigation, user_id)
+    _, permission = require_member(db, source.id_investigation, user_id, "Source not found")
     return source, permission
 
 
 @router.get("/{investigation_id}/sources")
 async def list_sources(
-    investigation_id: int,
+    investigation_id: UUID,
     request: Request,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -88,7 +84,7 @@ async def list_sources(
 
 @router.post("/{investigation_id}/sources")
 async def create_source(
-    investigation_id: int,
+    investigation_id: UUID,
     request: Request,
     file: UploadFile = File(...),
     title: str = Form(...),
@@ -168,7 +164,7 @@ async def create_source(
 
 @sources_router.get("/{source_id}")
 async def get_source(
-    source_id: int,
+    source_id: UUID,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -179,7 +175,7 @@ async def get_source(
 
 @sources_router.patch("/{source_id}")
 async def update_source(
-    source_id: int,
+    source_id: UUID,
     body: SourceUpdate,
     request: Request,
     user=Depends(get_current_user),
@@ -208,7 +204,7 @@ async def update_source(
 
 @sources_router.get("/{source_id}/media")
 async def list_source_media(
-    source_id: int,
+    source_id: UUID,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -219,7 +215,7 @@ async def list_source_media(
 
 @sources_router.get("/{source_id}/hits")
 async def get_source_hits(
-    source_id: int,
+    source_id: UUID,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -230,7 +226,7 @@ async def get_source_hits(
 
 @sources_router.post("/{source_id}/analyze")
 async def analyze_source(
-    source_id: int,
+    source_id: UUID,
     request: Request,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -253,7 +249,7 @@ async def analyze_source(
 
 @sources_router.post("/{source_id}/ocr")
 async def ocr_source(
-    source_id: int,
+    source_id: UUID,
     request: Request,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -280,7 +276,7 @@ async def ocr_source(
 
 @sources_router.get("/{source_id}/download")
 async def download_source(
-    source_id: int,
+    source_id: UUID,
     request: Request,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -330,17 +326,16 @@ def _parse_range(range_header: str, file_size: int) -> tuple[int, int] | None:
 
 @sources_router.get("/{source_id}/view")
 async def view_source(
-    source_id: int,
+    source_id: UUID,
     sig: str,
     request: Request,
     db: Session = Depends(get_db),
 ):
-    """Goal: serve content via a stable HMAC signature (no user auth), with Range support. Input: source_id, sig, request, db. Output: content Response (full or 206; 403/404/502 on errors)."""
+    """Goal: serve content via a stable HMAC signature (no user auth), with Range support. Input: source_id, sig, request, db. Output: content Response (full or 206; 404/502 on errors)."""
     source = source_service.get_source(db, source_id)
-    if not source:
+    # Signature invalide => meme 404 qu'une source inexistante (pas d'oracle d'existence)
+    if not source or not source_service.verify_view_signature(source, sig):
         raise HTTPException(status_code=404, detail="Source not found")
-    if not source_service.verify_view_signature(source, sig):
-        raise HTTPException(status_code=403, detail="Invalid signature")
 
     cache = "private, max-age=86400"
     rng = _parse_range(request.headers.get("range", ""), source.size_bytes)
@@ -374,7 +369,7 @@ async def view_source(
 
 @sources_router.delete("/{source_id}")
 async def delete_source(
-    source_id: int,
+    source_id: UUID,
     request: Request,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),

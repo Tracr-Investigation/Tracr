@@ -4,7 +4,7 @@ import { PASSWORD, uniquePseudo } from '../support/constants';
 
 describe('Documents', () => {
 
-  let invId: number;
+  let invId: string;
 
   before(() => {
     cy.registerByApi(uniquePseudo('doc'), PASSWORD);
@@ -36,7 +36,7 @@ describe('Documents', () => {
   });
 
   describe('Éditeur de document', () => {
-    let docId: number;
+    let docId: string;
 
     beforeEach(() => {
       cy.apiCreateDocument(invId, 'Doc Éditeur').then((doc) => {
@@ -53,7 +53,7 @@ describe('Documents', () => {
 
     it('ouvre le document dans l\'éditeur', () => {
       openEditor();
-      cy.url().should('match', /\/documents\/\d+/);
+      cy.url().should('match', /\/documents\/[0-9a-f-]{36}$/);
     });
 
     it('l\'éditeur Tiptap est interactif', () => {
@@ -71,7 +71,7 @@ describe('Documents', () => {
   });
 
   describe('Commentaires', () => {
-    let docId: number;
+    let docId: string;
 
     beforeEach(() => {
       cy.apiCreateDocument(invId, 'Doc Commentaires').then((doc) => {
@@ -95,7 +95,7 @@ describe('Documents', () => {
   });
 
   describe('Backups', () => {
-    let docId: number;
+    let docId: string;
 
     beforeEach(() => {
       cy.apiCreateDocument(invId, 'Doc Backup').then((doc) => {

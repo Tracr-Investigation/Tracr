@@ -6,7 +6,7 @@ import { IMAGE_WIDTHS } from './ImageNode';
 
 interface Props {
   editor: Editor;
-  investigationId: number;
+  investigationId: string;
   open: boolean;
   onClose: () => void;
 }

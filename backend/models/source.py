@@ -1,7 +1,8 @@
+import uuid
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import JSON, BigInteger, Boolean, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, BigInteger, Boolean, Column, DateTime, ForeignKey, String, Text, Uuid
 from sqlmodel import Field, SQLModel
 from zoneinfo import ZoneInfo
 
@@ -11,19 +12,19 @@ class InvestigationSource(SQLModel, table=True):
 
     __tablename__ = "investigation_sources"
 
-    id_source: Optional[int] = Field(default=None, primary_key=True)
-    id_investigation: int = Field(
+    id_source: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    id_investigation: uuid.UUID = Field(
         sa_column=Column(
-            Integer,
+            Uuid,
             ForeignKey("investigations.id_investigation", ondelete="CASCADE"),
             nullable=False,
             index=True,
         ),
     )
-    created_by: Optional[int] = Field(
+    created_by: Optional[uuid.UUID] = Field(
         default=None,
         sa_column=Column(
-            Integer,
+            Uuid,
             ForeignKey("users.id_user", ondelete="SET NULL"),
             nullable=True,
             index=True,

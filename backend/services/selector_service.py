@@ -4,6 +4,7 @@ Un "selecteur" est un identifiant recherche (email, telephone, pseudo, domaine,
 wallet crypto...) que l'on confronte au texte extrait des sources archivees pour
 detecter des correspondances ("hits"). Memes regles de permission que les sources.
 """
+from uuid import UUID
 import re
 from typing import Optional
 
@@ -79,7 +80,7 @@ def can_write(permission: Optional[str]) -> bool:
     return permission in ("owner", "manager", "editeur")
 
 
-def can_delete(permission: Optional[str], selector: InvestigationSelector, user_id: int) -> bool:
+def can_delete(permission: Optional[str], selector: InvestigationSelector, user_id: UUID) -> bool:
     """Goal: tell if a user may delete a selector (owner or its creator). Input: permission, selector, user_id. Output: bool."""
     return permission == "owner" or selector.created_by == user_id
 
@@ -87,8 +88,8 @@ def can_delete(permission: Optional[str], selector: InvestigationSelector, user_
 def create_selector(
     db: Session,
     *,
-    id_investigation: int,
-    created_by: int,
+    id_investigation: UUID,
+    created_by: UUID,
     selector_type: str,
     value: str,
     label: Optional[str] = None,
@@ -110,7 +111,7 @@ def create_selector(
     return selector
 
 
-def get_selector(db: Session, id_selector: int) -> Optional[InvestigationSelector]:
+def get_selector(db: Session, id_selector: UUID) -> Optional[InvestigationSelector]:
     """Goal: fetch a selector by id. Input: db, id_selector. Output: InvestigationSelector or None."""
     return (
         db.query(InvestigationSelector)
@@ -120,7 +121,7 @@ def get_selector(db: Session, id_selector: int) -> Optional[InvestigationSelecto
 
 
 def find_duplicate(
-    db: Session, id_investigation: int, selector_type: str, normalized_value: str
+    db: Session, id_investigation: UUID, selector_type: str, normalized_value: str
 ) -> Optional[InvestigationSelector]:
     """Goal: find an existing selector with the same type/normalized value. Input: db, id_investigation, selector_type, normalized_value. Output: InvestigationSelector or None."""
     return (
@@ -134,7 +135,7 @@ def find_duplicate(
     )
 
 
-def list_selectors(db: Session, id_investigation: int) -> list[dict]:
+def list_selectors(db: Session, id_investigation: UUID) -> list[dict]:
     """Goal: list an investigation's selectors (newest first, with author). Input: db, id_investigation. Output: list of selector dicts."""
     rows = (
         db.query(InvestigationSelector, User.pseudo)

@@ -1,3 +1,4 @@
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import Session
 
@@ -13,6 +14,7 @@ from utils.schemas import (
     TaskUpdateRequest,
 )
 from utils.security import verify_token
+from app.access import require_member
 from app.dependencies import get_db
 
 router = APIRouter(prefix="/investigations")
@@ -27,18 +29,12 @@ def get_current_user(payload: dict = Depends(verify_token), db: Session = Depend
     return user
 
 
-def _check_investigation_access(db: Session, investigation_id: int, user_id: int):
-    """Goal: ensure the investigation exists and the user has access. Input: db, investigation_id, user_id. Output: (investigation, permission) (403/404 on errors)."""
-    investigation = investigation_service.get_investigation_by_id(db, investigation_id)
-    if not investigation:
-        raise HTTPException(status_code=404, detail="Investigation not found")
-    permission = task_service.get_user_permission(db, investigation_id, user_id)
-    if permission is None:
-        raise HTTPException(status_code=403, detail="Access denied")
-    return investigation, permission
+def _check_investigation_access(db: Session, investigation_id: UUID, user_id: UUID):
+    """Goal: return (investigation, permission) for a member. Input: db, investigation_id, user_id. Output: (investigation, permission) (404 if missing or not a member)."""
+    return require_member(db, investigation_id, user_id)
 
 
-def _check_task_visibility(task, permission: str, user_id: int):
+def _check_task_visibility(task, permission: str, user_id: UUID):
     """Goal: ensure a private task is visible to the user. Input: task, permission, user_id. Output: None (404 if hidden)."""
     if task.is_private and permission != "owner" and task.created_by != user_id:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -46,7 +42,7 @@ def _check_task_visibility(task, permission: str, user_id: int):
 
 @router.get("/{investigation_id}/tasks")
 async def get_tasks(
-    investigation_id: int,
+    investigation_id: UUID,
     request: Request,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -65,7 +61,7 @@ async def get_tasks(
 
 @router.post("/{investigation_id}/tasks")
 async def create_task(
-    investigation_id: int,
+    investigation_id: UUID,
     body: TaskCreateRequest,
     request: Request,
     user=Depends(get_current_user),
@@ -119,8 +115,8 @@ async def create_task(
 
 @router.patch("/{investigation_id}/tasks/{task_id}")
 async def update_task(
-    investigation_id: int,
-    task_id: int,
+    investigation_id: UUID,
+    task_id: UUID,
     body: TaskUpdateRequest,
     request: Request,
     user=Depends(get_current_user),
@@ -188,8 +184,8 @@ async def update_task(
 
 @router.patch("/{investigation_id}/tasks/{task_id}/move")
 async def move_task(
-    investigation_id: int,
-    task_id: int,
+    investigation_id: UUID,
+    task_id: UUID,
     body: TaskMoveRequest,
     request: Request,
     user=Depends(get_current_user),
@@ -222,8 +218,8 @@ async def move_task(
 
 @router.delete("/{investigation_id}/tasks/{task_id}")
 async def delete_task(
-    investigation_id: int,
-    task_id: int,
+    investigation_id: UUID,
+    task_id: UUID,
     request: Request,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -257,8 +253,8 @@ async def delete_task(
 
 @router.get("/{investigation_id}/tasks/{task_id}/responses")
 async def get_task_responses(
-    investigation_id: int,
-    task_id: int,
+    investigation_id: UUID,
+    task_id: UUID,
     request: Request,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -284,8 +280,8 @@ async def get_task_responses(
 
 @router.post("/{investigation_id}/tasks/{task_id}/responses")
 async def create_task_response(
-    investigation_id: int,
-    task_id: int,
+    investigation_id: UUID,
+    task_id: UUID,
     body: TaskResponseCreateRequest,
     request: Request,
     user=Depends(get_current_user),
@@ -313,9 +309,9 @@ async def create_task_response(
 
 @router.delete("/{investigation_id}/tasks/{task_id}/responses/{response_id}")
 async def delete_task_response(
-    investigation_id: int,
-    task_id: int,
-    response_id: int,
+    investigation_id: UUID,
+    task_id: UUID,
+    response_id: UUID,
     request: Request,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -371,7 +367,7 @@ async def get_assigned_tasks(
 
 # --- Tâches personnelles (hors enquête, id_investigation NULL) -----------------
 
-def _get_owned_personal_task(db: Session, task_id: int, user_id: int):
+def _get_owned_personal_task(db: Session, task_id: UUID, user_id: UUID):
     """Goal: fetch a personal task owned by the user, else 404. Input: db, task_id, user_id. Output: the task (404 otherwise)."""
     task = task_service.get_task_by_id(db, task_id)
     if not task or task.id_investigation is not None or task.created_by != user_id:
@@ -419,7 +415,7 @@ async def create_personal_task(
 
 @me_router.patch("/personal/{task_id}")
 async def update_personal_task(
-    task_id: int,
+    task_id: UUID,
     body: PersonalTaskUpdateRequest,
     request: Request,
     user=Depends(get_current_user),
@@ -448,7 +444,7 @@ async def update_personal_task(
 
 @me_router.patch("/personal/{task_id}/move")
 async def move_personal_task(
-    task_id: int,
+    task_id: UUID,
     body: TaskMoveRequest,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -460,7 +456,7 @@ async def move_personal_task(
 
 @me_router.delete("/personal/{task_id}")
 async def delete_personal_task(
-    task_id: int,
+    task_id: UUID,
     request: Request,
     user=Depends(get_current_user),
     db: Session = Depends(get_db),

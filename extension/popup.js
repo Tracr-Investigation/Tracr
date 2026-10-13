@@ -27,6 +27,9 @@ async function getActiveTab() {
   return tab;
 }
 
+// Identifiants d'enquete : UUID opaques.
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /** Extract the hostname from a URL, falling back to the raw string. */
 function hostOf(url) {
   try { return new URL(url).hostname; } catch { return url || ''; }
@@ -191,9 +194,10 @@ function escapeHtml(s) {
 
 /** Return {id, title} of the selected investigation, or null if none. */
 function currentInvestigation() {
-  const id = parseInt(els.investigationSelect.value, 10);
+  // Identifiant opaque (UUID) : jamais converti en nombre.
+  const id = els.investigationSelect.value;
   const title = els.investigationSelect.selectedOptions[0]?.textContent || '';
-  return Number.isNaN(id) ? null : { id, title };
+  return UUID_PATTERN.test(id) ? { id, title } : null;
 }
 
 /** Collect metadata about the active tab (title, viewport, user agent). */

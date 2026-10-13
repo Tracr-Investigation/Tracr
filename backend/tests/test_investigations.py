@@ -9,6 +9,12 @@ endpoints couverts
   POST GET /investigations/{id}/collaborators
 """
 
+import uuid
+
+# UUID fixes des statuts seedes (cf. conftest / migration 0001_uuid_initial)
+STATUS_EN_COURS = "5ea9bbe6-83f0-4b28-ad19-50420c566837"
+STATUS_SUSPENDUE = "0a4a652a-7402-4ce2-aeaa-a269d4ea5cc9"
+
 
 class TestInvestigationCRUD:
     """tests crud investigations"""
@@ -122,7 +128,7 @@ class TestInvestigationCRUD:
         Returns:
             None
         """
-        assert client.get("/investigations/999999", headers=auth).status_code == 404
+        assert client.get(f"/investigations/{uuid.uuid4()}", headers=auth).status_code == 404
 
     def test_update_investigation(self, client, auth, investigation):
         """verifie que le proprietaire peut modifier titre et description
@@ -167,7 +173,8 @@ class TestInvestigationCRUD:
             None
         """
         inv_id = investigation["id_investigation"]
-        assert client.delete(f"/investigations/{inv_id}", headers=second_auth).status_code == 403
+        # non-membre : meme 404 qu'une enquete inexistante
+        assert client.delete(f"/investigations/{inv_id}", headers=second_auth).status_code == 404
 
 
 class TestInvestigationStatus:
@@ -201,7 +208,7 @@ class TestInvestigationStatus:
             None
         """
         inv_id = investigation["id_investigation"]
-        assert client.patch(f"/investigations/{inv_id}/status", json={"id_status": 1}, headers=auth).status_code == 200
+        assert client.patch(f"/investigations/{inv_id}/status", json={"id_status": STATUS_EN_COURS}, headers=auth).status_code == 200
 
     def test_update_status_not_owner(self, client, second_auth, investigation):
         """verifie qu un non proprietaire ne peut pas changer le statut
@@ -215,7 +222,7 @@ class TestInvestigationStatus:
             None
         """
         inv_id = investigation["id_investigation"]
-        assert client.patch(f"/investigations/{inv_id}/status", json={"id_status": 2}, headers=second_auth).status_code == 403
+        assert client.patch(f"/investigations/{inv_id}/status", json={"id_status": STATUS_SUSPENDUE}, headers=second_auth).status_code == 404
 
 
 class TestRecentInvestigations:

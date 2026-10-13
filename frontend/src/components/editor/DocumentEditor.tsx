@@ -27,22 +27,22 @@ const TOAST_TEMPLATE_INSERTED = 'Template inséré';
 const TOAST_TEMPLATE_ERROR_FALLBACK = 'Erreur';
 
 interface Props {
-  documentId: number;
-  investigationId: number;
+  documentId: string;
+  investigationId: string;
   initialContent: string;
   readOnly: boolean;
   isOwner: boolean;
-  currentUserId: number;
+  currentUserId: string;
   currentUserPseudo: string;
   onContentChange: (html: string) => void;
   onRemoteUsersChange?: (users: RemoteUser[]) => void;
-  onEntityMentionClick?: (entityId: number) => void;
+  onEntityMentionClick?: (entityId: string) => void;
 }
 
 interface CursorUserInfo {
   name: string;
   color: string;
-  userId: number;
+  userId: string;
 }
 
 const buildCollaborationExtensions = (
@@ -59,7 +59,7 @@ const buildExtensions = (
   ydoc: Y.Doc | undefined,
   provider: WebsocketProvider | undefined,
   user: CursorUserInfo,
-  investigationId: number,
+  investigationId: string,
 ): Extensions => {
   const hasCollaboration = Boolean(ydoc && provider);
   const base = createBaseExtensions(PLACEHOLDER_TEXT, hasCollaboration);
@@ -152,7 +152,7 @@ export const DocumentEditor = forwardRef<DocumentEditorHandle, Props>(({
 
   // ── Template insertion ────────────────────────────────────────────────────
 
-  const insertTemplateAt = useCallback(async (templateId: number, pos?: number) => {
+  const insertTemplateAt = useCallback(async (templateId: string, pos?: number) => {
     if (!editor) return;
     const template = await api.getTemplate(templateId);
     const html = template.content_html || '';
@@ -163,7 +163,7 @@ export const DocumentEditor = forwardRef<DocumentEditorHandle, Props>(({
     }
   }, [editor]);
 
-  const handleInsertTemplate = useCallback(async (templateId: number) => {
+  const handleInsertTemplate = useCallback(async (templateId: string) => {
     try {
       await insertTemplateAt(templateId);
       toast('success', TOAST_TEMPLATE_INSERTED);
@@ -198,7 +198,7 @@ export const DocumentEditor = forwardRef<DocumentEditorHandle, Props>(({
     const pos = posResult?.pos;
 
     try {
-      await insertTemplateAt(Number(rawId), pos);
+      await insertTemplateAt(rawId, pos);
       toast('success', TOAST_TEMPLATE_INSERTED);
     } catch (err) {
       toast('error', getErrorMessage(err, TOAST_TEMPLATE_ERROR_FALLBACK));
@@ -216,7 +216,7 @@ export const DocumentEditor = forwardRef<DocumentEditorHandle, Props>(({
     if (!onEntityMentionClick) return;
     const mention = (e.target as HTMLElement).closest('.entity-mention');
     const id = mention?.getAttribute('data-id');
-    if (id) onEntityMentionClick(Number(id));
+    if (id) onEntityMentionClick(id);
   }, [onEntityMentionClick]);
 
   // ── Render ────────────────────────────────────────────────────────────────

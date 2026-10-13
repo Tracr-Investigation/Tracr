@@ -8,7 +8,7 @@ import {useToast} from '../../contexts/ToastContext';
 import {api} from '../../services/api';
 import {FileSearch, Plus, X, Calendar, Users, RotateCcw, Tag, Search, Filter, ChevronRight} from 'lucide-react';
 import {formatRelativeDate} from '../../utils/date';
-import {toInvestigationSlug} from '../../utils/slug';
+import {investigationPath} from '../../utils/paths';
 import * as LucideIcons from 'lucide-react';
 
 function getIconComponent(iconName: string | null): React.ComponentType<{ size?: number; className?: string }> {
@@ -20,20 +20,20 @@ function getIconComponent(iconName: string | null): React.ComponentType<{ size?:
 }
 
 interface StatusData {
-    id_status: number;
+    id_status: string;
     name: string;
     color: string | null;
 }
 
 interface CategoryData {
-    id_category: number;
+    id_category: string;
     name: string;
     color: string | null;
     icon: string | null;
 }
 
 interface InvestigationData {
-    id_investigation: number;
+    id_investigation: string;
     title: string;
     description: string | null;
     is_owner: boolean;
@@ -50,9 +50,9 @@ const StatusDropdown = ({
     onSelect,
     onClose,
 }: {
-    currentStatusId: number;
+    currentStatusId: string;
     statuses: StatusData[];
-    onSelect: (id: number) => void;
+    onSelect: (id: string) => void;
     onClose: () => void;
 }) => {
     const ref = useRef<HTMLDivElement>(null);
@@ -229,10 +229,10 @@ export const Investigations = () => {
     const [showCreate, setShowCreate] = useState(false);
     const [statuses, setStatuses] = useState<StatusData[]>([]);
     const [categories, setCategories] = useState<CategoryData[]>([]);
-    const [openDropdown, setOpenDropdown] = useState<number | null>(null);
+    const [openDropdown, setOpenDropdown] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
-    const [filterStatusId, setFilterStatusId] = useState<number | null>(null);
-    const [filterCategoryId, setFilterCategoryId] = useState<number | null>(null);
+    const [filterStatusId, setFilterStatusId] = useState<string | null>(null);
+    const [filterCategoryId, setFilterCategoryId] = useState<string | null>(null);
     const {toast} = useToast();
     const navigate = useNavigate();
     usePageTitle(t('sidebar.investigations'));
@@ -270,7 +270,7 @@ export const Investigations = () => {
         fetchCategories();
     }, [fetchInvestigations, fetchStatuses, fetchCategories]);
 
-    const handleStatusChange = async (investigationId: number, newStatusId: number) => {
+    const handleStatusChange = async (investigationId: string, newStatusId: string) => {
         setOpenDropdown(null);
         try {
             await api.updateInvestigationStatus(investigationId, newStatusId);
@@ -340,7 +340,7 @@ export const Investigations = () => {
                         <Filter size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-dim pointer-events-none"/>
                         <select
                             value={filterStatusId ?? ''}
-                            onChange={(e) => setFilterStatusId(e.target.value ? Number(e.target.value) : null)}
+                            onChange={(e) => setFilterStatusId(e.target.value || null)}
                             className="pl-8 pr-8 py-2.5 bg-input-bg border border-border rounded-xl text-sm text-text-default focus:outline-none focus:border-[var(--theme-primary)] transition-colors appearance-none cursor-pointer"
                         >
                             <option value="">{t('investigations.allStatuses')}</option>
@@ -354,7 +354,7 @@ export const Investigations = () => {
                         <Tag size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-dim pointer-events-none"/>
                         <select
                             value={filterCategoryId ?? ''}
-                            onChange={(e) => setFilterCategoryId(e.target.value ? Number(e.target.value) : null)}
+                            onChange={(e) => setFilterCategoryId(e.target.value || null)}
                             className="pl-8 pr-8 py-2.5 bg-input-bg border border-border rounded-xl text-sm text-text-default focus:outline-none focus:border-[var(--theme-primary)] transition-colors appearance-none cursor-pointer"
                         >
                             <option value="">{t('investigations.allCategories')}</option>
@@ -401,11 +401,10 @@ export const Investigations = () => {
                         {filteredInvestigations.map((inv) => (
                             <button
                                 key={inv.id_investigation}
-                                onClick={() => navigate(`/investigations/${toInvestigationSlug(inv.title, inv.id_investigation)}`)}
+                                onClick={() => navigate(investigationPath(inv.id_investigation))}
                                 className="w-full text-left p-4 rounded-xl border border-border-subtle bg-card/30 hover:border-border hover:bg-input-bg transition-all group"
                             >
                                 <div className="flex items-center gap-3 min-w-0">
-                                    <span className="text-text-dim text-xs font-mono shrink-0">#{inv.id_investigation}</span>
                                     <span className="text-text-default font-semibold truncate flex-1">{inv.title}</span>
                                     {!inv.is_owner && (
                                         <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-blue-500/15 text-blue-400 shrink-0">

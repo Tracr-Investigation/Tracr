@@ -211,7 +211,7 @@ export const KanbanBoard = ({
     tasks: TaskData[];
     showAssignee?: boolean;
     canMoveTask?: (task: TaskData) => boolean;
-    onMove: (taskId: number, status: TaskStatus, position: number) => void;
+    onMove: (taskId: string, status: TaskStatus, position: number) => void;
     onCardClick: (task: TaskData) => void;
     onAddCard?: (status: TaskStatus) => void;
 }) => {
@@ -281,7 +281,7 @@ export const KanbanBoard = ({
             if (newIndex < 0) newIndex = items.length - 1;
             const reordered = arrayMove(items, oldIndex, newIndex);
             const finalIndex = reordered.findIndex((t) => t.id_task === active.id);
-            onMove(Number(active.id), overCol, finalIndex);
+            onMove(String(active.id), overCol, finalIndex);
             return { ...prev, [overCol]: reordered };
         });
     };

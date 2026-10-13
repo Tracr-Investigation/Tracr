@@ -35,24 +35,24 @@ import {
 import {KanbanBoard} from '../../../components/tasks/KanbanBoard';
 
 interface CollaboratorData {
-    id_collaborator: number;
-    id_user: number;
+    id_collaborator: string;
+    id_user: string;
     pseudo: string;
     permission_level: string;
     accepted_at: string | null;
 }
 
 interface InvestigationData {
-    id_investigation: number;
+    id_investigation: string;
     user_permission: string | null;
     collaborators: CollaboratorData[];
-    owner: { id_user: number; pseudo: string };
+    owner: { id_user: string; pseudo: string };
 }
 
 interface TaskResponseData {
-    id_response: number;
-    id_task: number;
-    id_user: number | null;
+    id_response: string;
+    id_task: string;
+    id_user: string | null;
     pseudo: string | null;
     content: string;
     created_at: string | null;
@@ -69,8 +69,8 @@ const TaskDetailModal = ({
                              members,
                          }: {
     task: TaskData;
-    investigationId: number;
-    currentUserId: number;
+    investigationId: string;
+    currentUserId: string;
     userPermission: string | null;
     onClose: () => void;
     onRefresh: () => void;
@@ -134,7 +134,7 @@ const TaskDetailModal = ({
         }
     };
 
-    const handleDeleteComment = async (responseId: number) => {
+    const handleDeleteComment = async (responseId: string) => {
         try {
             await api.deleteTaskResponse(investigationId, task.id_task, responseId);
             fetchResponses();
@@ -363,7 +363,7 @@ export const TasksTab = ({
                              currentUserId,
                          }: {
     investigation: InvestigationData;
-    currentUserId: number;
+    currentUserId: string;
 }) => {
     const {t} = useTranslation();
     const {toast} = useToast();
@@ -378,7 +378,7 @@ export const TasksTab = ({
     const [filterStatus, setFilterStatus] = useState<string>('all');
     const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
     const statusDropdownRef = useRef<HTMLDivElement>(null);
-    const [closingTaskId, setClosingTaskId] = useState<number | null>(null);
+    const [closingTaskId, setClosingTaskId] = useState<string | null>(null);
     const [showCompleted, setShowCompleted] = useState(false);
 
     const userPermission = investigation.user_permission;
@@ -450,7 +450,7 @@ export const TasksTab = ({
         }
     };
 
-    const handleMove = useCallback(async (taskId: number, status: TaskStatus, position: number) => {
+    const handleMove = useCallback(async (taskId: string, status: TaskStatus, position: number) => {
         // Optimistic local update
         setTasks((prev) => prev.map((t) => (t.id_task === taskId ? {...t, status, position} : t)));
         try {

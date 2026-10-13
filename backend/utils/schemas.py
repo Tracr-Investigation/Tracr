@@ -3,6 +3,7 @@
 Defines input constraints (lengths, formats, Kanban patterns) and shared
 validators (password strength, non-blank name).
 """
+from uuid import UUID
 from datetime import date, datetime
 from enum import Enum
 from typing import Optional
@@ -99,6 +100,14 @@ class InvestigationTransferRequest(BaseModel):
     new_owner_pseudo: str = Field(min_length=1, max_length=50)
 
 
+class InvestigationStatusUpdateRequest(BaseModel):
+    id_status: UUID
+
+
+class InvestigationCategoryAssignRequest(BaseModel):
+    id_category: UUID
+
+
 # Statuts Kanban (colonnes) - doit rester aligné avec l'enum TaskStatus
 TASK_STATUS_PATTERN = "^(todo|en_cours|bloque|en_revue|a_valider|termine)$"
 TASK_PRIORITY_PATTERN = "^(basse|normale|haute|urgente)$"
@@ -110,7 +119,7 @@ class TaskCreateRequest(BaseModel):
     status: str = Field(default="todo", pattern=TASK_STATUS_PATTERN)
     priority: str = Field(default="normale", pattern=TASK_PRIORITY_PATTERN)
     is_private: bool = Field(default=False)
-    assigned_to: Optional[int] = Field(default=None)
+    assigned_to: Optional[UUID] = Field(default=None)
     due_date: Optional[datetime] = Field(default=None)
 
 
@@ -120,7 +129,7 @@ class TaskUpdateRequest(BaseModel):
     status: Optional[str] = Field(default=None, pattern=TASK_STATUS_PATTERN)
     priority: Optional[str] = Field(default=None, pattern=TASK_PRIORITY_PATTERN)
     is_private: Optional[bool] = Field(default=None)
-    assigned_to: Optional[int] = Field(default=None)
+    assigned_to: Optional[UUID] = Field(default=None)
     clear_assigned: bool = Field(default=False)
     due_date: Optional[datetime] = Field(default=None)
     clear_due_date: bool = Field(default=False)
@@ -220,7 +229,7 @@ class MfaLoginRequest(BaseModel):
 class DocumentCreateRequest(BaseModel):
     title: str = Field(min_length=1, max_length=255)
     content_html: str | None = Field(default="")
-    id_template: int | None = Field(default=None)
+    id_template: UUID | None = Field(default=None)
 
 class DocumentUpdateRequest(BaseModel):
     title: str | None = Field(default=None, min_length=1, max_length=255)
@@ -241,14 +250,14 @@ class TemplateCreateRequest(BaseModel):
     description: str | None = Field(default="", max_length=2000)
     content_html: str | None = Field(default="", max_length=1_000_000)
     is_public: bool = Field(default=False)
-    id_category_template: int | None = Field(default=None)
+    id_category_template: UUID | None = Field(default=None)
 
 class TemplateUpdateRequest(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=255)
     description: str | None = Field(default=None, max_length=2000)
     content_html: str | None = Field(default=None, max_length=1_000_000)
     is_public: bool | None = Field(default=None)
-    id_category_template: int | None = Field(default=None)
+    id_category_template: UUID | None = Field(default=None)
     clear_category: bool = Field(default=False)
 
     @field_validator("name")

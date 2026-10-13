@@ -1,5 +1,6 @@
+import uuid
 from typing import Optional
-from sqlalchemy import Column, ForeignKey, Integer, UniqueConstraint
+from sqlalchemy import Column, ForeignKey, UniqueConstraint, Uuid
 from sqlmodel import Field, SQLModel
 
 
@@ -11,18 +12,18 @@ class InvestigationCategory(SQLModel, table=True):
         UniqueConstraint("id_investigation", "id_category", name="uq_investigation_category"),
     )
 
-    id: Optional[int] = Field(default=None, primary_key=True)
-    id_investigation: int = Field(
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    id_investigation: uuid.UUID = Field(
         sa_column=Column(
-            Integer,
+            Uuid,
             ForeignKey("investigations.id_investigation", ondelete="CASCADE"),
             nullable=False,
             index=True,
         ),
     )
-    id_category: int = Field(
+    id_category: uuid.UUID = Field(
         sa_column=Column(
-            Integer,
+            Uuid,
             ForeignKey("categories.id_category", ondelete="CASCADE"),
             nullable=False,
             index=True,

@@ -1,3 +1,4 @@
+from uuid import UUID
 from typing import Optional
 
 from sqlalchemy.orm import Session
@@ -22,7 +23,7 @@ def get_all_statuses(db: Session) -> list[dict]:
     ]
 
 
-def get_status_by_id(db: Session, status_id: int) -> Optional[InvestigationStatus]:
+def get_status_by_id(db: Session, status_id: UUID) -> Optional[InvestigationStatus]:
     """Goal: fetch a status by id. Input: db, status_id. Output: InvestigationStatus or None."""
     return (
         db.query(InvestigationStatus)

@@ -18,7 +18,7 @@ const KIND_META: Record<IocKind, {label: string; icon: IconCmp; color: string}> 
 const KIND_ORDER: IocKind[] = ['ip', 'domain', 'email', 'hash', 'cve', 'crypto'];
 
 interface Props {
-    investigationId: number;
+    investigationId: string;
     html: string;
     canEdit: boolean;
     onClose: () => void;

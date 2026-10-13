@@ -7,6 +7,7 @@ generated around it:
   - "Gestion du document" sheet, summary page;
   - annexes: cited archived sources, Admiralty rating grid.
 """
+from uuid import UUID
 import html as html_lib
 import re
 from datetime import date
@@ -181,7 +182,7 @@ def summary_section(summary: Optional[str]) -> str:
 
 # ── Annexes ──────────────────────────────────────────────────────────────────
 
-_SOURCE_VIEW_ID_RE = re.compile(r"/sources/(\d+)/view")
+_SOURCE_VIEW_ID_RE = re.compile(r"/sources/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/view")
 _HREF_RE = re.compile(r'href="([^"]+)"')
 
 SOURCE_TYPE_LABELS = {
@@ -200,13 +201,13 @@ def format_captured_at(value, fmt: str = "%d/%m/%Y %H:%M") -> str:
     return value.astimezone(ZoneInfo("Europe/Paris")).strftime(fmt)
 
 
-def cited_sources(db, id_investigation: int, html: str) -> list:
+def cited_sources(db, id_investigation: UUID, html: str) -> list:
     """Goal: list the investigation's archived sources cited in the document, in order of first citation. Input: db, id_investigation, sanitized HTML. Output: list of InvestigationSource (by embedded view id, or by link URL)."""
     from models.source import InvestigationSource
 
-    ids: List[int] = []
+    ids: List[UUID] = []
     for match in _SOURCE_VIEW_ID_RE.finditer(html or ""):
-        sid = int(match.group(1))
+        sid = UUID(match.group(1))
         if sid not in ids:
             ids.append(sid)
     urls: List[str] = []
